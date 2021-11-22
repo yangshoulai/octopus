@@ -1,4 +1,6 @@
-package com.octopus.core;
+package com.octopus.core.store;
+
+import com.octopus.core.Request;
 
 /**
  * 请求存储器
@@ -6,19 +8,19 @@ package com.octopus.core;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/19
  */
-public interface OctopusStore {
+public interface Store {
 
   /**
    * 获取一个请求
    *
    * @return 下载请求
    */
-  OctopusRequest get();
+  Request get();
 
   /**
    * 存入一个请求
    *
    * @param request 下载请求
    */
-  void put(OctopusRequest request);
+  boolean put(Request request);
 }

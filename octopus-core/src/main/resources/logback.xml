@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>[%d] [%-9thread] %-5level %logger{30} - %msg %n</pattern>
+    </encoder>
+  </appender>
+
+  <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    <file>logs/sample.log</file>
+    <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+      <fileNamePattern>logs/sample.%d{yyyy-MM-dd}.log</fileNamePattern>
+      <maxHistory>30</maxHistory>
+    </rollingPolicy>
+    <encoder>
+      <pattern>[%d] [%-9thread] %-5level %logger{30} - %msg %n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="Octopus" level="DEBUG"/>
+  <logger name="com.octopus" level="DEBUG"/>
+  <logger name="org.apache" level="INFO"/>
+  <logger name="org.apache.http" level="WARN"/>
+  <logger name="org.mongodb" level="WARN"/>
+  <logger name="com.yann.octopus.proxies" level="WARN"/>
+  <logger name="com.yann.octopus.proxies.FreeProxyUnifyProvider" level="INFO"/>
+  <root level="INFO">
+<!--    <appender-ref ref="FILE"/>-->
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

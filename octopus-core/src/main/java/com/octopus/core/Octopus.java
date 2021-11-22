@@ -1,5 +1,6 @@
 package com.octopus.core;
 
+import com.octopus.core.exception.OctopusException;
 import java.util.concurrent.Future;
 
 /**
@@ -34,7 +35,12 @@ public interface Octopus {
    * 添加请求
    *
    * @param request 下载请求
+   * @return octopus
    * @throws OctopusException 添加请求异常
    */
-  void addRequest(OctopusRequest request) throws OctopusException;
+  void addRequest(Request request) throws OctopusException;
+
+  static OctopusBuilder builder() {
+    return new OctopusBuilder();
+  }
 }

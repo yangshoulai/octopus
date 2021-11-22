@@ -4,7 +4,7 @@ package com.octopus.core;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/19
  */
-public enum OctopusState {
+public enum State {
   /** 新建 */
   NEW(1, "New"),
   /** 启动中 */
@@ -24,7 +24,7 @@ public enum OctopusState {
   /** 说明 */
   private final String label;
 
-  OctopusState(int state, String label) {
+  State(int state, String label) {
     this.state = state;
     this.label = label;
   }
