@@ -55,6 +55,7 @@ public class RateLimiter {
   public void acquire() throws InterruptedException {
     if (this.scheduler != null && !this.scheduler.isShutdown()) {
       this.semaphore.acquire();
+      return;
     }
     throw new IllegalStateException("Rate limiter must start before acquire a permit");
   }

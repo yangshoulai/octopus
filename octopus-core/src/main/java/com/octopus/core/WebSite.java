@@ -2,6 +2,7 @@ package com.octopus.core;
 
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.utils.RateLimiter;
+import lombok.NonNull;
 
 /**
  * 目标网站信息
@@ -19,6 +20,10 @@ public class WebSite {
 
   /** 网站的下载配置 */
   private DownloadConfig downloadConfig;
+
+  public WebSite(@NonNull String host) {
+    this.host = host;
+  }
 
   public String getHost() {
     return host;
@@ -45,5 +50,9 @@ public class WebSite {
   public WebSite setDownloadConfig(DownloadConfig downloadConfig) {
     this.downloadConfig = downloadConfig;
     return this;
+  }
+
+  public static WebSite of(@NonNull String host) {
+    return new WebSite(host);
   }
 }

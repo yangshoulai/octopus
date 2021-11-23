@@ -23,6 +23,7 @@ import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.CookieSpecs;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
@@ -162,7 +163,8 @@ public class HttpClientDownloader implements Downloader {
         RequestConfig.custom()
             .setConnectionRequestTimeout(config.getConnectTimeout())
             .setConnectTimeout(config.getConnectTimeout())
-            .setSocketTimeout(config.getSocketTimeout());
+            .setSocketTimeout(config.getSocketTimeout())
+            .setCookieSpec(CookieSpecs.STANDARD);
 
     if (proxy != null && proxy != Proxy.NO_PROXY) {
       InetSocketAddress address = (InetSocketAddress) proxy.address();

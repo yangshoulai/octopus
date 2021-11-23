@@ -10,9 +10,8 @@ import com.octopus.core.Request;
 public class OctopusTest {
 
   public static void main(String[] args) throws InterruptedException {
-    Octopus octopus = Octopus.builder().autoStop(false).build();
-    octopus.startAsync();
-    Thread.sleep(1000);
+    Octopus octopus = Octopus.builder().autoStop(true).build();
     octopus.addRequest(Request.get("http://www.baidu.com"));
+    octopus.startAsync();
   }
 }

@@ -7,10 +7,13 @@ import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.store.MemoryStore;
+import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import lombok.NonNull;
+import redis.clients.jedis.JedisPool;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -32,15 +35,44 @@ public class OctopusBuilder {
 
   private DownloadConfig globalDownloadConfig;
 
-  private boolean autoStop = false;
+  private boolean autoStop = true;
+
+  private boolean clearStoreOnStartup = true;
+
+  private final List<Request> seeds = new ArrayList<>();
 
   public OctopusBuilder setDownloader(@NonNull Downloader downloader) {
     this.downloader = downloader;
     return this;
   }
 
+  public OctopusBuilder useHttpClientDownloader() {
+    this.downloader = new HttpClientDownloader();
+    return this;
+  }
+
   public OctopusBuilder setStore(Store store) {
     this.store = store;
+    return this;
+  }
+
+  public OctopusBuilder useRedisStore(@NonNull JedisPool pool) {
+    this.store = new RedisStore(pool);
+    return this;
+  }
+
+  public OctopusBuilder useRedisStore(@NonNull String keyPrefix, @NonNull JedisPool pool) {
+    this.store = new RedisStore(keyPrefix, pool);
+    return this;
+  }
+
+  public OctopusBuilder useRedisStore() {
+    this.store = new RedisStore();
+    return this;
+  }
+
+  public OctopusBuilder useRedisStore(@NonNull String keyPrefix) {
+    this.store = new RedisStore(keyPrefix, new JedisPool());
     return this;
   }
 
@@ -81,6 +113,25 @@ public class OctopusBuilder {
     return this;
   }
 
+  public OctopusBuilder clearStoreOnStartup() {
+    return this.clearStoreOnStartup(true);
+  }
+
+  public OctopusBuilder clearStoreOnStartup(boolean clearStoreOnStartup) {
+    this.clearStoreOnStartup = clearStoreOnStartup;
+    return this;
+  }
+
+  public OctopusBuilder addSeeds(@NonNull Request... seeds) {
+    Arrays.stream(seeds).sorted().forEach(this.seeds::add);
+    return this;
+  }
+
+  public OctopusBuilder addSeeds(@NonNull String... seeds) {
+    Arrays.stream(seeds).sorted().forEach(seed -> this.seeds.add(Request.get(seed)));
+    return this;
+  }
+
   public Octopus build() {
     OctopusImpl octopus = new OctopusImpl();
     octopus.setDownloader(this.downloader == null ? new HttpClientDownloader() : this.downloader);
@@ -95,6 +146,8 @@ public class OctopusBuilder {
     octopus.setGlobalDownloadConfig(
         this.globalDownloadConfig == null ? new CommonDownloadConfig() : null);
     octopus.setAutoStop(this.autoStop);
+    octopus.setClearStoreOnStartup(this.clearStoreOnStartup);
+    octopus.setSeeds(this.seeds);
     return octopus;
   }
 }

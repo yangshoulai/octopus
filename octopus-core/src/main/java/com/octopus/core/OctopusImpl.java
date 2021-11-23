@@ -13,6 +13,7 @@ import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RequestHelper;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -67,6 +68,10 @@ class OctopusImpl implements Octopus {
 
   private boolean autoStop = false;
 
+  private boolean clearStoreOnStartup = true;
+
+  private List<Request> seeds = new ArrayList<>();
+
   @Override
   public void start() throws OctopusException {
     Future<Void> future = this.startAsync();
@@ -86,8 +91,13 @@ class OctopusImpl implements Octopus {
     this.boss = this.createBossExecutor();
     this.workers = this.createWorkerExecutor();
     this.workerSemaphore = new Semaphore(this.threads);
+    if (this.clearStoreOnStartup) {
+      this.store.clear();
+    }
+    if (this.seeds != null) {
+      this.seeds.forEach(this::addRequest);
+    }
     this.startRateLimiters();
-    this.translateState(State.STARTING, State.STARTED);
     this.translateState(State.STARTING, State.STARTED);
     log.info(
         "Octopus started at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
@@ -112,6 +122,17 @@ class OctopusImpl implements Octopus {
       lock.unlock();
     }
     this.translateState(State.STOPPING, State.STOPPED);
+
+    int total = this.store.getTotalSize();
+    int completed = this.store.getCompletedSize();
+    int waiting = this.store.getWaitingSize();
+    int failed = total - completed - waiting;
+    log.info(
+        "Total = [{}], completed = [{}], waiting = [{}], failed = [{}]",
+        total,
+        completed,
+        waiting,
+        failed);
     log.info(
         "Octopus stopped at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
   }
@@ -123,19 +144,26 @@ class OctopusImpl implements Octopus {
       throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
     }
     request.setId(RequestHelper.generateId(request));
-    this.listeners.forEach(listener -> listener.beforeStore(request));
-
-    if (this.store.put(request)) {
-      if (this.translateState(State.IDLE, State.STARTED)) {
-        lock.lock();
-        try {
-          this.idleCondition.signalAll();
-        } finally {
-          lock.unlock();
-        }
-      }
+    if (state.getState() <= State.NEW.getState()) {
+      this.seeds.add(request);
     } else {
-      log.error("Can not store request [{}]", request);
+      if (request.isRepeatable() || !this.store.exists(request)) {
+        this.listeners.forEach(listener -> listener.beforeStore(request));
+        if (this.store.put(request)) {
+          if (this.translateState(State.IDLE, State.STARTED)) {
+            lock.lock();
+            try {
+              this.idleCondition.signalAll();
+            } finally {
+              lock.unlock();
+            }
+          }
+        } else {
+          log.error("Can not store request [{}]", request);
+        }
+      } else {
+        log.warn("Ignore request [{}] as already exist", request);
+      }
     }
   }
 
@@ -143,10 +171,14 @@ class OctopusImpl implements Octopus {
     State state;
     while ((state = this.state.get()) == State.STARTED || state == State.IDLE) {
       try {
-        // dispatch download request
         Request request = this.store.get();
         if (request != null) {
-          log.debug("Take request [{}] from store", request);
+          if (log.isDebugEnabled()) {
+            log.debug(
+                "Take request [{}] from store, remaining size [{}]",
+                request,
+                this.store.getWaitingSize());
+          }
           this.workerSemaphore.acquire();
           this.workers.execute(
               () -> {
@@ -161,6 +193,7 @@ class OctopusImpl implements Octopus {
                     downloadConfig = webSite.getDownloadConfig();
                   }
                   Response response = this.download(request, downloadConfig);
+                  this.store.markAsCompleted(request);
                   if (response != null) {
                     this.listeners.forEach(listener -> listener.beforeProcess(response));
                     if (response.getStatus() < 200 || response.getStatus() >= 300) {
@@ -169,6 +202,7 @@ class OctopusImpl implements Octopus {
                     this.process(response);
                   }
                 } catch (DownloadException e) {
+                  this.store.markAsFailed(request);
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
                   log.error("Download [{}] error!", request, e);
                 } catch (InterruptedException e) {
@@ -185,7 +219,7 @@ class OctopusImpl implements Octopus {
                   }
                 }
               });
-        } else {
+        } else if (this.store.getWaitingSize() <= 0) {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
             if (this.autoStop) {
@@ -242,14 +276,20 @@ class OctopusImpl implements Octopus {
                 List<Request> newRequests = processor.process(response);
                 this.listeners.forEach(listener -> listener.afterProcess(response, newRequests));
                 if (newRequests != null) {
-                  newRequests.forEach(
-                      request -> {
-                        request.setParent(response.getRequest().getId());
-                        this.addRequest(request);
-                      });
+                  newRequests.stream()
+                      .sorted()
+                      .forEach(
+                          request -> {
+                            request.setParent(response.getRequest().getId());
+                            this.addRequest(request);
+                          });
                 }
               } catch (Throwable e) {
-                log.error("Process error", e);
+                log.error(
+                    "Error process request [{}] with processor [{}]",
+                    response.getRequest(),
+                    processor.getClass(),
+                    e);
               }
             });
   }
@@ -274,7 +314,9 @@ class OctopusImpl implements Octopus {
 
   private boolean translateState(State from, State to) {
     if (this.state.compareAndSet(from, to)) {
-      log.debug("State changed [{}] => [{}]", from.getLabel(), to.getLabel());
+      if (this.log.isDebugEnabled()) {
+        log.debug("State changed [{}] => [{}]", from.getLabel(), to.getLabel());
+      }
       return true;
     }
     return false;
@@ -341,5 +383,13 @@ class OctopusImpl implements Octopus {
 
   public void setAutoStop(boolean autoStop) {
     this.autoStop = autoStop;
+  }
+
+  public void setClearStoreOnStartup(boolean clearStoreOnStartup) {
+    this.clearStoreOnStartup = clearStoreOnStartup;
+  }
+
+  public void setSeeds(List<Request> seeds) {
+    this.seeds = seeds;
   }
 }

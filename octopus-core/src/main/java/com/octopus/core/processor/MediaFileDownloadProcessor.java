@@ -12,7 +12,7 @@ public class MediaFileDownloadProcessor extends DefaultDownloadProcessor {
 
   public MediaFileDownloadProcessor(@NonNull File saveDirectory) {
     super(
-        Matchers.or(Matchers.image(), Matchers.audio(), Matchers.video(), Matchers.octetStream()),
+        Matchers.or(Matchers.IMAGE, Matchers.AUDIO, Matchers.VIDEO, Matchers.OCTET_STREAM),
         saveDirectory);
   }
 }

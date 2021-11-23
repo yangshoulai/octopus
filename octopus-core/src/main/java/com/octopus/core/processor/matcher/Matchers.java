@@ -10,6 +10,20 @@ import lombok.NonNull;
  */
 public class Matchers {
 
+  public static final Matcher ALL = r -> true;
+
+  public static final Matcher JSON = contentType(".*application/json.*");
+
+  public static final Matcher IMAGE = contentType(".*image/.*");
+
+  public static final Matcher VIDEO = contentType(".*video/.*");
+
+  public static final Matcher AUDIO = contentType(".*audio/.*");
+
+  public static final Matcher HTML = contentType(".*text/html.*");
+
+  public static final Matcher OCTET_STREAM = contentType(".*application/octet-stream.*");
+
   public static Matcher and(@NonNull Matcher... matchers) {
     return new AndMatcher(ListUtil.of(matchers));
   }
@@ -40,33 +54,5 @@ public class Matchers {
 
   public static Matcher contentType(@NonNull Pattern pattern) {
     return new ContentTypeMatcher(pattern);
-  }
-
-  public static Matcher json() {
-    return contentType(".*application/json.*");
-  }
-
-  public static Matcher image() {
-    return contentType(".*image/.*");
-  }
-
-  public static Matcher video() {
-    return contentType(".*video/.*");
-  }
-
-  public static Matcher audio() {
-    return contentType(".*audio/.*");
-  }
-
-  public static Matcher html() {
-    return contentType(".*text/html.*");
-  }
-
-  public static Matcher octetStream() {
-    return contentType(".*application/octet-stream.*");
-  }
-
-  public static Matcher all() {
-    return r -> true;
   }
 }

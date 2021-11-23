@@ -35,11 +35,15 @@ public interface Octopus {
    * 添加请求
    *
    * @param request 下载请求
-   * @return octopus
    * @throws OctopusException 添加请求异常
    */
   void addRequest(Request request) throws OctopusException;
 
+  /**
+   * 新建构建器
+   *
+   * @return OctopusBuilder
+   */
   static OctopusBuilder builder() {
     return new OctopusBuilder();
   }

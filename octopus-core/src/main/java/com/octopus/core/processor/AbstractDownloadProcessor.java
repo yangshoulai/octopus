@@ -36,7 +36,7 @@ public abstract class AbstractDownloadProcessor extends AbstractProcessor {
       FileUtil.writeBytes(response.getBody(), new File(downloadDir, fileName));
     } catch (Exception e) {
       throw new ProcessException(
-          String.format("Write file[dir = %s, name = %s] failed", downloadDir, fileName), e);
+          String.format("Can not save file [%s]", FileUtil.file(downloadDir, fileName)), e);
     }
     return null;
   }

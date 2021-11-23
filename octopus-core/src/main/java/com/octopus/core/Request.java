@@ -80,6 +80,16 @@ public class Request implements Serializable, Comparable<Request> {
     return this;
   }
 
+  public Request addHeaders(@NonNull Map<String, String> headers) {
+    this.headers.putAll(headers);
+    return this;
+  }
+
+  public Request addHeader(@NonNull String header, String value) {
+    this.headers.put(header, value);
+    return this;
+  }
+
   public Map<String, String> getHeaders() {
     return headers;
   }
@@ -88,8 +98,18 @@ public class Request implements Serializable, Comparable<Request> {
     return params;
   }
 
-  public Request setParams(Map<String, String> params) {
+  public Request setParams(@NonNull Map<String, String> params) {
     this.params = params;
+    return this;
+  }
+
+  public Request addParam(@NonNull String param, String value) {
+    this.params.put(param, value);
+    return this;
+  }
+
+  public Request addParams(@NonNull Map<String, String> params) {
+    this.params.putAll(params);
     return this;
   }
 

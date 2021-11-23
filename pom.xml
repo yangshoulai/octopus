@@ -9,6 +9,7 @@
   <version>${revision}</version>
   <modules>
     <module>octopus-core</module>
+    <module>octopus-sample</module>
   </modules>
   <packaging>pom</packaging>
 
@@ -25,6 +26,7 @@
     <logback.version>1.2.3</logback.version>
     <jsoup.version>1.13.1</jsoup.version>
     <httpclient.version>4.5.13</httpclient.version>
+    <jedis.version>3.3.0</jedis.version>
   </properties>
 
   <dependencyManagement>
@@ -56,6 +58,18 @@
         <groupId>org.apache.httpcomponents</groupId>
         <artifactId>httpclient</artifactId>
         <version>${httpclient.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>redis.clients</groupId>
+        <artifactId>jedis</artifactId>
+        <version>${jedis.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.octopus</groupId>
+        <artifactId>octopus-core</artifactId>
+        <version>${revision}</version>
       </dependency>
 
     </dependencies>

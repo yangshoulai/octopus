@@ -24,7 +24,11 @@ public class CommonDownloadConfig implements DownloadConfig {
 
   private Charset charset = CharsetUtil.CHARSET_UTF_8;
 
-  public CommonDownloadConfig() {}
+  public CommonDownloadConfig() {
+    headers.put(
+        "User-Agent",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1_0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36");
+  }
 
   @Override
   public Map<String, String> getHeaders() {
@@ -68,6 +72,16 @@ public class CommonDownloadConfig implements DownloadConfig {
 
   public CommonDownloadConfig setProxyProvider(ProxyProvider proxyProvider) {
     this.proxyProvider = proxyProvider;
+    return this;
+  }
+
+  public CommonDownloadConfig addHeader(@NonNull String header, String value) {
+    this.headers.put(header, value);
+    return this;
+  }
+
+  public CommonDownloadConfig addHeaders(@NonNull Map<String, String> headers) {
+    this.headers.putAll(headers);
     return this;
   }
 
