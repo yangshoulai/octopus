@@ -196,7 +196,7 @@ class OctopusImpl implements Octopus {
                   this.store.markAsCompleted(request);
                   if (response != null) {
                     this.listeners.forEach(listener -> listener.beforeProcess(response));
-                    if (response.getStatus() < 200 || response.getStatus() >= 300) {
+                    if (!response.isSuccessful()) {
                       throw new BadStatusException(response);
                     }
                     this.process(response);

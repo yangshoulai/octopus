@@ -1,17 +1,24 @@
 package com.octopus.core;
 
+import cn.hutool.core.lang.Pair;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
+import com.octopus.core.downloader.OkHttpDownloader;
+import com.octopus.core.exception.OctopusException;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.LoggerProcessor;
+import com.octopus.core.processor.annotation.ExtractorHelper;
+import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import redis.clients.jedis.JedisPool;
 
@@ -48,6 +55,11 @@ public class OctopusBuilder {
 
   public OctopusBuilder useHttpClientDownloader() {
     this.downloader = new HttpClientDownloader();
+    return this;
+  }
+
+  public OctopusBuilder useOkHttpDownloader() {
+    this.downloader = new OkHttpDownloader();
     return this;
   }
 
@@ -96,6 +108,35 @@ public class OctopusBuilder {
 
   public OctopusBuilder addProcessor(@NonNull Processor processor) {
     this.processors.add(processor);
+    return this;
+  }
+
+  public <T> OctopusBuilder addProcessor(
+      @NonNull Matcher matcher, @NonNull Class<T> extractorClass) {
+    return this.addProcessor(matcher, extractorClass, null);
+  }
+
+  public <T> OctopusBuilder addProcessor(
+      @NonNull Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
+    if (!ExtractorHelper.isValidExtractorClass(extractorClass)) {
+      throw new OctopusException("Not a valid extractor class");
+    }
+    this.processors.add(
+        new Processor() {
+          @Override
+          public List<Request> process(Response response) {
+            Pair<T, List<String>> pair = ExtractorHelper.extract(response.asText(), extractorClass);
+            if (callback != null) {
+              callback.accept(pair.getKey());
+            }
+            return pair.getValue().stream().map(Request::get).collect(Collectors.toList());
+          }
+
+          @Override
+          public boolean matches(Response response) {
+            return matcher.matches(response);
+          }
+        });
     return this;
   }
 

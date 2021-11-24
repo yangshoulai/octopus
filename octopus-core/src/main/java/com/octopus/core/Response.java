@@ -85,6 +85,10 @@ public class Response implements Serializable {
     return this;
   }
 
+  public final boolean isSuccessful() {
+    return this.status >= 200 && this.status < 300;
+  }
+
   public String asText() {
     return new String(this.body, this.charset);
   }

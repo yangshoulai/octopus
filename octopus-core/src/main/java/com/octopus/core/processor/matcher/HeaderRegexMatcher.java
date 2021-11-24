@@ -2,6 +2,7 @@ package com.octopus.core.processor.matcher;
 
 import cn.hutool.core.util.ReUtil;
 import com.octopus.core.Response;
+import java.util.Map.Entry;
 import java.util.regex.Pattern;
 import lombok.NonNull;
 
@@ -28,6 +29,16 @@ public class HeaderRegexMatcher implements Matcher {
   @Override
   public boolean matches(Response response) {
     String value = response.getHeaders().get(headerName);
-    return ReUtil.isMatch(this.pattern, value);
+    if (value == null) {
+      Entry<String, String> entry =
+          response.getHeaders().entrySet().stream()
+              .filter(s -> s.getKey().equalsIgnoreCase(this.headerName))
+              .findFirst()
+              .orElse(null);
+      if (entry != null) {
+        return ReUtil.isMatch(this.pattern, entry.getValue());
+      }
+    }
+    return false;
   }
 }
