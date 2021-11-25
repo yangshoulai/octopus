@@ -10,7 +10,7 @@ import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.utils.RateLimiter;
 
 /**
- * 获取网易云音乐热歌榜歌曲
+ * 下载网易云音乐热歌榜歌曲
  *
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23

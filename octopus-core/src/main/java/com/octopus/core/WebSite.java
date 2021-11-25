@@ -2,6 +2,7 @@ package com.octopus.core;
 
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.utils.RateLimiter;
+import java.util.concurrent.TimeUnit;
 import lombok.NonNull;
 
 /**
@@ -40,6 +41,19 @@ public class WebSite {
 
   public WebSite setRateLimiter(RateLimiter rateLimiter) {
     this.rateLimiter = rateLimiter;
+    return this;
+  }
+
+  public WebSite setRateLimiter(int max) {
+    return this.setRateLimiter(max, 1);
+  }
+
+  public WebSite setRateLimiter(int max, int periodSeconds) {
+    return this.setRateLimiter(max, periodSeconds, TimeUnit.SECONDS);
+  }
+
+  public WebSite setRateLimiter(int max, int periodSeconds, @NonNull TimeUnit unit) {
+    this.rateLimiter = RateLimiter.of(max, periodSeconds, unit);
     return this;
   }
 

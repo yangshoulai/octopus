@@ -1,15 +1,15 @@
 package com.octopus.core;
 
-import cn.hutool.core.lang.Pair;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.exception.OctopusException;
+import com.octopus.core.extractor.ExtractorHelper;
+import com.octopus.core.extractor.ExtractorHelper.ExtractResult;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.LoggerProcessor;
-import com.octopus.core.processor.annotation.ExtractorHelper;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.RedisStore;
@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import lombok.NonNull;
 import redis.clients.jedis.JedisPool;
 
@@ -118,18 +117,18 @@ public class OctopusBuilder {
 
   public <T> OctopusBuilder addProcessor(
       @NonNull Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
-    if (!ExtractorHelper.isValidExtractorClass(extractorClass)) {
+    if (!ExtractorHelper.checkIsValidExtractorClass(extractorClass)) {
       throw new OctopusException("Not a valid extractor class");
     }
     this.processors.add(
         new Processor() {
           @Override
           public List<Request> process(Response response) {
-            Pair<T, List<String>> pair = ExtractorHelper.extract(response.asText(), extractorClass);
+            ExtractResult<T> result = ExtractorHelper.extract(response.asText(), extractorClass);
             if (callback != null) {
-              callback.accept(pair.getKey());
+              callback.accept(result.getObj());
             }
-            return pair.getValue().stream().map(Request::get).collect(Collectors.toList());
+            return result.getRequests();
           }
 
           @Override

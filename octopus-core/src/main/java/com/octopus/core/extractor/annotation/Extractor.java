@@ -1,4 +1,4 @@
-package com.octopus.core.processor.annotation;
+package com.octopus.core.extractor.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -12,14 +12,18 @@ import java.lang.annotation.Target;
  * @date 2021/11/24
  */
 @Documented
-@Target({ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface CssSelector {
+public @interface Extractor {
 
-  String value() default "";
+  Link[] links() default {};
 
-  String attribute() default "";
+  Type type() default Type.HTML;
 
-  boolean useText() default false;
+  /** 页面数据类型 */
+  enum Type {
+    /** 网页类型 */
+    HTML
+  }
 }

@@ -1,5 +1,6 @@
-package com.octopus.core.processor.annotation;
+package com.octopus.core.extractor.annotation;
 
+import com.octopus.core.Request.RequestMethod;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -15,7 +16,15 @@ import java.lang.annotation.Target;
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Extractor {
+public @interface Link {
 
-  Link[] links() default {};
+  Selector selector();
+
+  Format[] formats() default {};
+
+  int priority() default 0;
+
+  boolean repeatable() default true;
+
+  RequestMethod method() default RequestMethod.GET;
 }

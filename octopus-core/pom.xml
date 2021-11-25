@@ -53,6 +53,11 @@
       <optional>true</optional>
     </dependency>
 
+    <dependency>
+      <groupId>net.sourceforge.htmlcleaner</groupId>
+      <artifactId>htmlcleaner</artifactId>
+    </dependency>
+
   </dependencies>
 
 </project>

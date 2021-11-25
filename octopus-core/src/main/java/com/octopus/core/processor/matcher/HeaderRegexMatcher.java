@@ -36,9 +36,9 @@ public class HeaderRegexMatcher implements Matcher {
               .findFirst()
               .orElse(null);
       if (entry != null) {
-        return ReUtil.isMatch(this.pattern, entry.getValue());
+        value = entry.getValue();
       }
     }
-    return false;
+    return ReUtil.isMatch(this.pattern, value);
   }
 }

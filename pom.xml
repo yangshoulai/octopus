@@ -28,6 +28,7 @@
     <httpclient.version>4.5.13</httpclient.version>
     <okhttp.version>4.9.0</okhttp.version>
     <jedis.version>3.3.0</jedis.version>
+    <htmlcleaner.version>2.21</htmlcleaner.version>
   </properties>
 
   <dependencyManagement>
@@ -77,6 +78,12 @@
         <groupId>com.octopus</groupId>
         <artifactId>octopus-core</artifactId>
         <version>${revision}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>net.sourceforge.htmlcleaner</groupId>
+        <artifactId>htmlcleaner</artifactId>
+        <version>${htmlcleaner.version}</version>
       </dependency>
 
     </dependencies>
