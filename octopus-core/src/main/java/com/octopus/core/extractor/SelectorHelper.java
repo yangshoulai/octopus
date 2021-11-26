@@ -6,6 +6,9 @@ import com.octopus.core.extractor.annotation.Selector.Type;
 import com.octopus.core.extractor.selector.CssSelector;
 import com.octopus.core.extractor.selector.ISelector;
 import com.octopus.core.extractor.selector.XpathSelector;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -15,22 +18,17 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class SelectorHelper {
 
-  public static ISelector selector(Selector selector) {
-    if (selector.type() == Type.CSS) {
-      CssSelector cssSelector = new CssSelector(selector.expression());
-      cssSelector.setAttr(selector.attr());
-      cssSelector.setMulti(selector.multi());
-      cssSelector.setFilter(selector.filter());
-      cssSelector.setSelf(selector.self());
-      return cssSelector;
-    } else if (selector.type() == Type.XPATH) {
-      XpathSelector xpathSelector = new XpathSelector(selector.expression());
-      xpathSelector.setFilter(selector.filter());
-      xpathSelector.setMulti(selector.multi());
-      xpathSelector.setAttr(selector.attr());
-      return xpathSelector;
+  private static final Map<Type, ISelector> selectors = new HashMap<>();
+
+  static {
+    selectors.put(Type.CSS, new CssSelector());
+    selectors.put(Type.XPATH, new XpathSelector());
+  }
+
+  public static List<String> select(String content, Selector selector) {
+    if (!selectors.containsKey(selector.type())) {
+      throw new OctopusException("No selector found for type " + selector.type());
     }
-    throw new OctopusException(
-        String.format("No selector handler found for select [%s]", selector));
+    return selectors.get(selector.type()).select(content, selector);
   }
 }

@@ -7,24 +7,12 @@ import com.octopus.core.Request;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.converter.BooleanConverter;
-import com.octopus.core.extractor.converter.DateConverter;
-import com.octopus.core.extractor.converter.DoubleConverter;
-import com.octopus.core.extractor.converter.FloatConverter;
-import com.octopus.core.extractor.converter.IntegerConverter;
-import com.octopus.core.extractor.converter.LongConverter;
-import com.octopus.core.extractor.converter.ShortConverter;
-import com.octopus.core.extractor.converter.StringConverter;
-import com.octopus.core.extractor.converter.TypeConverter;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import lombok.NonNull;
 
@@ -34,40 +22,8 @@ import lombok.NonNull;
  */
 public class ExtractorHelper {
 
-  private static final Map<Class<?>, List<TypeConverter<?>>> CONVERTERS = new HashMap<>();
-
-  static {
-    registerTypeConverter(new IntegerConverter());
-    registerTypeConverter(new LongConverter());
-    registerTypeConverter(new ShortConverter());
-    registerTypeConverter(new FloatConverter());
-    registerTypeConverter(new DoubleConverter());
-    registerTypeConverter(new BooleanConverter());
-    registerTypeConverter(new ShortConverter());
-
-    registerTypeConverter(new StringConverter());
-    registerTypeConverter(new DateConverter());
-  }
-
-  public static void registerTypeConverter(@NonNull TypeConverter<?> converter) {
-    Class<?>[] classes = converter.supportClasses();
-    if (classes != null) {
-      for (Class<?> cls : classes) {
-        if (cls != null) {
-          List<TypeConverter<?>> converters =
-              CONVERTERS.computeIfAbsent(cls, k -> new ArrayList<>());
-          converters.add(converter);
-        }
-      }
-    }
-  }
-
-  private static boolean isConvertibleType(@NonNull Class<?> type) {
-    return CONVERTERS.containsKey(type);
-  }
-
   private static boolean checkIsValidClass(@NonNull Class<?> type) {
-    return isConvertibleType(type) || checkIsValidExtractorClass(type);
+    return TypeConvertorHelper.isConvertibleType(type) || checkIsValidExtractorClass(type);
   }
 
   private static Class<?> getActualClass(Field field) {
@@ -101,7 +57,7 @@ public class ExtractorHelper {
               }
             }
             return false;
-          } else if (!isConvertibleType(fieldType)) {
+          } else if (!TypeConvertorHelper.isConvertibleType(fieldType)) {
             return false;
           }
         }
@@ -117,7 +73,6 @@ public class ExtractorHelper {
     }
     T t = ReflectUtil.newInstance(extractorClass);
     List<Request> requests = new ArrayList<>();
-
     Extractor extractor = extractorClass.getAnnotation(Extractor.class);
 
     // 提取链接
@@ -133,9 +88,11 @@ public class ExtractorHelper {
     for (Field field : fields) {
       if (field.isAnnotationPresent(Selector.class)) {
         Selector selector = field.getAnnotation(Selector.class);
-        List<String> selected = SelectorHelper.selector(selector).select(content);
+        List<String> selected = SelectorHelper.select(content, selector);
         Object obj = convert(field, selected, requests);
-        ReflectUtil.setFieldValue(t, field, obj);
+        if (obj != null) {
+          ReflectUtil.setFieldValue(t, field, obj);
+        }
       }
     }
     return new ExtractResult<T>(t, requests);
@@ -148,9 +105,10 @@ public class ExtractorHelper {
           fieldType.isArray() ? fieldType.getComponentType() : getActualClass(field);
       if (componentType != null) {
         List<Object> list = new ArrayList<>();
-        if (isConvertibleType(componentType)) {
+        if (TypeConvertorHelper.isConvertibleType(componentType)) {
           for (String content : selected) {
-            list.add(convert(componentType, content, fieldType.getAnnotations()));
+            content = FormatterHelper.format(content, field);
+            list.add(TypeConvertorHelper.convert(componentType, content, field));
           }
         } else if (componentType.isAnnotationPresent(Extractor.class)) {
           for (String content : selected) {
@@ -167,8 +125,9 @@ public class ExtractorHelper {
             ? list.toArray()
             : (Set.class.equals(fieldType) ? new HashSet<>(list) : list);
       }
-    } else if (isConvertibleType(fieldType) && !selected.isEmpty()) {
-      return convert(fieldType, selected.get(0), field.getAnnotations());
+    } else if (TypeConvertorHelper.isConvertibleType(fieldType) && !selected.isEmpty()) {
+      String content = FormatterHelper.format(selected.get(0), field);
+      return TypeConvertorHelper.convert(fieldType, content, field);
     } else if (fieldType.isAnnotationPresent(Extractor.class) && !selected.isEmpty()) {
       ExtractResult<?> extractResult = extract(selected.get(0), fieldType);
       if (extractResult.getRequests() != null) {
@@ -177,45 +136,5 @@ public class ExtractorHelper {
       return extractResult.getObj();
     }
     return null;
-  }
-
-  private static Object convert(Class<?> type, String content, Annotation[] annotations) {
-    List<TypeConverter<?>> converters = CONVERTERS.get(type);
-    for (TypeConverter<?> converter : converters) {
-      Object converted = converter.convert(content, annotations);
-      if (converted != null) {
-        return converted;
-      }
-    }
-    return null;
-  }
-
-  public static class ExtractResult<T> {
-    private T obj;
-
-    private List<Request> requests;
-
-    public ExtractResult() {}
-
-    public ExtractResult(T result, List<Request> requests) {
-      this.obj = result;
-      this.requests = requests;
-    }
-
-    public T getObj() {
-      return obj;
-    }
-
-    public void setObj(T obj) {
-      this.obj = obj;
-    }
-
-    public List<Request> getRequests() {
-      return requests;
-    }
-
-    public void setRequests(List<Request> requests) {
-      this.requests = requests;
-    }
   }
 }

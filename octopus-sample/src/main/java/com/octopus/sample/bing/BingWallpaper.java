@@ -6,10 +6,10 @@ import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Format;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.annotation.Selector.Type;
+import com.octopus.core.extractor.format.RegexFormat;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
 
@@ -26,13 +26,13 @@ import com.octopus.core.processor.matcher.Matchers;
               @Selector(
                   type = Type.XPATH,
                   expression = "//div[@class='container']//a[@class='mark']/@href"),
-          formats = @Format(regex = "^.*$", format = "https://bing.ioliu.cn%s"),
+          formats = @RegexFormat(format = "https://bing.ioliu.cn%s"),
           repeatable = false,
           priority = 1),
       @Link(
           selector =
               @Selector(type = Type.XPATH, expression = "//a[text()='下一页']/@href", multi = false),
-          formats = @Format(regex = "^.*$", format = "https://bing.ioliu.cn%s"),
+          formats = @RegexFormat(format = "https://bing.ioliu.cn%s"),
           repeatable = false),
       @Link(
           selector =
@@ -41,7 +41,7 @@ import com.octopus.core.processor.matcher.Matchers;
                   expression = "//a[@class='ctrl download']",
                   attr = "href",
                   multi = false),
-          formats = @Format(regex = "^.*$", format = "https://bing.ioliu.cn%s"),
+          formats = @RegexFormat(format = "https://bing.ioliu.cn%s"),
           repeatable = false,
           priority = 2)
     })

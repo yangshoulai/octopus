@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.selector;
 
+import com.octopus.core.extractor.annotation.Selector;
 import java.util.List;
 
 /**
@@ -14,5 +15,5 @@ public interface ISelector {
    * @param content 原文
    * @return 提取的内容
    */
-  List<String> select(String content);
+  List<String> select(String content, Selector selector);
 }

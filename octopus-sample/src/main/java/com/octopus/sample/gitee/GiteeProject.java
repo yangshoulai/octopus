@@ -3,11 +3,12 @@ package com.octopus.sample.gitee;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
+import com.octopus.core.extractor.FormatterHelper;
 import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Format;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.annotation.Selector.Type;
+import com.octopus.core.extractor.format.RegexFormat;
 import com.octopus.core.processor.matcher.Matchers;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +29,7 @@ import lombok.extern.slf4j.Slf4j;
       @Link(
           selector =
               @Selector(type = Type.XPATH, expression = "//a[@rel='next'][position()=2]/@href"),
-          formats = {@Format(regex = "^.*$", format = "https://gitee.com%s")},
+          formats = {@RegexFormat(format = "https://gitee.com%s")},
           repeatable = false,
           priority = 1)
     })
@@ -45,7 +46,7 @@ public class GiteeProject {
     private String name;
 
     @Selector(expression = ".project-title a.title", attr = "href")
-    @Format(regex = "^.*$", format = "https://gitee.com%s")
+    @RegexFormat(regex = "^.*$", format = "https://gitee.com%s")
     private String address;
 
     @Selector(expression = ".project-desc")
@@ -55,15 +56,18 @@ public class GiteeProject {
     private List<String> tags;
 
     @Selector(expression = ".stars-count")
-    private String stars;
+    @StarFormat
+    private int stars;
   }
 
   public static void main(String[] args) {
+    FormatterHelper.registerFormatter(new StarFormatter());
+
     List<Project> projects = new ArrayList<>();
     Octopus.builder()
         .autoStop()
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
-        .addSeeds("https://gitee.com/explore/all")
+        .addSeeds("https://gitee.com/explore/all?order=starred")
         .addProcessor(
             Matchers.HTML,
             GiteeProject.class,

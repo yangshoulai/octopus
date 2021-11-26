@@ -27,7 +27,9 @@ public @interface Selector {
 
   boolean filter() default true;
 
-  boolean self() default true;
+  boolean self() default false;
+
+  boolean trim() default true;
 
   /** 选择器类型 */
   enum Type {

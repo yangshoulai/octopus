@@ -1,6 +1,7 @@
 package com.octopus.core.extractor.annotation;
 
 import com.octopus.core.Request.RequestMethod;
+import com.octopus.core.extractor.format.RegexFormat;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -20,7 +21,7 @@ public @interface Link {
 
   Selector selector();
 
-  Format[] formats() default {};
+  RegexFormat[] formats() default {};
 
   int priority() default 0;
 

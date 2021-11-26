@@ -1,6 +1,5 @@
-package com.octopus.core.extractor.annotation;
+package com.octopus.core.extractor.convertor;
 
-import cn.hutool.core.date.DatePattern;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -10,15 +9,16 @@ import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/25
+ * @date 2021/11/26
  */
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface DateType {
+public @interface LongVal {
+  long def() default 0L;
 
-  String pattern() default DatePattern.NORM_DATETIME_PATTERN;
+  boolean ignorable() default true;
 
 
 }

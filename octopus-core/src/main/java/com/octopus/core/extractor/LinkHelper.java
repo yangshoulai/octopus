@@ -2,8 +2,8 @@ package com.octopus.core.extractor;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
-import com.octopus.core.extractor.annotation.Format;
 import com.octopus.core.extractor.annotation.Link;
+import com.octopus.core.extractor.format.RegexFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,17 +15,15 @@ public class LinkHelper {
 
   public static List<Request> parse(String content, Link link) {
     List<Request> requests = new ArrayList<>();
-    List<String> selected = SelectorHelper.selector(link.selector()).select(content);
+    List<String> selected = SelectorHelper.select(content, link.selector());
     if (selected != null && !selected.isEmpty()) {
-      Format[] formats = link.formats();
+      RegexFormat[] formats = link.formats();
       if (formats != null) {
-        for (String s : selected) {
-          for (Format format : formats) {
-            s = FormatHelper.format(s, format);
-          }
-          if (StrUtil.isNotBlank(s)) {
+        for (String url : selected) {
+          url = FormatterHelper.format(url, formats);
+          if (StrUtil.isNotBlank(url)) {
             requests.add(
-                new Request(s, link.method())
+                new Request(url, link.method())
                     .setPriority(link.priority())
                     .setRepeatable(link.repeatable()));
           }

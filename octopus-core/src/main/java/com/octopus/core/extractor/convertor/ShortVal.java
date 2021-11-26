@@ -1,4 +1,4 @@
-package com.octopus.core.extractor.annotation;
+package com.octopus.core.extractor.convertor;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,17 +9,15 @@ import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/25
+ * @date 2021/11/26
  */
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Format {
+public @interface ShortVal {
 
-  String regex();
+  short def() default 0;
 
-  int[] groups() default {};
-
-  String format() default "%s";
+  boolean ignorable() default true;
 }
