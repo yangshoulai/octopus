@@ -7,7 +7,7 @@ import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.ExtractorHelper;
-import com.octopus.core.extractor.ExtractResult;
+import com.octopus.core.extractor.Result;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.matcher.Matcher;
@@ -124,7 +124,7 @@ public class OctopusBuilder {
         new Processor() {
           @Override
           public List<Request> process(Response response) {
-            ExtractResult<T> result = ExtractorHelper.extract(response.asText(), extractorClass);
+            Result<T> result = ExtractorHelper.extract(response.getRequest().getUrl(), response.asText(), extractorClass);
             if (callback != null) {
               callback.accept(result.getObj());
             }

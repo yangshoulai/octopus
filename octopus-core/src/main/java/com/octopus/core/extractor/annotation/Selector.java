@@ -37,6 +37,8 @@ public @interface Selector {
     CSS,
 
     /** XPATH 选择器 */
-    XPATH
+    XPATH,
+    /** JSON 选择器 */
+    JSON
   }
 }

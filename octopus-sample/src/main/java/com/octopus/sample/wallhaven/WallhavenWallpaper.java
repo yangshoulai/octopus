@@ -25,10 +25,13 @@ import lombok.extern.slf4j.Slf4j;
     links = {
       @Link(
           selector =
-              @Selector(expression = "#thumbs .thumb-listing-page ul li img", attr = "data-src")),
+              @Selector(expression = "#thumbs .thumb-listing-page ul li a.preview", attr = "href")),
       @Link(
           selector =
-              @Selector(expression = "ul.pagination li a.next", attr = "href", multi = false))
+              @Selector(expression = "ul.pagination li a.next", attr = "href", multi = false)),
+      @Link(
+          selector =
+              @Selector(expression = "img#wallpaper", attr = "src"))
     })
 public class WallhavenWallpaper {
 
@@ -47,7 +50,6 @@ public class WallhavenWallpaper {
 
     @Selector(expression = ".wall-res")
     private String resolution;
-
   }
 
   public static void main(String[] args) {
@@ -66,8 +68,7 @@ public class WallhavenWallpaper {
                     wallpapers.addAll(wallhavenWallpaper.getWallpapers());
                   }
                 })
-            .addProcessor(
-                new MediaFileDownloadProcessor("/Users/yann/Downloads/wallpapers/wallhaven/nsfw"))
+            .addProcessor(new MediaFileDownloadProcessor("G:\\downloads\\wallpapers\\wallhaven"))
             .build();
     octopus.addRequest(
         Request.get(

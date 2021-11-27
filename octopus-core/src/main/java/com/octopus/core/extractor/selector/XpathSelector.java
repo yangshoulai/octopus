@@ -36,7 +36,7 @@ public class XpathSelector extends CacheableSelector<Document> {
   }
 
   @Override
-  public List<String> select(Document document, Selector selector) {
+  public List<String> selectWithType(Document document, Selector selector) {
     List<String> results = new ArrayList<>();
     try {
       NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);

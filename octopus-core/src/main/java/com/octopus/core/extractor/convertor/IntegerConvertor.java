@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/11/24
  */
 @Slf4j
-public class IntegerConvertor implements TypeConvertor<Integer, IntegerVal> {
+public class IntegerConvertor implements Convertor<Integer, IntegerVal> {
 
   @Override
   public Integer convert(String val, IntegerVal format) {

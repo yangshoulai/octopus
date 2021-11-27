@@ -1,5 +1,6 @@
 package com.octopus.core;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import java.io.Serializable;
@@ -27,6 +28,8 @@ public class Response implements Serializable {
   private Charset charset;
 
   private String mimeType;
+
+  private String text;
 
   public Response(@NonNull Request request) {
     this.request = request;
@@ -90,7 +93,7 @@ public class Response implements Serializable {
   }
 
   public String asText() {
-    return new String(this.body, this.charset);
+    return StrUtil.isNotBlank(text) ? text : new String(this.body, this.charset);
   }
 
   public Document asDocument() {

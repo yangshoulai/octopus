@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/11/24
  */
 @Slf4j
-public class DoubleConvertor implements TypeConvertor<Double, DoubleVal> {
+public class DoubleConvertor implements Convertor<Double, DoubleVal> {
 
   @Override
   public Double convert(String val, DoubleVal format) {

@@ -33,7 +33,7 @@ public abstract class CacheableSelector<T> implements ISelector {
       this.cache.put(md5, doc);
     }
     if (doc != null) {
-      List<String> results = this.select(doc, selector);
+      List<String> results = this.selectWithType(doc, selector);
       if (results != null) {
         if (selector.trim()) {
           results = results.stream().map(StrUtil::trim).collect(Collectors.toList());
@@ -49,7 +49,7 @@ public abstract class CacheableSelector<T> implements ISelector {
     return Collections.emptyList();
   }
 
-  protected abstract List<String> select(T t, Selector selector);
+  protected abstract List<String> selectWithType(T t, Selector selector);
 
   protected abstract T parse(String content);
 }

@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/11/24
  */
 @Slf4j
-public class ShortConvertor implements TypeConvertor<Short, ShortVal> {
+public class ShortConvertor implements Convertor<Short, ShortVal> {
 
   @Override
   public Short convert(String val, ShortVal format) {

@@ -3,7 +3,7 @@ package com.octopus.sample.gitee;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.extractor.FormatterHelper;
+import com.octopus.core.extractor.Formatters;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
@@ -61,7 +61,7 @@ public class GiteeProject {
   }
 
   public static void main(String[] args) {
-    FormatterHelper.registerFormatter(new StarFormatter());
+    Formatters.registerFormatter(new StarFormatter());
 
     List<Project> projects = new ArrayList<>();
     Octopus.builder()

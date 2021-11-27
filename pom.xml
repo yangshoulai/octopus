@@ -29,6 +29,7 @@
     <okhttp.version>4.9.0</okhttp.version>
     <jedis.version>3.3.0</jedis.version>
     <htmlcleaner.version>2.21</htmlcleaner.version>
+    <jsonpath.version>2.6.0</jsonpath.version>
   </properties>
 
   <dependencyManagement>
@@ -84,6 +85,12 @@
         <groupId>net.sourceforge.htmlcleaner</groupId>
         <artifactId>htmlcleaner</artifactId>
         <version>${htmlcleaner.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.jayway.jsonpath</groupId>
+        <artifactId>json-path</artifactId>
+        <version>${jsonpath.version}</version>
       </dependency>
 
     </dependencies>

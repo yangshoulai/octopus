@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/11/24
  */
 @Slf4j
-public class LongConvertor implements TypeConvertor<Long, LongVal> {
+public class LongConvertor implements Convertor<Long, LongVal> {
 
   @Override
   public Long convert(String val, LongVal format) {

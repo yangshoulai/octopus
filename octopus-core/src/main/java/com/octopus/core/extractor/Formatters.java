@@ -18,7 +18,7 @@ import lombok.NonNull;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/26
  */
-public class FormatterHelper {
+public class Formatters {
   private static final Map<Class<? extends Annotation>, Formatter<? extends Annotation>>
       FORMATTERS = new HashMap<>();
 

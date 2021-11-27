@@ -20,7 +20,7 @@ import org.jsoup.select.Elements;
 public class CssSelector extends CacheableSelector<Document> {
 
   @Override
-  public List<String> select(Document document, Selector selector) {
+  public List<String> selectWithType(Document document, Selector selector) {
 
     Elements elements = document.select(selector.expression());
     Stream<String> stream =

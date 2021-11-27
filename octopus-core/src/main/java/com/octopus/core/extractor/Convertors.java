@@ -10,7 +10,7 @@ import com.octopus.core.extractor.convertor.IntegerConvertor;
 import com.octopus.core.extractor.convertor.LongConvertor;
 import com.octopus.core.extractor.convertor.ShortConvertor;
 import com.octopus.core.extractor.convertor.StringConvertor;
-import com.octopus.core.extractor.convertor.TypeConvertor;
+import com.octopus.core.extractor.convertor.Convertor;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -24,9 +24,9 @@ import lombok.NonNull;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-public class TypeConvertorHelper {
+public class Convertors {
 
-  private static final Map<Class<?>, List<TypeConvertor<?, ? extends Annotation>>> CONVERTERS =
+  private static final Map<Class<?>, List<Convertor<?, ? extends Annotation>>> CONVERTERS =
       new HashMap<>();
 
   static {
@@ -43,12 +43,12 @@ public class TypeConvertorHelper {
   }
 
   public static void registerTypeConvertor(
-      @NonNull TypeConvertor<?, ? extends Annotation> converter) {
+      @NonNull Convertor<?, ? extends Annotation> converter) {
     Class<?>[] classes = converter.getSupportClasses();
     if (classes != null) {
       for (Class<?> cls : classes) {
         if (cls != null) {
-          List<TypeConvertor<?, ? extends Annotation>> converters =
+          List<Convertor<?, ? extends Annotation>> converters =
               CONVERTERS.computeIfAbsent(cls, k -> new ArrayList<>());
           converters.add(converter);
         }
@@ -63,8 +63,8 @@ public class TypeConvertorHelper {
   @SuppressWarnings("unchecked")
   public static Object convert(Class<?> type, String content, Field field) {
     Object converted = null;
-    List<TypeConvertor<?, ? extends Annotation>> converters = CONVERTERS.get(type);
-    for (TypeConvertor<?, ? extends Annotation> converter : converters) {
+    List<Convertor<?, ? extends Annotation>> converters = CONVERTERS.get(type);
+    for (Convertor<?, ? extends Annotation> converter : converters) {
       Annotation annotation = null;
       Type[] types = TypeUtil.getTypeArguments(converter.getClass());
       if (types != null && types.length == 2) {

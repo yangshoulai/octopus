@@ -6,7 +6,7 @@ import java.lang.annotation.Annotation;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
  */
-public interface TypeConvertor<T, A extends Annotation> {
+public interface Convertor<T, A extends Annotation> {
 
   /**
    * 将提取出来的字符串转换成特定的数据类型

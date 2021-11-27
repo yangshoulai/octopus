@@ -21,7 +21,7 @@ public class Music163Crawler {
     Octopus.builder()
         .setThreads(2)
         .clearStoreOnStartup(true)
-        .useRedisStore("music163")
+        //.useRedisStore("music163")
         .autoStop()
         .addSeeds("https://music.163.com/discover/toplist?id=3778678")
         .addSite(WebSite.of("music.163.com").setRateLimiter(RateLimiter.of(1, 5)))
@@ -29,7 +29,7 @@ public class Music163Crawler {
         .addProcessor(new ListPageProcessor())
         .addProcessor(new PlayerUrlProcessor())
         .addProcessor(
-            new MediaFileDownloadProcessor(FileUtil.file("/Users/yann/Downloads/music")) {
+            new MediaFileDownloadProcessor(FileUtil.file("G:\\downloads\\music")) {
               @Override
               protected String resolveSaveName(Response response) {
                 String suffix = FileUtil.getSuffix(response.getRequest().getUrl());

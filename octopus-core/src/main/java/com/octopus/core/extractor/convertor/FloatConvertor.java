@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
  * @date 2021/11/24
  */
 @Slf4j
-public class FloatConvertor implements TypeConvertor<Float, FloatVal> {
+public class FloatConvertor implements Convertor<Float, FloatVal> {
 
   @Override
   public Float convert(String val, FloatVal format) {

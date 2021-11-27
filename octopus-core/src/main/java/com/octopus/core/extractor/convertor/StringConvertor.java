@@ -4,7 +4,7 @@ package com.octopus.core.extractor.convertor;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
  */
-public class StringConvertor implements TypeConvertor<String, StringVal> {
+public class StringConvertor implements Convertor<String, StringVal> {
 
   @Override
   public String convert(String val, StringVal format) {
