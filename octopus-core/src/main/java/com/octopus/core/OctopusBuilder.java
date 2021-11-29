@@ -12,6 +12,7 @@ import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.AbstractProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
@@ -109,6 +110,14 @@ public class OctopusBuilder {
   public OctopusBuilder addProcessor(@NonNull Processor processor) {
     this.processors.add(processor);
     return this;
+  }
+
+  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass) {
+    return this.addProcessor(Matchers.ALL, extractorClass);
+  }
+
+  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Consumer<T> callback) {
+    return this.addProcessor(Matchers.ALL, extractorClass, callback);
   }
 
   public <T> OctopusBuilder addProcessor(

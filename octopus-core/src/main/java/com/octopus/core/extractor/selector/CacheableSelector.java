@@ -30,7 +30,9 @@ public abstract class CacheableSelector<T> implements ISelector {
     T doc = this.cache.get(md5);
     if (doc == null) {
       doc = this.parse(content);
-      this.cache.put(md5, doc);
+      if (doc != null) {
+        this.cache.put(md5, doc);
+      }
     }
     if (doc != null) {
       List<String> results = this.selectWithType(doc, selector);

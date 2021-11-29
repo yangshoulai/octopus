@@ -156,15 +156,13 @@ public class ExtractorHelper {
     } else if (paramTypes.length == 2) {
       returnObj = ReflectUtil.invoke(targetObj, method, url, content);
     }
+
+    List<Object> objects = new ArrayList<>();
     List<Request> requests = new ArrayList<>();
     if (returnObj != null) {
-      if (returnObj instanceof String) {
-        return ListUtil.toList(Request.get((String) returnObj));
-      } else if (returnObj instanceof Request) {
-        return ListUtil.toList((Request) returnObj);
-      }
-      List<Object> objects = new ArrayList<>();
-      if (ArrayUtil.isArray(returnObj)) {
+      if (returnObj instanceof String || returnObj instanceof Request) {
+        objects.add(returnObj);
+      } else if (ArrayUtil.isArray(returnObj)) {
         int length = Array.getLength(returnObj);
         for (int i = 0; i < length; i++) {
           objects.add(Array.get(returnObj, i));
@@ -176,7 +174,13 @@ public class ExtractorHelper {
       objects.forEach(
           item -> {
             if (item instanceof String) {
-              requests.add(Request.get((String) item));
+              String u = item.toString();
+              if (!HttpUtil.isHttp(u) && !HttpUtil.isHttps(u)) {
+                u =
+                    URLUtil.decode(
+                        UrlBuilder.of(url).setQuery(null).setPath(UrlPath.of(u, null)).build());
+              }
+              requests.add(Request.get(u));
             } else if (item instanceof Request) {
               requests.add((Request) item);
             }
