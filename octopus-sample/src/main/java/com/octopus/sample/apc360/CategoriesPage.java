@@ -1,30 +1,26 @@
 package com.octopus.sample.apc360;
 
-import cn.hutool.core.date.DatePattern;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.convertor.DateVal;
 import com.octopus.core.extractor.format.RegexFormat;
-import lombok.Data;
-
 import java.util.Date;
 import java.util.List;
+import lombok.Data;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/27
  */
 @Data
-@Extractor(
-    links = {
-      @Link(
-          selector = @Selector(type = Selector.Type.JSON, expression = "$.data[*].id"),
-          formats =
-              @RegexFormat(
-                  format =
-                      "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s"))
-    })
+@Extractor
+@Link(
+    selector = @Selector(type = Selector.Type.JSON, expression = "$.data[*].id"),
+    formats =
+        @RegexFormat(
+            format =
+                "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s"))
 public class CategoriesPage {
 
   @Selector(type = Selector.Type.JSON, expression = "$.errno")

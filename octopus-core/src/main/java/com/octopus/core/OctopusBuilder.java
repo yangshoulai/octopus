@@ -5,10 +5,11 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
-import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.ExtractorHelper;
+import com.octopus.core.extractor.InvalidExtractorException;
 import com.octopus.core.extractor.Result;
 import com.octopus.core.listener.Listener;
+import com.octopus.core.processor.AbstractProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.store.MemoryStore;
@@ -118,22 +119,19 @@ public class OctopusBuilder {
   public <T> OctopusBuilder addProcessor(
       @NonNull Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
     if (!ExtractorHelper.checkIsValidExtractorClass(extractorClass)) {
-      throw new OctopusException("Not a valid extractor class");
+      throw new InvalidExtractorException("Not a valid extractor class");
     }
     this.processors.add(
-        new Processor() {
+        new AbstractProcessor(matcher) {
           @Override
           public List<Request> process(Response response) {
-            Result<T> result = ExtractorHelper.extract(response.getRequest().getUrl(), response.asText(), extractorClass);
+            Result<T> result =
+                ExtractorHelper.extract(
+                    response.getRequest().getUrl(), response.asText(), extractorClass);
             if (callback != null) {
               callback.accept(result.getObj());
             }
             return result.getRequests();
-          }
-
-          @Override
-          public boolean matches(Response response) {
-            return matcher.matches(response);
           }
         });
     return this;

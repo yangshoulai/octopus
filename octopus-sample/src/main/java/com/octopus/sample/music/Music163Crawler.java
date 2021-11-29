@@ -29,7 +29,7 @@ public class Music163Crawler {
         .addProcessor(new ListPageProcessor())
         .addProcessor(new PlayerUrlProcessor())
         .addProcessor(
-            new MediaFileDownloadProcessor(FileUtil.file("G:\\downloads\\music")) {
+            new MediaFileDownloadProcessor(FileUtil.file("../../downloads/music")) {
               @Override
               protected String resolveSaveName(Response response) {
                 String suffix = FileUtil.getSuffix(response.getRequest().getUrl());

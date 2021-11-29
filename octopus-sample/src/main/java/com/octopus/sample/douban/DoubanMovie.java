@@ -25,17 +25,12 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor(
-    links = {
-      @Link(
-          selector = @Selector(expression = ".item div.hd > a", attr = "href"),
-          repeatable = false),
-      @Link(
-          selector = @Selector(expression = "span.next a", attr = "href"),
-          formats = @RegexFormat(format = "https://movie.douban.com/top250%s"),
-          repeatable = false,
-          priority = 1)
-    })
+@Extractor
+@Link(selector = @Selector(expression = ".item div.hd > a", attr = "href"), repeatable = false)
+@Link(
+    selector = @Selector(expression = "span.next a", attr = "href"),
+    repeatable = false,
+    priority = 1)
 public class DoubanMovie {
 
   /** 编号 */

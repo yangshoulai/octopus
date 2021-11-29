@@ -9,6 +9,7 @@ import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
+import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Links;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.format.RegexFormat;
@@ -27,16 +28,15 @@ import java.util.Map;
  */
 @Slf4j
 @Data
-@Extractor(
-    links =
-        @Link(
-            selector = @Selector(expression = ".hub-photomodal > a", multi = false, attr = "href")))
+@Extractor
+@Links(
+    @Link(selector = @Selector(expression = ".hub-photomodal > a", multi = false, attr = "href")))
 public class WallhereWallpaper {
 
   @Selector(type = Selector.Type.JSON, expression = "$.data")
   private WallpaperXml xml;
 
-  @Links
+  @LinkMethod
   public List<Request> getNextPage(String url) {
     if (this.xml != null
         && this.xml.getWallpapers() != null
@@ -59,14 +59,17 @@ public class WallhereWallpaper {
   }
 
   @Data
-  @Extractor(
-      links =
-          @Link(
-              selector =
-                  @Selector(
-                      type = Selector.Type.XPATH,
-                      expression = "//div[@class='item-container']/a[1]/@href"),
-              formats = @RegexFormat(format = "https://wallhere.com%s")))
+  @Extractor
+  @Link(
+      selector =
+          @Selector(
+              type = Selector.Type.XPATH,
+              expression = "//div[@class='item-container']/a[1]/@href"))
+  @Link(
+      selector =
+          @Selector(
+              type = Selector.Type.XPATH,
+              expression = "//div[@class='item-container']/a[1]/@href"))
   public static class Wallpaper {
 
     @Selector(type = Selector.Type.XPATH, expression = "//div[@class='item-container']/a[1]/@href")
@@ -84,7 +87,7 @@ public class WallhereWallpaper {
             wallhereWallpaper -> {
               log.debug("{}", wallhereWallpaper);
             })
-        .addProcessor(new MediaFileDownloadProcessor("downloads/wallpapers/wallhere"))
+        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhere"))
         .addSeeds(
             "https://wallhere.com/zh/wallpapers?page=1&direction=horizontal&order=popular&format=json")
         .build()

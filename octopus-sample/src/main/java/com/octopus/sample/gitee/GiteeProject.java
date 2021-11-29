@@ -24,15 +24,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor(
-    links = {
-      @Link(
-          selector =
-              @Selector(type = Type.XPATH, expression = "//a[@rel='next'][position()=2]/@href"),
-          formats = {@RegexFormat(format = "https://gitee.com%s")},
-          repeatable = false,
-          priority = 1)
-    })
+@Extractor
+@Link(
+    selector = @Selector(type = Type.XPATH, expression = "//a[@rel='next'][position()=2]/@href"),
+    repeatable = false,
+    priority = 1)
 public class GiteeProject {
 
   @Selector(expression = ".items .item")
@@ -65,7 +61,6 @@ public class GiteeProject {
 
     List<Project> projects = new ArrayList<>();
     Octopus.builder()
-        .autoStop()
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
         .addSeeds("https://gitee.com/explore/all?order=starred")
         .addProcessor(

@@ -21,18 +21,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor(
-    links = {
-      @Link(
-          selector =
-              @Selector(expression = "#thumbs .thumb-listing-page ul li a.preview", attr = "href")),
-      @Link(
-          selector =
-              @Selector(expression = "ul.pagination li a.next", attr = "href", multi = false)),
-      @Link(
-          selector =
-              @Selector(expression = "img#wallpaper", attr = "src"))
-    })
+@Extractor
+@Link(
+    selector = @Selector(expression = "#thumbs .thumb-listing-page ul li a.preview", attr = "href"))
+@Link(selector = @Selector(expression = "ul.pagination li a.next", attr = "href", multi = false))
+@Link(selector = @Selector(expression = "img#wallpaper", attr = "src"))
 public class WallhavenWallpaper {
 
   @Selector(expression = "#thumbs .thumb-listing-page ul li")
@@ -56,7 +49,6 @@ public class WallhavenWallpaper {
     List<Wallpaper> wallpapers = new ArrayList<>();
     Octopus octopus =
         Octopus.builder()
-            .autoStop(true)
             .setThreads(4)
             .useOkHttpDownloader()
             .addSite(WebSite.of("wallhaven.cc").setRateLimiter(2, 10))
@@ -68,7 +60,7 @@ public class WallhavenWallpaper {
                     wallpapers.addAll(wallhavenWallpaper.getWallpapers());
                   }
                 })
-            .addProcessor(new MediaFileDownloadProcessor("G:\\downloads\\wallpapers\\wallhaven"))
+            .addProcessor(new MediaFileDownloadProcessor("../../downloads/wallpapers/wallhaven"))
             .build();
     octopus.addRequest(
         Request.get(

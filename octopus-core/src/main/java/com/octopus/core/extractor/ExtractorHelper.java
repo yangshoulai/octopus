@@ -1,24 +1,31 @@
 package com.octopus.core.extractor;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.core.net.url.UrlPath;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
+import cn.hutool.core.util.URLUtil;
+import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
-import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Links;
+import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.format.RegexFormat;
-import lombok.NonNull;
-
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -188,9 +195,9 @@ public class ExtractorHelper {
     Extractor extractor = extractorClass.getAnnotation(Extractor.class);
 
     // 提取链接
-    Link[] links = extractor.links();
+    Link[] links = extractorClass.getAnnotationsByType(Link.class);
     for (Link link : links) {
-      requests.addAll(parseLinks(content, link));
+      requests.addAll(parseLinks(url, content, link));
     }
 
     // 提取内容
@@ -219,10 +226,10 @@ public class ExtractorHelper {
 
   private static Method[] getLinksMethod(Class<?> extractorClass) {
     return ReflectUtil.getMethods(
-        extractorClass, method -> method.isAnnotationPresent(Links.class));
+        extractorClass, method -> method.isAnnotationPresent(LinkMethod.class));
   }
 
-  private static List<Request> parseLinks(String content, Link link) {
+  private static List<Request> parseLinks(String currentUrl, String content, Link link) {
     List<Request> requests = new ArrayList<>();
     List<String> selected = Selectors.select(content, link.selector());
     if (selected != null && !selected.isEmpty()) {
@@ -230,6 +237,14 @@ public class ExtractorHelper {
       for (String url : selected) {
         url = Formatters.format(url, formats);
         if (StrUtil.isNotBlank(url)) {
+          if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
+            url =
+                URLUtil.decode(
+                    UrlBuilder.of(currentUrl)
+                        .setQuery(null)
+                        .setPath(UrlPath.of(url, null))
+                        .build());
+          }
           requests.add(
               new Request(url, link.method())
                   .setPriority(link.priority())

@@ -6,7 +6,7 @@ import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.NumberUtil;
 import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Links;
+import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
 import lombok.Data;
 
@@ -37,7 +37,7 @@ public class WallpapersPage {
   @Selector(type = Selector.Type.JSON, expression = "$.data[*]")
   private List<Wallpaper> wallpapers;
 
-  @Links
+  @LinkMethod
   public List<String> getNextPage(String url) {
     if (this.wallpapers != null && !this.wallpapers.isEmpty()) {
       UrlQuery query = UrlQuery.of(url, null);
@@ -63,7 +63,7 @@ public class WallpapersPage {
     @Selector(type = Selector.Type.JSON, expression = "$.url")
     private String url;
 
-    @Links
+    @LinkMethod
     public String getUrl() {
       return url;
     }

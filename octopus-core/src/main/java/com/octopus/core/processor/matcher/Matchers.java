@@ -32,6 +32,10 @@ public class Matchers {
     return new OrMatcher(ListUtil.of(matchers));
   }
 
+  public static Matcher not(@NonNull Matcher matcher) {
+    return response -> !matcher.matches(response);
+  }
+
   public static Matcher urlRegex(@NonNull Pattern pattern) {
     return new UrlRegexMatcher(pattern);
   }

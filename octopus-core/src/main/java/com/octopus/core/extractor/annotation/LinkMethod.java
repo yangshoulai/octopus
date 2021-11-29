@@ -4,10 +4,10 @@ import java.lang.annotation.*;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/24
+ * @date 2021/11/28
  */
 @Documented
-@Target({ElementType.TYPE})
+@Target({ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Extractor {}
+public @interface LinkMethod {}
