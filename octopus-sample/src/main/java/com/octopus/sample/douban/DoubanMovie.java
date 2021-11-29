@@ -113,16 +113,9 @@ public class DoubanMovie {
     List<DoubanMovie> movies = new ArrayList<>();
     Octopus.builder()
         .autoStop()
-        .addSite(
-            WebSite.of("movie.douban.com")
-                .setRateLimiter(1)
-                .setDownloadConfig(
-                    new CommonDownloadConfig()
-                        .addHeader(
-                            "Cookie",
-                            "__gads=ID=f3177d346c80a0c1-2285ae5f0fc50092:T=1606267864:RT=1606267864:R:S=ALNI_Mbs5Veegf-5qyHfQlpSK2_8ujI2Ug; ll=\"108258\"; _vwo_uuid_v2=D6DDAB50BCA49A960121155CBECA30B2D|b43c9971ddb32791f594141bbc79c3e1; bid=V8cnWIHWGHk; _vwo_uuid_v2=D6DDAB50BCA49A960121155CBECA30B2D|b43c9971ddb32791f594141bbc79c3e1; __yadk_uid=x2Aa7sS6ciGlkgtVzsvPz3LwGyxJGVrp; __utmc=30149280; __utmc=223695111; dbcl2=\"142644688:JVE2S+quDdo\"; ck=pyn7; _pk_ref.100001.4cf6=[\"\",\"\",1637918286,\"https://open.weixin.qq.com/\"]; _pk_id.100001.4cf6=9cdf476898667647.1637831879.3.1637918286.1637890726.; _pk_ses.100001.4cf6=*; __utma=30149280.160088922.1600063535.1637888786.1637918293.19; __utmb=30149280.0.10.1637918293; __utmz=30149280.1637918293.19.14.utmcsr=open.weixin.qq.com|utmccn=(referral)|utmcmd=referral|utmcct=/; __utma=223695111.2025169261.1637831886.1637888786.1637918293.3; __utmb=223695111.0.10.1637918293; __utmz=223695111.1637918293.3.2.utmcsr=open.weixin.qq.com|utmccn=(referral)|utmcmd=referral|utmcct=/; push_noty_num=0; push_doumail_num=0")))
-        // .addSeeds("https://movie.douban.com/top250?start=200&filter=")
-        .addSeeds("https://movie.douban.com/subject/1419936/")
+        .addSite(WebSite.of("movie.douban.com").setRateLimiter(1))
+        .addSeeds("https://movie.douban.com/top250?start=200&filter=")
+        // .addSeeds("https://movie.douban.com/subject/1419936/")
         .addProcessor(
             Matchers.HTML,
             DoubanMovie.class,

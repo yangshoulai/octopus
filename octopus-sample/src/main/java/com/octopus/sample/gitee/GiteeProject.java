@@ -58,8 +58,6 @@ public class GiteeProject {
 
   public static void main(String[] args) {
     Formatters.registerFormatter(new StarFormatter());
-
-    List<Project> projects = new ArrayList<>();
     Octopus.builder()
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
         .addSeeds("https://gitee.com/explore/all?order=starred")
@@ -68,12 +66,10 @@ public class GiteeProject {
             GiteeProject.class,
             gitee -> {
               if (gitee.getProjects() != null) {
-                projects.addAll(gitee.getProjects());
+                gitee.getProjects().forEach(p -> log.debug("{}", JSONUtil.toJsonStr(p)));
               }
             })
         .build()
         .start();
-    log.debug("所有推荐的项目");
-    projects.forEach(p -> log.debug("{}", JSONUtil.toJsonStr(p)));
   }
 }

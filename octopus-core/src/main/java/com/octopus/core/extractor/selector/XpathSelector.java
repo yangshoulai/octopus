@@ -1,5 +1,7 @@
 package com.octopus.core.extractor.selector;
 
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import com.octopus.core.extractor.annotation.Selector;
 import java.io.ByteArrayInputStream;
@@ -8,15 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
-import org.w3c.dom.Attr;
-import org.w3c.dom.CharacterData;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
+import org.htmlcleaner.TagNode;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Element;
+import org.w3c.dom.*;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -30,25 +34,10 @@ public class XpathSelector extends CacheableSelector<Node> {
 
   private DomSerializer serializer;
 
-  private DocumentBuilder builder;
-
   public XpathSelector() {
     CleanerProperties properties = new CleanerProperties();
     this.cleaner = new HtmlCleaner(properties);
-    this.serializer = new DomSerializer(new CleanerProperties());
-
-    DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-    try {
-      dbf.setValidating(false);
-      dbf.setNamespaceAware(false);
-      dbf.setFeature("http://xml.org/sax/features/namespaces", false);
-      dbf.setFeature("http://xml.org/sax/features/validation", false);
-      dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-dtd-grammar", false);
-      dbf.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-      this.builder = dbf.newDocumentBuilder();
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
+    this.serializer = new DomSerializer(new CleanerProperties(), false);
   }
 
   @Override
@@ -76,13 +65,13 @@ public class XpathSelector extends CacheableSelector<Node> {
 
   @Override
   protected Node parse(String content) {
-    try {
-      return this.builder.parse(new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8)));
-    } catch (Exception e) {
+    if (StrUtil.trim(content).startsWith("<?xml")) {
+      return XmlUtil.parseXml(content);
+    } else {
       try {
         return this.serializer.createDOM(this.cleaner.clean(content));
-      } catch (Exception e1) {
-        e1.printStackTrace();
+      } catch (ParserConfigurationException e) {
+        e.printStackTrace();
       }
     }
     return null;

@@ -60,7 +60,7 @@ public class WallhavenWallpaper {
                     wallpapers.addAll(wallhavenWallpaper.getWallpapers());
                   }
                 })
-            .addProcessor(new MediaFileDownloadProcessor("../../downloads/wallpapers/wallhaven"))
+            .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhaven"))
             .build();
     octopus.addRequest(
         Request.get(

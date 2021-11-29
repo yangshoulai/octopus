@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Extractor
 public class KxDaiLi {
 
-  @Selector(type = Type.XPATH, expression = "//table[@class='active']//tbody/tr")
+  @Selector(expression = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
 
   @LinkMethod
@@ -43,11 +43,11 @@ public class KxDaiLi {
     @Selector(type = Type.XPATH, expression = "//td[2]/text()")
     private int port;
 
-    @Selector(type = Type.XPATH, expression = "//td[3]/text()")
+    @Selector(type = Type.XPATH, expression = "concat('XPath ','is ','FUN!')")
     private String level;
 
     @Selector(type = Type.XPATH, expression = "//td[4]/text()")
-    private String type;
+    private String[] types;
 
     @Selector(type = Type.XPATH, expression = "//td[5]/text()")
     @RegexFormat(regex = "^(.*) 秒$", groups = 1)

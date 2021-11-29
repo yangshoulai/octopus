@@ -22,7 +22,7 @@ public class Apc360Wallpaper {
             "http://wallpaper.apc.360.cn/index.php?c=WallPaper&a=getAllCategoriesV2&from=360chrome")
         .addProcessor(Matchers.urlRegex(".*getAllCategoriesV2.*"), CategoriesPage.class)
         .addProcessor(Matchers.urlRegex(".*getAppsByCategory.*"), WallpapersPage.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../downloads/wallpapers/360"))
+        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/360"))
         .build()
         .start();
   }

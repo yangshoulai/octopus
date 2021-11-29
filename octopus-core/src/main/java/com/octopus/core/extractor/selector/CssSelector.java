@@ -1,6 +1,7 @@
 package com.octopus.core.extractor.selector;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.XmlUtil;
 import com.octopus.core.extractor.annotation.Selector;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,7 +31,7 @@ public class CssSelector extends CacheableSelector<Document> {
                   if (StrUtil.isNotBlank(selector.attr())) {
                     return e.attr(selector.attr());
                   } else if (selector.self()) {
-                    return e.toString();
+                    return XmlUtil.format(e.toString());
                   } else {
                     return e.html();
                   }
