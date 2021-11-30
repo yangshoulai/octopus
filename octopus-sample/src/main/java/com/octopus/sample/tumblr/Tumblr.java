@@ -62,10 +62,10 @@ public class Tumblr {
     downloadConfig.setConnectTimeout(12000);
 
     Octopus.builder()
-        .addSeeds("https://amkelss.tumblr.com/archive")
+        .addSeeds("https://jcitydreams.tumblr.com/archive")
         .addProcessor(Matchers.HTML, Tumblr.class)
         .addProcessor(Matchers.JSON, PostResponse.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/amkelss"))
+        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/jcitydreams"))
         .setGlobalDownloadConfig(downloadConfig)
         .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
         .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))

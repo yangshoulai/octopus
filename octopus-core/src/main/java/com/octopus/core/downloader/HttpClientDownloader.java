@@ -77,7 +77,7 @@ public class HttpClientDownloader implements Downloader {
         new PoolingHttpClientConnectionManager(socketFactoryRegistry);
     connectionManager.setMaxTotal(200);
     connectionManager.setDefaultMaxPerRoute(25);
-    connectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(3000).build());
+    connectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(60000).build());
     this.httpClient =
         HttpClients.custom()
             .setSSLHostnameVerifier(new NoopHostnameVerifier())
