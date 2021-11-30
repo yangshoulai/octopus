@@ -8,6 +8,7 @@ import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.annotation.Selector.Type;
 import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.format.SplitFormat;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -43,10 +44,11 @@ public class KxDaiLi {
     @Selector(type = Type.XPATH, expression = "//td[2]/text()")
     private int port;
 
-    @Selector(type = Type.XPATH, expression = "concat('XPath ','is ','FUN!')")
+    @Selector(type = Type.XPATH, expression = "//td[3]/text()")
     private String level;
 
     @Selector(type = Type.XPATH, expression = "//td[4]/text()")
+    @SplitFormat
     private String[] types;
 
     @Selector(type = Type.XPATH, expression = "//td[5]/text()")

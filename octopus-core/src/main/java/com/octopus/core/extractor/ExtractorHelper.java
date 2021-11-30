@@ -15,6 +15,7 @@ import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.format.RegexFormat;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -22,9 +23,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 
 /**
@@ -96,6 +99,9 @@ public class ExtractorHelper {
             throw new InvalidExtractorException("Unsupported type " + fieldType.getName());
           }
         }
+
+        // check format annotations
+        checkIsValidFormatAnnotations(field);
       }
 
       Method[] linksMethods = getLinksMethod(type);
@@ -111,6 +117,14 @@ public class ExtractorHelper {
     } else {
       throw new InvalidExtractorException(
           String.format("Class [%s] must has annotation @Extractor", type.getName()));
+    }
+  }
+
+  private static void checkIsValidFormatAnnotations(Field field) {
+    List<Annotation> multiLineAnnotations = Formatters.getMultiLineFormatAnnotations(field);
+    if (multiLineAnnotations.size() > 1) {
+      throw new InvalidExtractorException(
+          "Filed " + field + " has " + multiLineAnnotations.size() + " line format annotations");
     }
   }
 
@@ -269,8 +283,10 @@ public class ExtractorHelper {
         List<Object> list = new ArrayList<>();
         if (Convertors.isConvertibleType(componentType)) {
           for (String content : selected) {
-            content = Formatters.format(content, field);
-            list.add(Convertors.convert(componentType, content, field));
+            List<String> formatted = format(content, field);
+            for (String s : formatted) {
+              list.add(Convertors.convert(componentType, s, field));
+            }
           }
         } else if (componentType.isAnnotationPresent(Extractor.class)) {
           for (String content : selected) {
@@ -288,8 +304,8 @@ public class ExtractorHelper {
             : (Set.class.equals(fieldType) ? new HashSet<>(list) : list);
       }
     } else if (Convertors.isConvertibleType(fieldType) && !selected.isEmpty()) {
-      String content = Formatters.format(selected.get(0), field);
-      return Convertors.convert(fieldType, content, field);
+      List<String> formatted = format(selected.get(0), field);
+      return formatted.isEmpty() ? null : Convertors.convert(fieldType, formatted.get(0), field);
     } else if (fieldType.isAnnotationPresent(Extractor.class) && !selected.isEmpty()) {
       Result<?> result = extract(url, selected.get(0), fieldType);
       if (result.getRequests() != null) {
@@ -298,5 +314,17 @@ public class ExtractorHelper {
       return result.getObj();
     }
     return null;
+  }
+
+  private static List<String> format(String content, Field field) {
+    List<Annotation> multiLineFormats = Formatters.getMultiLineFormatAnnotations(field);
+    if (multiLineFormats.isEmpty()) {
+      return ListUtil.toList(Formatters.format(content, field));
+    }
+    List<String> formatted = Formatters.multiLineFormat(content, field);
+    if (formatted == null || formatted.isEmpty()) {
+      return Collections.emptyList();
+    }
+    return formatted.stream().map(s -> Formatters.format(s, field)).collect(Collectors.toList());
   }
 }

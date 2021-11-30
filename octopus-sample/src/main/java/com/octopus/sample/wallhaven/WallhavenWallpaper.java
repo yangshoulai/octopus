@@ -22,10 +22,11 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Extractor
+@Link(selector = @Selector(expression = "img#wallpaper", attr = "src"))
 @Link(
     selector = @Selector(expression = "#thumbs .thumb-listing-page ul li a.preview", attr = "href"))
 @Link(selector = @Selector(expression = "ul.pagination li a.next", attr = "href", multi = false))
-@Link(selector = @Selector(expression = "img#wallpaper", attr = "src"))
+
 public class WallhavenWallpaper {
 
   @Selector(expression = "#thumbs .thumb-listing-page ul li")
@@ -68,4 +69,5 @@ public class WallhavenWallpaper {
     octopus.start();
     wallpapers.forEach(wallpaper -> log.debug("{}", wallpaper));
   }
+
 }

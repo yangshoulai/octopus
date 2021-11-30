@@ -47,6 +47,7 @@ public class ListPageProcessor extends AbstractProcessor {
                           .setHost(URLUtil.url(response.getRequest().getUrl()).getHost())
                           .setPath(UrlPath.of("/weapi/song/enhance/player/url/v1", null))
                           .build())
+                  .setRepeatable(false)
                   .setBody(HttpUtil.toParams(encryptParams).getBytes(StandardCharsets.UTF_8))
                   .addHeader(Header.CONTENT_TYPE.getValue(), ContentType.FORM_URLENCODED.getValue())
                   .putAttribute("name", name);
