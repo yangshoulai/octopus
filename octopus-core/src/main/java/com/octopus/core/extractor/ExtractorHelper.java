@@ -10,6 +10,7 @@ import cn.hutool.core.util.TypeUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
+import com.octopus.core.Response;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.LinkMethod;
@@ -152,23 +153,22 @@ public class ExtractorHelper {
       }
     }
     Class<?>[] paramTypes = method.getParameterTypes();
-    if (paramTypes.length > 2) {
+    if (paramTypes.length > 1) {
       return false;
     }
-    return Arrays.stream(paramTypes).allMatch(String.class::isAssignableFrom);
+    return paramTypes.length == 0
+        || Arrays.stream(paramTypes).allMatch(Response.class::isAssignableFrom);
   }
 
   @SuppressWarnings("unchecked")
   private static List<Request> invokeNewLinksMethod(
-      Object targetObj, Method method, String url, String content) {
+      Object targetObj, Method method, Response response) {
     Class<?>[] paramTypes = method.getParameterTypes();
     Object returnObj = null;
     if (paramTypes.length == 0) {
       returnObj = ReflectUtil.invoke(targetObj, method);
     } else if (paramTypes.length == 1) {
-      returnObj = ReflectUtil.invoke(targetObj, method, url);
-    } else if (paramTypes.length == 2) {
-      returnObj = ReflectUtil.invoke(targetObj, method, url, content);
+      returnObj = ReflectUtil.invoke(targetObj, method, response);
     }
 
     List<Object> objects = new ArrayList<>();
@@ -192,7 +192,10 @@ public class ExtractorHelper {
               if (!HttpUtil.isHttp(u) && !HttpUtil.isHttps(u)) {
                 u =
                     URLUtil.decode(
-                        UrlBuilder.of(url).setQuery(null).setPath(UrlPath.of(u, null)).build());
+                        UrlBuilder.of(response.getRequest().getUrl())
+                            .setQuery(null)
+                            .setPath(UrlPath.of(u, null))
+                            .build());
               }
               requests.add(Request.get(u));
             } else if (item instanceof Request) {
@@ -203,8 +206,13 @@ public class ExtractorHelper {
     return requests;
   }
 
+  public static <T> Result<T> extract(Response response, Class<T> extractorClass) {
+    return extract(response.getRequest().getUrl(), response.asText(), extractorClass, response);
+  }
+
   @SuppressWarnings("unchecked")
-  public static <T> Result<T> extract(String url, String content, Class<T> extractorClass) {
+  public static <T> Result<T> extract(
+      String url, String content, Class<T> extractorClass, Response response) {
     if (StrUtil.isBlank(content) || !checkIsValidExtractorClass(extractorClass)) {
       return new Result<>();
     }
@@ -224,7 +232,7 @@ public class ExtractorHelper {
       if (field.isAnnotationPresent(Selector.class)) {
         Selector selector = field.getAnnotation(Selector.class);
         List<String> selected = Selectors.select(content, selector);
-        Object obj = convert(url, field, selected, requests);
+        Object obj = convert(url, field, selected, requests, response);
         if (obj != null) {
           ReflectUtil.setFieldValue(t, field, obj);
         }
@@ -235,7 +243,7 @@ public class ExtractorHelper {
     Method[] linksMethods = getLinksMethod(extractorClass);
     if (linksMethods != null) {
       for (Method linksMethod : linksMethods) {
-        List<Request> newRequests = invokeNewLinksMethod(t, linksMethod, url, content);
+        List<Request> newRequests = invokeNewLinksMethod(t, linksMethod, response);
         requests.addAll(newRequests);
       }
     }
@@ -274,7 +282,7 @@ public class ExtractorHelper {
   }
 
   private static Object convert(
-      String url, Field field, List<String> selected, List<Request> requests) {
+      String url, Field field, List<String> selected, List<Request> requests, Response response) {
     Class<?> fieldType = TypeUtil.getClass(field);
     if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
       Class<?> componentType =
@@ -290,7 +298,7 @@ public class ExtractorHelper {
           }
         } else if (componentType.isAnnotationPresent(Extractor.class)) {
           for (String content : selected) {
-            Result<?> result = extract(url, content, componentType);
+            Result<?> result = extract(url, content, componentType, response);
             if (result.getObj() != null) {
               list.add(result.getObj());
             }
@@ -307,7 +315,7 @@ public class ExtractorHelper {
       List<String> formatted = format(selected.get(0), field);
       return formatted.isEmpty() ? null : Convertors.convert(fieldType, formatted.get(0), field);
     } else if (fieldType.isAnnotationPresent(Extractor.class) && !selected.isEmpty()) {
-      Result<?> result = extract(url, selected.get(0), fieldType);
+      Result<?> result = extract(url, selected.get(0), fieldType, response);
       if (result.getRequests() != null) {
         requests.addAll(result.getRequests());
       }

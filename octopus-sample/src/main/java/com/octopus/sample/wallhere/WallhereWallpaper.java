@@ -6,6 +6,7 @@ import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.NumberUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
+import com.octopus.core.Response;
 import com.octopus.core.WebSite;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
@@ -37,10 +38,11 @@ public class WallhereWallpaper {
   private WallpaperXml xml;
 
   @LinkMethod
-  public List<Request> getNextPage(String url) {
+  public List<Request> getNextPage(Response response) {
     if (this.xml != null
         && this.xml.getWallpapers() != null
         && this.xml.getWallpapers().length > 0) {
+      String url = response.getRequest().getUrl();
       UrlQuery query = UrlQuery.of(url, null);
       int page = NumberUtil.parseInt(query.get("page").toString());
       Map<CharSequence, CharSequence> map = new HashMap<>(query.getQueryMap());

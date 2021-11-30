@@ -6,6 +6,7 @@ import com.octopus.core.extractor.annotation.Selector.Type;
 import com.octopus.core.extractor.selector.CssSelector;
 import com.octopus.core.extractor.selector.ISelector;
 import com.octopus.core.extractor.selector.JsonSelector;
+import com.octopus.core.extractor.selector.RegexSelector;
 import com.octopus.core.extractor.selector.XpathSelector;
 import java.util.HashMap;
 import java.util.List;
@@ -19,18 +20,19 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class Selectors {
 
-  private static final Map<Type, ISelector> selectors = new HashMap<>();
+  private static final Map<Type, ISelector> SELECTORS = new HashMap<>();
 
   static {
-    selectors.put(Type.CSS, new CssSelector());
-    selectors.put(Type.XPATH, new XpathSelector());
-    selectors.put(Type.JSON, new JsonSelector());
+    SELECTORS.put(Type.CSS, new CssSelector());
+    SELECTORS.put(Type.XPATH, new XpathSelector());
+    SELECTORS.put(Type.JSON, new JsonSelector());
+    SELECTORS.put(Type.REGEX, new RegexSelector());
   }
 
-  public static List<String> select(String content, Selector selector) {
-    if (!selectors.containsKey(selector.type())) {
+  static List<String> select(String content, Selector selector) {
+    if (!SELECTORS.containsKey(selector.type())) {
       throw new OctopusException("No selector found for type " + selector.type());
     }
-    return selectors.get(selector.type()).select(content, selector);
+    return SELECTORS.get(selector.type()).select(content, selector);
   }
 }

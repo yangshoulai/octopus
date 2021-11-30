@@ -2,6 +2,7 @@ package com.octopus.core;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.URLUtil;
 import com.octopus.core.downloader.DownloadConfig;
@@ -41,6 +42,8 @@ class OctopusImpl implements Octopus {
   private final Logger log = LoggerFactory.getLogger("Octopus");
 
   private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
+
+  private TimeInterval interval;
 
   private ExecutorService boss;
 
@@ -99,6 +102,7 @@ class OctopusImpl implements Octopus {
     }
     this.startRateLimiters();
     this.translateState(State.STARTING, State.STARTED);
+    this.interval = new TimeInterval();
     log.info(
         "Octopus started at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
     return CompletableFuture.runAsync(this::dispatch, this.boss);
@@ -134,7 +138,9 @@ class OctopusImpl implements Octopus {
         waiting,
         failed);
     log.info(
-        "Octopus stopped at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
+        "Octopus stopped at [{}] running [{}]",
+        DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN),
+        interval.intervalPretty());
   }
 
   @Override

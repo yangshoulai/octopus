@@ -31,6 +31,10 @@ public @interface Selector {
 
   boolean trim() default true;
 
+  int[] groups() default {0};
+
+  String format() default "%s";
+
   /** 选择器类型 */
   enum Type {
     /** CSS选择器 */
@@ -39,6 +43,8 @@ public @interface Selector {
     /** XPATH 选择器 */
     XPATH,
     /** JSON 选择器 */
-    JSON
+    JSON,
+    /** 正则表达式匹配 */
+    REGEX
   }
 }

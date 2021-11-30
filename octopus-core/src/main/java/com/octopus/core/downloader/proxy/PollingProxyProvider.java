@@ -1,5 +1,6 @@
 package com.octopus.core.downloader.proxy;
 
+import cn.hutool.core.collection.ListUtil;
 import com.octopus.core.Request;
 import java.net.Proxy;
 import java.util.List;
@@ -15,6 +16,10 @@ public class PollingProxyProvider implements ProxyProvider {
   private final List<Proxy> proxies;
 
   private final AtomicInteger index = new AtomicInteger(0);
+
+  public PollingProxyProvider(@NonNull Proxy... proxies) {
+    this.proxies = ListUtil.toList(proxies);
+  }
 
   public PollingProxyProvider(@NonNull List<Proxy> proxies) {
     this.proxies = proxies;

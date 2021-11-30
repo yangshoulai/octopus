@@ -3,6 +3,7 @@ package com.octopus.sample.proxy;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
+import com.octopus.core.Response;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
@@ -26,8 +27,9 @@ public class KxDaiLi {
   private List<KxDaiLiProxy> proxies;
 
   @LinkMethod
-  public String nextPage(String url) {
+  public String nextPage(Response response) {
     if (this.proxies != null && !this.proxies.isEmpty()) {
+      String url = response.getRequest().getUrl();
       int page = Integer.parseInt(ReUtil.get(".*/dailiip/1/(\\d+)\\.html$", url, 1));
       return "/dailiip/1/" + (++page) + ".html";
     }

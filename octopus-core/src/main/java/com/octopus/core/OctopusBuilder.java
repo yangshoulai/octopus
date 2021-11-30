@@ -134,9 +134,7 @@ public class OctopusBuilder {
         new AbstractProcessor(matcher) {
           @Override
           public List<Request> process(Response response) {
-            Result<T> result =
-                ExtractorHelper.extract(
-                    response.getRequest().getUrl(), response.asText(), extractorClass);
+            Result<T> result = ExtractorHelper.extract(response, extractorClass);
             if (callback != null) {
               callback.accept(result.getObj());
             }
@@ -191,7 +189,7 @@ public class OctopusBuilder {
     }
     octopus.setProcessors(this.processors);
     octopus.setGlobalDownloadConfig(
-        this.globalDownloadConfig == null ? new CommonDownloadConfig() : null);
+        this.globalDownloadConfig == null ? new CommonDownloadConfig() : this.globalDownloadConfig);
     octopus.setAutoStop(this.autoStop);
     octopus.setClearStoreOnStartup(this.clearStoreOnStartup);
     octopus.setSeeds(this.seeds);

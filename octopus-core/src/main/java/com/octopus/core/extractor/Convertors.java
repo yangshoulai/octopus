@@ -42,8 +42,7 @@ public class Convertors {
     registerTypeConvertor(new DateConvertor());
   }
 
-  public static void registerTypeConvertor(
-      @NonNull Convertor<?, ? extends Annotation> converter) {
+  public static void registerTypeConvertor(@NonNull Convertor<?, ? extends Annotation> converter) {
     Class<?>[] classes = converter.getSupportClasses();
     if (classes != null) {
       for (Class<?> cls : classes) {
@@ -56,12 +55,12 @@ public class Convertors {
     }
   }
 
-  public static boolean isConvertibleType(@NonNull Class<?> type) {
+  static boolean isConvertibleType(@NonNull Class<?> type) {
     return CONVERTERS.containsKey(type);
   }
 
   @SuppressWarnings("unchecked")
-  public static Object convert(Class<?> type, String content, Field field) {
+  static Object convert(Class<?> type, String content, Field field) {
     Object converted = null;
     List<Convertor<?, ? extends Annotation>> converters = CONVERTERS.get(type);
     for (Convertor<?, ? extends Annotation> converter : converters) {

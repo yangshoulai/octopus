@@ -93,7 +93,10 @@ public class Response implements Serializable {
   }
 
   public String asText() {
-    return StrUtil.isNotBlank(text) ? text : new String(this.body, this.charset);
+    if (StrUtil.isBlank(text)) {
+      text = new String(this.body, this.charset);
+    }
+    return text;
   }
 
   public Document asDocument() {

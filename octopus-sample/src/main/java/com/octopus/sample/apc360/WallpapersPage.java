@@ -5,6 +5,7 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.NumberUtil;
+import com.octopus.core.Response;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.annotation.Selector;
@@ -38,8 +39,9 @@ public class WallpapersPage {
   private List<Wallpaper> wallpapers;
 
   @LinkMethod
-  public List<String> getNextPage(String url) {
+  public List<String> getNextPage(Response response) {
     if (this.wallpapers != null && !this.wallpapers.isEmpty()) {
+      String url = response.getRequest().getUrl();
       UrlQuery query = UrlQuery.of(url, null);
       int start = NumberUtil.parseInt(query.get("start").toString());
       Map<CharSequence, CharSequence> map = query.getQueryMap();

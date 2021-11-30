@@ -1,14 +1,12 @@
 package com.octopus.core.extractor.selector;
 
-import cn.hutool.json.JSONUtil;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.octopus.core.extractor.annotation.Selector;
-import net.minidev.json.JSONArray;
-
 import java.util.ArrayList;
 import java.util.List;
+import net.minidev.json.JSONArray;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -28,7 +26,7 @@ public class JsonSelector extends CacheableSelector<String> {
     if (obj instanceof JSONArray) {
       JSONArray array = (JSONArray) obj;
       for (Object o : array) {
-        list.add(JSONUtil.toJsonStr(o));
+        list.add(o.toString());
       }
     }
     return list;
