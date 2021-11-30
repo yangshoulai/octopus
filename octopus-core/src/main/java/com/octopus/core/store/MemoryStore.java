@@ -19,6 +19,10 @@ public class MemoryStore implements Store {
 
   private final AtomicInteger completed = new AtomicInteger(0);
 
+  private final AtomicInteger total = new AtomicInteger(0);
+
+  private final AtomicInteger failed = new AtomicInteger(0);
+
   @Override
   public Request get() {
     return this.requests.poll();
@@ -29,6 +33,7 @@ public class MemoryStore implements Store {
     boolean success = requests.offer(request);
     if (success) {
       idSet.add(request.getId());
+      this.total.incrementAndGet();
     }
     return success;
   }
@@ -43,6 +48,8 @@ public class MemoryStore implements Store {
     this.idSet.clear();
     this.requests.clear();
     this.completed.set(0);
+    this.total.set(0);
+    this.failed.set(0);
   }
 
   @Override
@@ -51,11 +58,13 @@ public class MemoryStore implements Store {
   }
 
   @Override
-  public void markAsFailed(Request request) {}
+  public void markAsFailed(Request request) {
+    this.failed.incrementAndGet();
+  }
 
   @Override
   public int getTotalSize() {
-    return this.idSet.size();
+    return this.total.get();
   }
 
   @Override
