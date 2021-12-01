@@ -15,13 +15,10 @@ import com.octopus.core.utils.RateLimiter;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23
  */
-public class Music163Crawler {
+public class Music163Octopus {
 
   public static void main(String[] args) {
     Octopus.builder()
-        .setThreads(2)
-        .clearStoreOnStartup(true)
-        //.useRedisStore("music163")
         .autoStop()
         .addSeeds("https://music.163.com/discover/toplist?id=3778678")
         .addSite(WebSite.of("music.163.com").setRateLimiter(RateLimiter.of(1, 5)))

@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Extractor
-public class KxDaiLi {
+public class KxDaiLiOctopus {
 
   @Selector(expression = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
@@ -67,7 +67,7 @@ public class KxDaiLi {
   public static void main(String[] args) {
     Octopus.builder()
         .addProcessor(
-            KxDaiLi.class,
+            KxDaiLiOctopus.class,
             kxDaiLi -> {
               kxDaiLi
                   .getProxies()

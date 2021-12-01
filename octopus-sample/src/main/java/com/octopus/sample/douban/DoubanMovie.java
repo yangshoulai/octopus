@@ -1,21 +1,12 @@
 package com.octopus.sample.douban;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
-import com.octopus.core.Octopus;
-import com.octopus.core.WebSite;
-import com.octopus.core.downloader.CommonDownloadConfig;
-import com.octopus.core.extractor.Formatters;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Selector;
 import com.octopus.core.extractor.annotation.Selector.Type;
-import com.octopus.core.extractor.convertor.DateVal;
 import com.octopus.core.extractor.format.RegexFormat;
-import com.octopus.core.processor.matcher.Matchers;
-import java.util.ArrayList;
+import com.octopus.core.extractor.format.SplitFormat;
 import java.util.Date;
-import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -32,9 +23,6 @@ import lombok.extern.slf4j.Slf4j;
     repeatable = false,
     priority = 1)
 public class DoubanMovie {
-
-  /** 编号 */
-  private long id;
 
   /** 名称 */
   @Selector(type = Type.XPATH, expression = "//h1/span[1]/text()")
@@ -53,7 +41,6 @@ public class DoubanMovie {
   private String[] writers;
 
   /** 主演 */
-  // @Selector(expression = ".actor > .attrs > a", self = true)
   @Selector(type = Type.XPATH, expression = "//a[@rel='v:starring']")
   private Actor[] actors;
 
@@ -67,16 +54,12 @@ public class DoubanMovie {
 
   /** 语言 */
   @Selector(type = Type.XPATH, expression = "//span[text()='语言:']/following::text()")
-  @LanguageFormat
-  private String language;
+  @SplitFormat
+  private String[] languages;
 
   /** 发布日期 */
   @Selector(type = Type.XPATH, expression = "//span[@property='v:initialReleaseDate']/text()")
-  @RegexFormat(
-      regex = "^((\\d{4})-(\\d{2})-(\\d{2})).*$",
-      format = "%s%s%s",
-      groups = {4, 3, 2})
-  @DateVal(pattern = "ddMMyyyy")
+  @RegexFormat(regex = "^(\\d{4}-\\d{2}-\\d{2}).*$", groups = 1)
   private Date publishedDate;
 
   /** 时长 */
@@ -101,32 +84,7 @@ public class DoubanMovie {
     @RegexFormat(regex = "^/celebrity/(\\d+)/$", groups = 1)
     private String id;
 
-    // @Selector(type = Type.XPATH, expression = "//a/text()")
     @Selector(expression = "a")
     private String name;
-  }
-
-  public static void main(String[] args) {
-
-    Formatters.registerFormatter(new LanguageFormatter());
-
-    List<DoubanMovie> movies = new ArrayList<>();
-    Octopus.builder()
-        .autoStop()
-        .addSite(WebSite.of("movie.douban.com").setRateLimiter(1))
-        .addSeeds("https://movie.douban.com/top250?start=200&filter=")
-        // .addSeeds("https://movie.douban.com/subject/1419936/")
-        .addProcessor(
-            Matchers.HTML,
-            DoubanMovie.class,
-            movie -> {
-              if (movie != null && StrUtil.isNotBlank(movie.getName())) {
-                movies.add(movie);
-              }
-            })
-        .build()
-        .start();
-    log.debug("豆瓣电影 Top 250");
-    movies.forEach(p -> log.debug("{}", JSONUtil.toJsonStr(p)));
   }
 }
