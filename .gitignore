@@ -9,3 +9,5 @@ logs/
 downloads/
 
 .DS_Store
+
+.flattened-pom.xml
