@@ -1,26 +1,20 @@
 package com.octopus.core.extractor.selector;
 
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import com.octopus.core.extractor.annotation.Selector;
-import java.io.ByteArrayInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
-import org.htmlcleaner.TagNode;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Element;
-import org.w3c.dom.*;
+import org.w3c.dom.Attr;
+import org.w3c.dom.CharacterData;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -65,14 +59,18 @@ public class XpathSelector extends CacheableSelector<Node> {
 
   @Override
   protected Node parse(String content) {
-    if (StrUtil.trim(content).startsWith("<?xml")) {
-      return XmlUtil.parseXml(content);
-    } else {
-      try {
-        return this.serializer.createDOM(this.cleaner.clean(content));
-      } catch (ParserConfigurationException e) {
-        e.printStackTrace();
+    try {
+      if (StrUtil.trim(content).startsWith("<?xml")) {
+        return XmlUtil.parseXml(content);
+      } else {
+        try {
+          return this.serializer.createDOM(this.cleaner.clean(content));
+        } catch (ParserConfigurationException e) {
+          e.printStackTrace();
+        }
       }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
     return null;
   }
