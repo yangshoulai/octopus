@@ -13,11 +13,12 @@ import java.util.stream.Collectors;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/26
  */
-public abstract class CacheableSelector<T, A extends Annotation> implements SelectorHandler<A> {
+public abstract class CacheableSelectorHandler<T, A extends Annotation>
+    implements SelectorHandler<A> {
 
   private final LRUCache<String, T> cache;
 
-  public CacheableSelector() {
+  public CacheableSelectorHandler() {
     this.cache = CacheUtil.newLRUCache(10);
   }
 

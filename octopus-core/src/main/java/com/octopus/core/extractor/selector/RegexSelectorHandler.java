@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/30
  */
-public class RegexSelectorHandler extends CacheableSelector<String, RegexSelector> {
+public class RegexSelectorHandler extends CacheableSelectorHandler<String, RegexSelector> {
 
   @Override
   protected List<String> selectWithType(String content, RegexSelector selector) {

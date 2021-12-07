@@ -3,7 +3,7 @@ package com.octopus.core.extractor;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
 import com.octopus.core.exception.OctopusException;
-import com.octopus.core.extractor.selector.CacheableSelector;
+import com.octopus.core.extractor.selector.CacheableSelectorHandler;
 import com.octopus.core.extractor.selector.CssSelectorHandler;
 import com.octopus.core.extractor.selector.JsonSelectorHandler;
 import com.octopus.core.extractor.selector.RegexSelectorHandler;
@@ -43,7 +43,7 @@ public class Selectors {
     Type type = null;
     Type[] types = TypeUtil.getTypeArguments(selector.getClass());
     if (types != null && types.length > 0) {
-      if (selector instanceof CacheableSelector) {
+      if (selector instanceof CacheableSelectorHandler) {
         if (types.length > 1) {
           type = types[1];
         }
@@ -80,16 +80,16 @@ public class Selectors {
     for (Annotation annotation : annotations) {
       SelectorHandler<? extends Annotation> selectorHandler =
           SELECTORS.get(annotation.annotationType());
-      Method method =
-          ReflectUtil.getMethod(
-              selectorHandler.getClass(), "select", String.class, Annotation.class);
       try {
+        Method method =
+            ReflectUtil.getMethod(
+                selectorHandler.getClass(), "select", String.class, Annotation.class);
         List<String> results = ReflectUtil.invoke(selectorHandler, method, content, annotation);
         if (results != null && !results.isEmpty()) {
           return results;
         }
-      } catch (Exception e) {
-        e.printStackTrace();
+      } catch (Throwable e) {
+        log.error("", e);
       }
     }
     return Collections.emptyList();

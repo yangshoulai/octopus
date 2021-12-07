@@ -13,7 +13,7 @@ import net.minidev.json.JSONArray;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/27
  */
-public class JsonSelectorHandler extends CacheableSelector<String, JsonSelector> {
+public class JsonSelectorHandler extends CacheableSelectorHandler<String, JsonSelector> {
 
   private static final Configuration CONFIGURATION =
       Configuration.builder()

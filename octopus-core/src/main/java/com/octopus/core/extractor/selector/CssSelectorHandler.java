@@ -16,7 +16,7 @@ import org.jsoup.select.Elements;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CssSelectorHandler extends CacheableSelector<Document, CssSelector> {
+public class CssSelectorHandler extends CacheableSelectorHandler<Document, CssSelector> {
 
   @Override
   public List<String> selectWithType(Document document, CssSelector selector) {

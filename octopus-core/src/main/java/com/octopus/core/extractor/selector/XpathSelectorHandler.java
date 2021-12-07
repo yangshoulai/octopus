@@ -21,7 +21,7 @@ import org.w3c.dom.NodeList;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class XpathSelectorHandler extends CacheableSelector<Node, XpathSelector> {
+public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSelector> {
 
   private HtmlCleaner cleaner;
 
