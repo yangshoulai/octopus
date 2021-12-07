@@ -2,15 +2,15 @@ package com.octopus.core.extractor;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
-import com.octopus.core.extractor.convertor.BooleanConvertor;
-import com.octopus.core.extractor.convertor.DateConvertor;
-import com.octopus.core.extractor.convertor.DoubleConvertor;
-import com.octopus.core.extractor.convertor.FloatConvertor;
-import com.octopus.core.extractor.convertor.IntegerConvertor;
-import com.octopus.core.extractor.convertor.LongConvertor;
-import com.octopus.core.extractor.convertor.ShortConvertor;
-import com.octopus.core.extractor.convertor.StringConvertor;
-import com.octopus.core.extractor.convertor.Convertor;
+import com.octopus.core.extractor.convertor.BooleanConvertorHandler;
+import com.octopus.core.extractor.convertor.DateConvertorHandler;
+import com.octopus.core.extractor.convertor.DoubleConvertorHandler;
+import com.octopus.core.extractor.convertor.FloatConvertorHandler;
+import com.octopus.core.extractor.convertor.IntegerConvertorHandler;
+import com.octopus.core.extractor.convertor.LongConvertorHandler;
+import com.octopus.core.extractor.convertor.ShortConvertorHandler;
+import com.octopus.core.extractor.convertor.StringConvertorHandler;
+import com.octopus.core.extractor.convertor.ConvertorHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Type;
@@ -26,28 +26,28 @@ import lombok.NonNull;
  */
 public class Convertors {
 
-  private static final Map<Class<?>, List<Convertor<?, ? extends Annotation>>> CONVERTERS =
+  private static final Map<Class<?>, List<ConvertorHandler<?, ? extends Annotation>>> CONVERTERS =
       new HashMap<>();
 
   static {
-    registerTypeConvertor(new IntegerConvertor());
-    registerTypeConvertor(new LongConvertor());
-    registerTypeConvertor(new ShortConvertor());
-    registerTypeConvertor(new FloatConvertor());
-    registerTypeConvertor(new DoubleConvertor());
-    registerTypeConvertor(new BooleanConvertor());
-    registerTypeConvertor(new ShortConvertor());
+    registerTypeConvertor(new IntegerConvertorHandler());
+    registerTypeConvertor(new LongConvertorHandler());
+    registerTypeConvertor(new ShortConvertorHandler());
+    registerTypeConvertor(new FloatConvertorHandler());
+    registerTypeConvertor(new DoubleConvertorHandler());
+    registerTypeConvertor(new BooleanConvertorHandler());
+    registerTypeConvertor(new ShortConvertorHandler());
 
-    registerTypeConvertor(new StringConvertor());
-    registerTypeConvertor(new DateConvertor());
+    registerTypeConvertor(new StringConvertorHandler());
+    registerTypeConvertor(new DateConvertorHandler());
   }
 
-  public static void registerTypeConvertor(@NonNull Convertor<?, ? extends Annotation> converter) {
+  public static void registerTypeConvertor(@NonNull ConvertorHandler<?, ? extends Annotation> converter) {
     Class<?>[] classes = converter.getSupportClasses();
     if (classes != null) {
       for (Class<?> cls : classes) {
         if (cls != null) {
-          List<Convertor<?, ? extends Annotation>> converters =
+          List<ConvertorHandler<?, ? extends Annotation>> converters =
               CONVERTERS.computeIfAbsent(cls, k -> new ArrayList<>());
           converters.add(converter);
         }
@@ -62,8 +62,8 @@ public class Convertors {
   @SuppressWarnings("unchecked")
   static Object convert(Class<?> type, String content, Field field) {
     Object converted = null;
-    List<Convertor<?, ? extends Annotation>> converters = CONVERTERS.get(type);
-    for (Convertor<?, ? extends Annotation> converter : converters) {
+    List<ConvertorHandler<?, ? extends Annotation>> converters = CONVERTERS.get(type);
+    for (ConvertorHandler<?, ? extends Annotation> converter : converters) {
       Annotation annotation = null;
       Type[] types = TypeUtil.getTypeArguments(converter.getClass());
       if (types != null && types.length == 2) {

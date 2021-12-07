@@ -4,12 +4,12 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.annotation.Selector.Type;
-import com.octopus.core.extractor.format.RegexFormat;
-import com.octopus.core.extractor.format.SplitFormat;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.extractor.format.SplitFormatter;
+import com.octopus.core.extractor.selector.CssSelector;
+import com.octopus.core.extractor.selector.XpathSelector;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Extractor
 public class KxDaiLiOctopus {
 
-  @Selector(expression = "table.active tbody tr", self = true)
+  @CssSelector(expression = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
 
   @LinkMethod
@@ -40,27 +40,27 @@ public class KxDaiLiOctopus {
   @Extractor
   public static class KxDaiLiProxy {
 
-    @Selector(type = Type.XPATH, expression = "//td[1]/text()")
+    @XpathSelector(expression = "//td[1]/text()")
     private String host;
 
-    @Selector(type = Type.XPATH, expression = "//td[2]/text()")
+    @XpathSelector(expression = "//td[2]/text()")
     private int port;
 
-    @Selector(type = Type.XPATH, expression = "//td[3]/text()")
+    @XpathSelector(expression = "//td[3]/text()")
     private String level;
 
-    @Selector(type = Type.XPATH, expression = "//td[4]/text()")
-    @SplitFormat
+    @XpathSelector(expression = "//td[4]/text()")
+    @SplitFormatter
     private String[] types;
 
-    @Selector(type = Type.XPATH, expression = "//td[5]/text()")
-    @RegexFormat(regex = "^(.*) 秒$", groups = 1)
+    @XpathSelector(expression = "//td[5]/text()")
+    @RegexFormatter(regex = "^(.*) 秒$", groups = 1)
     private double responseSeconds;
 
-    @Selector(type = Type.XPATH, expression = "//td[6]/text()")
+    @XpathSelector(expression = "//td[6]/text()")
     private String location;
 
-    @Selector(type = Type.XPATH, expression = "//td[7]/text()")
+    @XpathSelector(expression = "//td[7]/text()")
     private String lastVerifyTime;
   }
 

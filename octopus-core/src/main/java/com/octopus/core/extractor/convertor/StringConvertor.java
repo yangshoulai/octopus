@@ -1,21 +1,23 @@
 package com.octopus.core.extractor.convertor;
 
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/24
+ * @date 2021/11/26
  */
-public class StringConvertor implements Convertor<String, StringVal> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface StringConvertor {
 
-  @Override
-  public String convert(String val, StringVal format) {
-    if (format != null) {
-      return String.format(format.format(), (val == null ? format.def() : val));
-    }
-    return val;
-  }
+  String format() default "%s";
 
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {CharSequence.class, String.class};
-  }
+  String def() default "";
 }

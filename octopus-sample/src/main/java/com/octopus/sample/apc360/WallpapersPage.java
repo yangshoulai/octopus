@@ -6,14 +6,13 @@ import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.NumberUtil;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Selector;
-import lombok.Data;
-
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.selector.JsonSelector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -23,19 +22,19 @@ import java.util.Map;
 @Extractor
 public class WallpapersPage {
 
-  @Selector(type = Selector.Type.JSON, expression = "$.errno")
+  @JsonSelector(expression = "$.errno")
   private int errno;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.errmsg")
+  @JsonSelector(expression = "$.errmsg")
   private String errmsg;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.consume")
+  @JsonSelector(expression = "$.consume")
   private int consume;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.total")
+  @JsonSelector(expression = "$.total")
   private int total;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.data[*]")
+  @JsonSelector(expression = "$.data[*]")
   private List<Wallpaper> wallpapers;
 
   @LinkMethod
@@ -56,13 +55,13 @@ public class WallpapersPage {
   @Extractor
   public static class Wallpaper {
 
-    @Selector(type = Selector.Type.JSON, expression = "$.id")
+    @JsonSelector(expression = "$.id")
     private int id;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.class_id")
+    @JsonSelector(expression = "$.class_id")
     private int categoryId;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.url")
+    @JsonSelector(expression = "$.url")
     private String url;
 
     @LinkMethod

@@ -11,11 +11,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.format.RegexFormatter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -69,7 +65,7 @@ public class ExtractorHelper {
       checkedClasses.add(type);
       Field[] fields = type.getDeclaredFields();
       for (Field field : fields) {
-        if (field.isAnnotationPresent(Selector.class)) {
+        if (Selectors.hasSelectorAnnotation(field)) {
           Class<?> fieldType = TypeUtil.getClass(field);
           if (fieldType.isArray()) {
             if (!checkedClasses.contains(fieldType.getComponentType())
@@ -229,9 +225,8 @@ public class ExtractorHelper {
     // 提取内容
     Field[] fields = extractorClass.getDeclaredFields();
     for (Field field : fields) {
-      if (field.isAnnotationPresent(Selector.class)) {
-        Selector selector = field.getAnnotation(Selector.class);
-        List<String> selected = Selectors.select(content, selector);
+      if (Selectors.hasSelectorAnnotation(field)) {
+        List<String> selected = Selectors.select(content, field);
         Object obj = convert(url, field, selected, requests, response);
         if (obj != null) {
           ReflectUtil.setFieldValue(t, field, obj);
@@ -257,24 +252,42 @@ public class ExtractorHelper {
 
   private static List<Request> parseLinks(String currentUrl, String content, Link link) {
     List<Request> requests = new ArrayList<>();
-    List<String> selected = Selectors.select(content, link.selector());
-    if (selected != null && !selected.isEmpty()) {
-      RegexFormat[] formats = link.formats();
-      for (String url : selected) {
-        url = Formatters.format(url, formats);
-        if (StrUtil.isNotBlank(url)) {
-          if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
-            url =
-                URLUtil.decode(
-                    UrlBuilder.of(currentUrl)
-                        .setQuery(null)
-                        .setPath(UrlPath.of(url, null))
-                        .build());
+
+    List<Annotation> selectorAnnotations = new ArrayList<>();
+    if (link.cssSelectors() != null) {
+      selectorAnnotations.addAll(ListUtil.toList(link.cssSelectors()));
+    }
+    if (link.xpathSelectors() != null) {
+      selectorAnnotations.addAll(ListUtil.toList(link.xpathSelectors()));
+    }
+    if (link.jsonSelectors() != null) {
+      selectorAnnotations.addAll(ListUtil.toList(link.jsonSelectors()));
+    }
+    if (link.regexSelectors() != null) {
+      selectorAnnotations.addAll(ListUtil.toList(link.regexSelectors()));
+    }
+    if (!selectorAnnotations.isEmpty()) {
+      for (Annotation selectorAnnotation : selectorAnnotations) {
+        List<String> selected = Selectors.select(content, selectorAnnotation);
+        if (selected != null && !selected.isEmpty()) {
+          RegexFormatter[] formats = link.formats();
+          for (String url : selected) {
+            url = Formatters.format(url, formats);
+            if (StrUtil.isNotBlank(url)) {
+              if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
+                url =
+                    URLUtil.decode(
+                        UrlBuilder.of(currentUrl)
+                            .setQuery(null)
+                            .setPath(UrlPath.of(url, null))
+                            .build());
+              }
+              requests.add(
+                  new Request(url, link.method())
+                      .setPriority(link.priority())
+                      .setRepeatable(link.repeatable()));
+            }
           }
-          requests.add(
-              new Request(url, link.method())
-                  .setPriority(link.priority())
-                  .setRepeatable(link.repeatable()));
         }
       }
     }

@@ -1,29 +1,28 @@
 package com.octopus.core.extractor.format;
 
-import cn.hutool.core.util.StrUtil;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/30
  */
-public class SplitFormatter implements MultiLineFormatter<SplitFormat> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface SplitFormatter {
 
-  @Override
-  public List<String> format(String val, SplitFormat format) {
-    if (StrUtil.isBlank(val)) {
-      return null;
-    }
-    Stream<String> stream = Arrays.stream(val.split(format.regex(), format.limit()));
-    if (format.filter()) {
-      stream = stream.filter(StrUtil::isNotBlank);
-    }
-    if (format.trim()) {
-      stream = stream.map(StrUtil::trim);
-    }
-    return stream.collect(Collectors.toList());
-  }
+  String regex() default "；|;|，|,|#| |、|/|\\\\|\\|";
+
+  int limit() default 0;
+
+  boolean trim() default true;
+
+  boolean filter() default true;
+
 }

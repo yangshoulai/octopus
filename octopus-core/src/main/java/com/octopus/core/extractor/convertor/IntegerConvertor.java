@@ -1,35 +1,25 @@
 package com.octopus.core.extractor.convertor;
 
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.StrUtil;
-import com.octopus.core.exception.OctopusException;
-import lombok.extern.slf4j.Slf4j;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/24
+ * @date 2021/11/26
  */
-@Slf4j
-public class IntegerConvertor implements Convertor<Integer, IntegerVal> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface IntegerConvertor {
 
-  @Override
-  public Integer convert(String val, IntegerVal format) {
-    if (StrUtil.isBlank(val)) {
-      return format != null ? format.def() : null;
-    }
-    try {
-      return NumberUtil.parseInt(val);
-    } catch (Exception e) {
-      if (format != null && !format.ignorable()) {
-        throw new OctopusException(e);
-      }
-      log.debug("", e);
-    }
-    return null;
-  }
+  int def() default 0;
 
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {int.class, Integer.class};
-  }
+  boolean ignorable() default true;
+
+
 }

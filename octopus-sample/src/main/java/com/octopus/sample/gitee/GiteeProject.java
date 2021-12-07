@@ -4,13 +4,12 @@ import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.extractor.Formatters;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.annotation.Selector.Type;
-import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.extractor.selector.CssSelector;
+import com.octopus.core.extractor.selector.XpathSelector;
 import com.octopus.core.processor.matcher.Matchers;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import lombok.Data;
@@ -26,38 +25,38 @@ import lombok.extern.slf4j.Slf4j;
 @Data
 @Extractor
 @Link(
-    selector = @Selector(type = Type.XPATH, expression = "//a[@rel='next'][position()=2]/@href"),
+    xpathSelectors = @XpathSelector(expression = "//a[@rel='next'][position()=2]/@href"),
     repeatable = false,
     priority = 1)
 public class GiteeProject {
 
-  @Selector(expression = ".items .item")
+  @CssSelector(expression = ".items .item")
   private Collection<Project> projects;
 
   @Data
   @Extractor
   public static class Project {
 
-    @Selector(expression = ".project-title a.title")
+    @CssSelector(expression = ".project-title a.title")
     private String name;
 
-    @Selector(expression = ".project-title a.title", attr = "href")
-    @RegexFormat(regex = "^.*$", format = "https://gitee.com%s")
+    @CssSelector(expression = ".project-title a.title", attr = "href")
+    @RegexFormatter(regex = "^.*$", format = "https://gitee.com%s")
     private String address;
 
-    @Selector(expression = ".project-desc")
+    @CssSelector(expression = ".project-desc")
     private String description;
 
-    @Selector(expression = ".project-label-item")
+    @CssSelector(expression = ".project-label-item")
     private List<String> tags;
 
-    @Selector(expression = ".stars-count")
-    @StarFormat
+    @CssSelector(expression = ".stars-count")
+    @StarFormatter
     private int stars;
   }
 
   public static void main(String[] args) {
-    Formatters.registerFormatter(new StarFormatter());
+    Formatters.registerFormatter(new StarFormatterHandler());
     Octopus.builder()
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
         .addSeeds("https://gitee.com/explore/all?order=starred")

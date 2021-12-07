@@ -7,11 +7,10 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.annotation.Selector.Type;
-import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
 import java.net.InetSocketAddress;
@@ -24,19 +23,16 @@ import java.util.Map;
  */
 @Extractor
 @Link(
-    selector = @Selector(type = Type.JSON, expression = "$.response.timeline._links.next.href"),
-    formats = @RegexFormat(format = "https://www.tumblr.com/api%s"))
+    jsonSelectors = @JsonSelector(expression = "$.response.timeline._links.next.href"),
+    formats = @RegexFormatter(format = "https://www.tumblr.com/api%s"))
 @Link(
-    selector =
-        @Selector(
-            type = Type.JSON,
+    jsonSelectors =
+        @JsonSelector(
             expression =
                 "$.response.timeline.elements[?(@.type == 'photo')].photos[*].original_size.url"))
 @Link(
-    selector =
-        @Selector(
-            type = Type.JSON,
-            expression = "$.response.timeline.elements[?(@.type == 'video')].video_url"))
+    jsonSelectors =
+        @JsonSelector(expression = "$.response.timeline.elements[?(@.type == 'video')].video_url"))
 public class SearchPhoto {
 
   public static void main(String[] args) {

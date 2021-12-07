@@ -1,47 +1,30 @@
 package com.octopus.core.extractor.selector;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.XmlUtil;
-import com.octopus.core.extractor.annotation.Selector;
-import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/25
+ * @date 2021/12/7
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class CssSelector extends CacheableSelector<Document> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface CssSelector {
+  String expression();
 
-  @Override
-  public List<String> selectWithType(Document document, Selector selector) {
+  String attr() default "";
 
-    Elements elements = document.select(selector.expression());
-    Stream<String> stream =
-        elements.stream()
-            .map(
-                e -> {
-                  if (StrUtil.isNotBlank(selector.attr())) {
-                    return e.attr(selector.attr());
-                  } else if (selector.self()) {
-                    return XmlUtil.format(e.toString());
-                  } else {
-                    return e.html();
-                  }
-                })
-            .filter(s -> !selector.filter() || StrUtil.isNotBlank(s));
-    return stream.collect(Collectors.toList());
-  }
+  boolean multi() default true;
 
-  @Override
-  protected Document parse(String content) {
-    return Jsoup.parse(content);
-  }
+  boolean filter() default true;
+
+  boolean self() default false;
+
+  boolean trim() default true;
 }

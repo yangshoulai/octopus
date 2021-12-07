@@ -1,39 +1,26 @@
 package com.octopus.core.extractor.selector;
 
-import com.jayway.jsonpath.Configuration;
-import com.jayway.jsonpath.JsonPath;
-import com.jayway.jsonpath.Option;
-import com.octopus.core.extractor.annotation.Selector;
-import java.util.ArrayList;
-import java.util.List;
-import net.minidev.json.JSONArray;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/27
+ * @date 2021/12/7
  */
-public class JsonSelector extends CacheableSelector<String> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface JsonSelector {
+  String expression();
 
-  @Override
-  public List<String> selectWithType(String json, Selector selector) {
-    List<String> list = new ArrayList<>();
-    Configuration configuration =
-        Configuration.builder()
-            .options(Option.ALWAYS_RETURN_LIST)
-            .options(Option.SUPPRESS_EXCEPTIONS)
-            .build();
-    Object obj = JsonPath.using(configuration).parse(json).read(selector.expression());
-    if (obj instanceof JSONArray) {
-      JSONArray array = (JSONArray) obj;
-      for (Object o : array) {
-        list.add(o.toString());
-      }
-    }
-    return list;
-  }
+  boolean multi() default true;
 
-  @Override
-  protected String parse(String content) {
-    return content;
-  }
+  boolean filter() default true;
+
+  boolean trim() default true;
 }

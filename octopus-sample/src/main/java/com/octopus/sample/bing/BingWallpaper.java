@@ -4,10 +4,9 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.annotation.Selector.Type;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.selector.XpathSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
 
@@ -19,22 +18,10 @@ import com.octopus.core.processor.matcher.Matchers;
  */
 @Extractor
 @Link(
-    selector =
-        @Selector(
-            type = Type.XPATH,
-            expression = "//div[@class='container']//a[@class='mark']/@href"),
-    repeatable = false,
-    priority = 1)
-@Link(
-    selector = @Selector(type = Type.XPATH, expression = "//a[text()='下一页']/@href", multi = false),
+    xpathSelectors = @XpathSelector(expression = "//a[text()='下一页']/@href", multi = false),
     repeatable = false)
 @Link(
-    selector =
-        @Selector(
-            type = Type.XPATH,
-            expression = "//a[@class='ctrl download']",
-            attr = "href",
-            multi = false),
+    xpathSelectors = @XpathSelector(expression = "//a[@class='ctrl download']/@href"),
     repeatable = false,
     priority = 2)
 public class BingWallpaper {
@@ -48,7 +35,7 @@ public class BingWallpaper {
                 .setRateLimiter(1, 5)
                 .setDownloadConfig(new CommonDownloadConfig()))
         .addProcessor(Matchers.HTML, BingWallpaper.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../downloads/wallpapers/bing"))
+        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/bing"))
         .addSeeds(Request.get("https://bing.ioliu.cn"))
         .build()
         .start();

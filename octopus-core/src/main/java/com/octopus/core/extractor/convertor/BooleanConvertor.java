@@ -1,23 +1,21 @@
 package com.octopus.core.extractor.convertor;
 
-import cn.hutool.core.util.StrUtil;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/24
+ * @date 2021/11/26
  */
-public class BooleanConvertor implements Convertor<Boolean, BooleanVal> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface BooleanConvertor {
 
-  @Override
-  public Boolean convert(String val, BooleanVal format) {
-    if (StrUtil.isBlank(val)) {
-      return format != null && format.def();
-    }
-    return !"0".equals(val);
-  }
-
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {boolean.class, Boolean.class};
-  }
+  boolean def() default false;
 }

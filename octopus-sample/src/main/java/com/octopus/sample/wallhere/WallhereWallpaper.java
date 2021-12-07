@@ -8,20 +8,21 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Links;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.Links;
+import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.extractor.selector.CssSelector;
+import com.octopus.core.extractor.selector.JsonSelector;
+import com.octopus.core.extractor.selector.XpathSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
-import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -31,10 +32,12 @@ import java.util.Map;
 @Data
 @Extractor
 @Links(
-    @Link(selector = @Selector(expression = ".hub-photomodal > a", multi = false, attr = "href")))
+    @Link(
+        cssSelectors =
+            @CssSelector(expression = ".hub-photomodal > a", multi = false, attr = "href")))
 public class WallhereWallpaper {
 
-  @Selector(type = Selector.Type.JSON, expression = "$.data")
+  @JsonSelector(expression = "$.data")
   private WallpaperXml xml;
 
   @LinkMethod
@@ -56,26 +59,18 @@ public class WallhereWallpaper {
   @Extractor
   public static class WallpaperXml {
 
-    @Selector(expression = ".item")
+    @CssSelector(expression = ".item")
     private Wallpaper[] wallpapers;
   }
 
   @Data
   @Extractor
-  @Link(
-      selector =
-          @Selector(
-              type = Selector.Type.XPATH,
-              expression = "//div[@class='item-container']/a[1]/@href"))
-  @Link(
-      selector =
-          @Selector(
-              type = Selector.Type.XPATH,
-              expression = "//div[@class='item-container']/a[1]/@href"))
+  @Link(xpathSelectors = @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href"))
+  @Link(xpathSelectors = @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href"))
   public static class Wallpaper {
 
-    @Selector(type = Selector.Type.XPATH, expression = "//div[@class='item-container']/a[1]/@href")
-    @RegexFormat(format = "https://wallhere.com%s")
+    @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href")
+    @RegexFormatter(format = "https://wallhere.com%s")
     private String href;
   }
 

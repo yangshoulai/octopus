@@ -1,20 +1,22 @@
 package com.octopus.sample.gitee;
 
-import cn.hutool.core.util.NumberUtil;
-import com.octopus.core.extractor.format.Formatter;
+import java.lang.annotation.Documented;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/26
  */
-public class StarFormatter implements Formatter<StarFormat> {
+@Documented
+@Target({ElementType.FIELD})
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface StarFormatter {
 
-  @Override
-  public String format(String val, StarFormat format) {
-    if (val.contains("k") || val.contains("K")) {
-      val = val.replaceAll("k|K", "");
-      val = NumberUtil.toStr(NumberUtil.parseNumber(val).floatValue() * 1000);
-    }
-    return val;
-  }
+
+
 }

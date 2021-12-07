@@ -8,11 +8,11 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.annotation.Selector.Type;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.selector.JsonSelector;
+import com.octopus.core.extractor.selector.RegexSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
 import java.net.InetSocketAddress;
@@ -35,7 +35,7 @@ public class BlogPhoto {
   private static final Pattern USERNAME_PATTERN =
       Pattern.compile(".*https://(.*)\\.tumblr\\.com/archive/?$");
 
-  @Selector(type = Type.REGEX, expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
+  @RegexSelector(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
 
   @LinkMethod
@@ -59,24 +59,20 @@ public class BlogPhoto {
    */
   @Data
   @Extractor
-  @Link(
-      selector =
-          @Selector(type = Type.JSON, expression = "$.response.posts[*].content[*].media.url"))
-  @Link(
-      selector =
-          @Selector(type = Type.JSON, expression = "$.response.posts[*].content[*].media[0].url"))
+  @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media.url"))
+  @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media[0].url"))
   public static class PostResponse {
 
-    @Selector(type = Type.JSON, expression = "$.meta.status")
+    @JsonSelector(expression = "$.meta.status")
     private int status;
 
-    @Selector(type = Type.JSON, expression = "$.response.total_posts")
+    @JsonSelector(expression = "$.response.total_posts")
     private int totalPosts;
 
-    @Selector(type = Type.JSON, expression = "$.response.posts[*].content[*].media.url")
+    @JsonSelector(expression = "$.response.posts[*].content[*].media.url")
     private String[] videos;
 
-    @Selector(type = Type.JSON, expression = "$.response.posts[*].content[*].media[*].url")
+    @JsonSelector(expression = "$.response.posts[*].content[*].media[*].url")
     private String[] photos;
 
     @LinkMethod

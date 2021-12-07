@@ -1,10 +1,10 @@
 package com.octopus.sample.apc360;
 
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Selector;
-import com.octopus.core.extractor.convertor.DateVal;
-import com.octopus.core.extractor.format.RegexFormat;
+import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.convertor.DateConvertor;
+import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.extractor.selector.JsonSelector;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -16,46 +16,46 @@ import lombok.Data;
 @Data
 @Extractor
 @Link(
-    selector = @Selector(type = Selector.Type.JSON, expression = "$.data[*].id"),
+    jsonSelectors = @JsonSelector(expression = "$.data[*].id"),
     formats =
-        @RegexFormat(
+        @RegexFormatter(
             format =
                 "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s"))
 public class CategoriesPage {
 
-  @Selector(type = Selector.Type.JSON, expression = "$.errno")
+  @JsonSelector(expression = "$.errno")
   private int errno;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.errmsg")
+  @JsonSelector(expression = "$.errmsg")
   private String errmsg;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.consume")
+  @JsonSelector(expression = "$.consume")
   private int consume;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.total")
+  @JsonSelector(expression = "$.total")
   private int total;
 
-  @Selector(type = Selector.Type.JSON, expression = "$.data[*]")
+  @JsonSelector(expression = "$.data[*]")
   private List<Category> categories;
 
   @Data
   @Extractor
   public static class Category {
 
-    @Selector(type = Selector.Type.JSON, expression = "$.id")
+    @JsonSelector(expression = "$.id")
     private int id;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.name")
+    @JsonSelector(expression = "$.name")
     private String name;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.order_num")
+    @JsonSelector(expression = "$.order_num")
     private int orderNum;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.tag")
+    @JsonSelector(expression = "$.tag")
     private String tag;
 
-    @Selector(type = Selector.Type.JSON, expression = "$.create_time")
-    @DateVal
+    @JsonSelector(expression = "$.create_time")
+    @DateConvertor
     private Date createTime;
   }
 }

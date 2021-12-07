@@ -1,4 +1,4 @@
-package com.octopus.core.extractor.convertor;
+package com.octopus.core.extractor;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,15 +9,13 @@ import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/26
+ * @date 2021/11/24
  */
 @Documented
-@Target({ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface ShortVal {
+public @interface Links {
 
-  short def() default 0;
-
-  boolean ignorable() default true;
+  Link[] value() default {};
 }
