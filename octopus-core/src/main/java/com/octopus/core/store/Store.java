@@ -55,19 +55,19 @@ public interface Store {
    *
    * @return 下载请求数量
    */
-  int getTotalSize();
+  long getTotalSize();
 
   /**
    * 获取所有已完成的请求数量
    *
    * @return 已完成的请求数量
    */
-  int getCompletedSize();
+  long getCompletedSize();
 
   /**
    * 获取所有待下载请求数量
    *
    * @return 待下载请求数量
    */
-  int getWaitingSize();
+  long getWaitingSize();
 }

@@ -5,7 +5,7 @@ import com.octopus.core.Request;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -17,11 +17,11 @@ public class MemoryStore implements Store {
 
   private final BlockingQueue<Request> requests = new PriorityBlockingQueue<>();
 
-  private final AtomicInteger completed = new AtomicInteger(0);
+  private final AtomicLong completed = new AtomicLong(0);
 
-  private final AtomicInteger total = new AtomicInteger(0);
+  private final AtomicLong total = new AtomicLong(0L);
 
-  private final AtomicInteger failed = new AtomicInteger(0);
+  private final AtomicLong failed = new AtomicLong(0);
 
   @Override
   public Request get() {
@@ -63,17 +63,17 @@ public class MemoryStore implements Store {
   }
 
   @Override
-  public int getTotalSize() {
+  public long getTotalSize() {
     return this.total.get();
   }
 
   @Override
-  public int getCompletedSize() {
+  public long getCompletedSize() {
     return this.completed.get();
   }
 
   @Override
-  public int getWaitingSize() {
+  public long getWaitingSize() {
     return this.requests.size();
   }
 }

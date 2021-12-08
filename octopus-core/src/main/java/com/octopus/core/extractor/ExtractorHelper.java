@@ -2,8 +2,9 @@ package com.octopus.core.extractor;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.net.url.UrlPath;
+import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
@@ -185,15 +186,7 @@ public class ExtractorHelper {
           item -> {
             if (item instanceof String) {
               String u = item.toString();
-              if (!HttpUtil.isHttp(u) && !HttpUtil.isHttps(u)) {
-                u =
-                    URLUtil.decode(
-                        UrlBuilder.of(response.getRequest().getUrl())
-                            .setQuery(null)
-                            .setPath(UrlPath.of(u, null))
-                            .build());
-              }
-              requests.add(Request.get(u));
+              requests.add(Request.get(completeUrl(response.getRequest().getUrl(), u)));
             } else if (item instanceof Request) {
               requests.add((Request) item);
             }
@@ -274,16 +267,8 @@ public class ExtractorHelper {
           for (String url : selected) {
             url = Formatters.format(url, formats);
             if (StrUtil.isNotBlank(url)) {
-              if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
-                url =
-                    URLUtil.decode(
-                        UrlBuilder.of(currentUrl)
-                            .setQuery(null)
-                            .setPath(UrlPath.of(url, null))
-                            .build());
-              }
               requests.add(
-                  new Request(url, link.method())
+                  new Request(completeUrl(currentUrl, url), link.method())
                       .setPriority(link.priority())
                       .setRepeatable(link.repeatable()));
             }
@@ -292,6 +277,18 @@ public class ExtractorHelper {
       }
     }
     return requests;
+  }
+
+  private static String completeUrl(String currentUrl, String url) {
+    if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
+      if (url.startsWith("/")) {
+        return URLUtil.completeUrl(currentUrl, url);
+      } else {
+        url =
+            UrlBuilder.of(currentUrl).setQuery(UrlQuery.of(url, CharsetUtil.CHARSET_UTF_8)).build();
+      }
+    }
+    return url;
   }
 
   private static Object convert(

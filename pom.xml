@@ -28,6 +28,7 @@
     <httpclient.version>4.5.13</httpclient.version>
     <okhttp.version>4.9.0</okhttp.version>
     <jedis.version>3.3.0</jedis.version>
+    <mongodb.driver.version>3.12.7</mongodb.driver.version>
     <htmlcleaner.version>2.21</htmlcleaner.version>
     <jsonpath.version>2.6.0</jsonpath.version>
   </properties>
@@ -73,6 +74,12 @@
         <groupId>redis.clients</groupId>
         <artifactId>jedis</artifactId>
         <version>${jedis.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.mongodb</groupId>
+        <artifactId>mongo-java-driver</artifactId>
+        <version>${mongodb.driver.version}</version>
       </dependency>
 
       <dependency>

@@ -122,23 +122,23 @@ public class RedisStore implements Store {
   }
 
   @Override
-  public int getTotalSize() {
+  public long getTotalSize() {
     try (Jedis jedis = this.pool.getResource()) {
-      return jedis.hlen(this.allKey).intValue();
+      return jedis.hlen(this.allKey);
     }
   }
 
   @Override
-  public int getCompletedSize() {
+  public long getCompletedSize() {
     try (Jedis jedis = this.pool.getResource()) {
-      return jedis.scard(this.completedKey).intValue();
+      return jedis.scard(this.completedKey);
     }
   }
 
   @Override
-  public int getWaitingSize() {
+  public long getWaitingSize() {
     try (Jedis jedis = this.pool.getResource()) {
-      return jedis.zcard(this.waitingKey).intValue();
+      return jedis.zcard(this.waitingKey);
     }
   }
 }

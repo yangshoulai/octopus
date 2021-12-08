@@ -127,10 +127,10 @@ class OctopusImpl implements Octopus {
     }
     this.translateState(State.STOPPING, State.STOPPED);
 
-    int total = this.store.getTotalSize();
-    int completed = this.store.getCompletedSize();
-    int waiting = this.store.getWaitingSize();
-    int failed = total - completed - waiting;
+    long total = this.store.getTotalSize();
+    long completed = this.store.getCompletedSize();
+    long waiting = this.store.getWaitingSize();
+    long failed = total - completed - waiting;
     log.info(
         "Total = [{}], completed = [{}], waiting = [{}], failed = [{}]",
         total,

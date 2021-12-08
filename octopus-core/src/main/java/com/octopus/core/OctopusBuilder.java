@@ -1,5 +1,6 @@
 package com.octopus.core;
 
+import com.mongodb.MongoClient;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -14,6 +15,7 @@ import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.store.MemoryStore;
+import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
 import java.util.ArrayList;
@@ -86,6 +88,32 @@ public class OctopusBuilder {
 
   public OctopusBuilder useRedisStore(@NonNull String keyPrefix) {
     this.store = new RedisStore(keyPrefix, new JedisPool());
+    return this;
+  }
+
+  public OctopusBuilder useMemoryStore() {
+    this.store = new MemoryStore();
+    return this;
+  }
+
+  public OctopusBuilder useMongoStore(
+      @NonNull String database, @NonNull String collection, @NonNull MongoClient mongoClient) {
+    this.store = new MongoStore(database, collection, mongoClient);
+    return this;
+  }
+
+  public OctopusBuilder useMongoStore(@NonNull MongoClient mongoClient) {
+    this.store = new MongoStore(mongoClient);
+    return this;
+  }
+
+  public OctopusBuilder useMongoStore(@NonNull String database, @NonNull String collection) {
+    this.store = new MongoStore(database, collection);
+    return this;
+  }
+
+  public OctopusBuilder useMongoStore() {
+    this.store = new MongoStore();
     return this;
   }
 
