@@ -46,7 +46,7 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
         } else if (node instanceof Attr) {
           value = ((Attr) node).getValue();
         } else {
-          value = XmlUtil.unescape(XmlUtil.toStr(node));
+          value = XmlUtil.toStr(node);
         }
         results.add(value);
       }
