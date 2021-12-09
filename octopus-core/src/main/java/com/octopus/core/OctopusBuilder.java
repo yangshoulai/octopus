@@ -13,7 +13,6 @@ import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.AbstractProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.matcher.Matcher;
-import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
@@ -141,22 +140,24 @@ public class OctopusBuilder {
   }
 
   public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass) {
-    return this.addProcessor(Matchers.ALL, extractorClass);
+    return this.addProcessor(null, extractorClass);
   }
 
   public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Consumer<T> callback) {
-    return this.addProcessor(Matchers.ALL, extractorClass, callback);
+    return this.addProcessor(null, extractorClass, callback);
   }
 
-  public <T> OctopusBuilder addProcessor(
-      @NonNull Matcher matcher, @NonNull Class<T> extractorClass) {
+  public <T> OctopusBuilder addProcessor(Matcher matcher, @NonNull Class<T> extractorClass) {
     return this.addProcessor(matcher, extractorClass, null);
   }
 
   public <T> OctopusBuilder addProcessor(
-      @NonNull Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
+      Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
     if (!ExtractorHelper.checkIsValidExtractorClass(extractorClass)) {
       throw new InvalidExtractorException("Not a valid extractor class");
+    }
+    if (matcher == null) {
+      matcher = ExtractorHelper.extractMatcher(extractorClass);
     }
     this.processors.add(
         new AbstractProcessor(matcher) {

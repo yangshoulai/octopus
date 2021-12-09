@@ -4,7 +4,6 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.wallhaven.WallhavenWallpaper.Wallpaper;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +23,6 @@ public class WallhavenOctopus {
             .useOkHttpDownloader()
             .addSite(WebSite.of("wallhaven.cc").setRateLimiter(2, 10))
             .addProcessor(
-                Matchers.HTML,
                 WallhavenWallpaper.class,
                 wallhavenWallpaper -> {
                   if (wallhavenWallpaper.getWallpapers() != null) {

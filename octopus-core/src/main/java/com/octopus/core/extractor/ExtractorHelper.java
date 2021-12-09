@@ -13,6 +13,8 @@ import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.extractor.format.RegexFormatter;
+import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.processor.matcher.Matchers;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -195,12 +197,21 @@ public class ExtractorHelper {
     return requests;
   }
 
+  public static Matcher extractMatcher(Class<?> extractorClass) {
+    Extractor extractor = extractorClass.getAnnotation(Extractor.class);
+    if (extractor.matcher() != null && extractor.matcher().length > 0) {
+      Matchers.and(
+          Arrays.stream(extractor.matcher()).map(m -> m.type().resolve(m)).toArray(Matcher[]::new));
+    }
+    return Matchers.ALL;
+  }
+
   public static <T> Result<T> extract(Response response, Class<T> extractorClass) {
     return extract(response.getRequest().getUrl(), response.asText(), extractorClass, response);
   }
 
   @SuppressWarnings("unchecked")
-  public static <T> Result<T> extract(
+  private static <T> Result<T> extract(
       String url, String content, Class<T> extractorClass, Response response) {
     if (StrUtil.isBlank(content) || !checkIsValidExtractorClass(extractorClass)) {
       return new Result<>();

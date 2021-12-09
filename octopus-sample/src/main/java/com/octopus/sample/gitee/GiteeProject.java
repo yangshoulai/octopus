@@ -3,13 +3,14 @@ package com.octopus.sample.gitee;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.extractor.Formatters;
 import com.octopus.core.extractor.Extractor;
+import com.octopus.core.extractor.Formatters;
 import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.Matcher;
+import com.octopus.core.extractor.Matcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.CssSelector;
 import com.octopus.core.extractor.selector.XpathSelector;
-import com.octopus.core.processor.matcher.Matchers;
 import java.util.Collection;
 import java.util.List;
 import lombok.Data;
@@ -23,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor
+@Extractor(matcher = @Matcher(type = Type.HTML))
 @Link(
     xpathSelectors = @XpathSelector(expression = "//a[@rel='next'][position()=2]/@href"),
     repeatable = false,
@@ -61,7 +62,6 @@ public class GiteeProject {
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
         .addSeeds("https://gitee.com/explore/all?order=starred")
         .addProcessor(
-            Matchers.HTML,
             GiteeProject.class,
             gitee -> {
               if (gitee.getProjects() != null) {

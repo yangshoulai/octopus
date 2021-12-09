@@ -9,10 +9,11 @@ import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.Extractor;
 import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.Matcher;
+import com.octopus.core.extractor.Matcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.matcher.Matchers;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Map;
@@ -21,7 +22,7 @@ import java.util.Map;
  * @author shoulai.yang@gmail.com
  * @date 2021/12/1
  */
-@Extractor
+@Extractor(matcher = @Matcher(type = Type.JSON))
 @Link(
     jsonSelectors = @JsonSelector(expression = "$.response.timeline._links.next.href"),
     formats = @RegexFormatter(format = "https://www.tumblr.com/api%s"))
@@ -59,7 +60,7 @@ public class SearchPhoto {
 
     Octopus.builder()
         .addSeeds(seed)
-        .addProcessor(Matchers.JSON, SearchPhoto.class)
+        .addProcessor(SearchPhoto.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/" + keyword))
         .setGlobalDownloadConfig(downloadConfig)
         .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))

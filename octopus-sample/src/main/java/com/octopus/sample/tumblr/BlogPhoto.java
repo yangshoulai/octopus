@@ -11,10 +11,11 @@ import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.Extractor;
 import com.octopus.core.extractor.Link;
 import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.Matcher;
+import com.octopus.core.extractor.Matcher.Type;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.extractor.selector.RegexSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.matcher.Matchers;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
@@ -29,7 +30,7 @@ import lombok.Data;
  * @date 2021/11/30
  */
 @Data
-@Extractor
+@Extractor(matcher = @Matcher(type = Type.HTML))
 public class BlogPhoto {
 
   private static final Pattern USERNAME_PATTERN =
@@ -58,7 +59,7 @@ public class BlogPhoto {
    * @date 2021/11/30
    */
   @Data
-  @Extractor
+  @Extractor(matcher = @Matcher(type = Type.JSON))
   @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media.url"))
   @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media[0].url"))
   public static class PostResponse {
@@ -102,8 +103,8 @@ public class BlogPhoto {
 
     Octopus.builder()
         .addSeeds("https://2djp.tumblr.com/archive")
-        .addProcessor(Matchers.HTML, BlogPhoto.class)
-        .addProcessor(Matchers.JSON, PostResponse.class)
+        .addProcessor(BlogPhoto.class)
+        .addProcessor(PostResponse.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/2djp"))
         .setGlobalDownloadConfig(downloadConfig)
         .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))

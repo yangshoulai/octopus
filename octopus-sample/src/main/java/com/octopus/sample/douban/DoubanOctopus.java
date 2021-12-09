@@ -4,7 +4,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.matcher.Matchers;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
@@ -22,7 +21,6 @@ public class DoubanOctopus {
         .addSeeds("https://movie.douban.com/top250?start=0&filter=")
         // 通过注解来提取页面影片数据
         .addProcessor(
-            Matchers.HTML,
             DoubanMovie.class,
             movie -> {
               // 模拟采集影片数据

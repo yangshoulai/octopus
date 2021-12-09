@@ -6,9 +6,10 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.extractor.Extractor;
 import com.octopus.core.extractor.Link;
+import com.octopus.core.extractor.Matcher;
+import com.octopus.core.extractor.Matcher.Type;
 import com.octopus.core.extractor.selector.XpathSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.matcher.Matchers;
 
 /**
  * 下载必应壁纸 https://bing.ioliu.cn/
@@ -16,7 +17,7 @@ import com.octopus.core.processor.matcher.Matchers;
  * @author shoulai.yang@gmail.com
  * @date 2021/1/15
  */
-@Extractor
+@Extractor(matcher = @Matcher(type = Type.HTML))
 @Link(
     xpathSelectors = @XpathSelector(expression = "//a[text()='下一页']/@href", multi = false),
     repeatable = false)
@@ -34,7 +35,7 @@ public class BingWallpaper {
             WebSite.of("bing.ioliu.cn")
                 .setRateLimiter(1, 5)
                 .setDownloadConfig(new CommonDownloadConfig()))
-        .addProcessor(Matchers.HTML, BingWallpaper.class)
+        .addProcessor(BingWallpaper.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/bing"))
         .addSeeds(Request.get("https://bing.ioliu.cn"))
         .build()

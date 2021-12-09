@@ -5,9 +5,12 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
 import com.octopus.core.extractor.Extractor;
 import com.octopus.core.extractor.LinkMethod;
+import com.octopus.core.extractor.Matcher;
+import com.octopus.core.extractor.Matcher.Type;
 import com.octopus.core.extractor.selector.JsonSelector;
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +22,7 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor
+@Extractor(matcher = @Matcher(type = Type.URL_REGEX, regex = ".*getAppsByCategory.*"))
 public class WallpapersPage {
 
   @JsonSelector(expression = "$.errno")
@@ -42,7 +45,9 @@ public class WallpapersPage {
     if (this.wallpapers != null && !this.wallpapers.isEmpty()) {
       String url = response.getRequest().getUrl();
       UrlQuery query = UrlQuery.of(url, null);
-      int start = NumberUtil.parseInt(query.get("start").toString());
+      int start =
+          NumberUtil.parseInt(
+              StrUtil.isNotBlank(query.get("start")) ? query.get("start").toString() : "0");
       Map<CharSequence, CharSequence> map = query.getQueryMap();
       map = MapUtil.builder(new HashMap<>(map)).put("start", String.valueOf(start + 200)).build();
       return ListUtil.toList(UrlBuilder.of(url).setQuery(UrlQuery.of(map)).build());
