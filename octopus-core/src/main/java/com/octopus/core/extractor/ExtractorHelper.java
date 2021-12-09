@@ -278,10 +278,14 @@ public class ExtractorHelper {
           for (String url : selected) {
             url = Formatters.format(url, formats);
             if (StrUtil.isNotBlank(url)) {
-              requests.add(
+              Request request =
                   new Request(completeUrl(currentUrl, url), link.method())
                       .setPriority(link.priority())
-                      .setRepeatable(link.repeatable()));
+                      .setRepeatable(link.repeatable());
+              Arrays.stream(link.headers()).forEach(p -> request.addHeader(p.key(), p.value()));
+              Arrays.stream(link.params()).forEach(p -> request.addParam(p.key(), p.value()));
+              Arrays.stream(link.attrs()).forEach(p -> request.putAttribute(p.key(), p.value()));
+              requests.add(request);
             }
           }
         }

@@ -40,4 +40,10 @@ public @interface Link {
   boolean repeatable() default true;
 
   RequestMethod method() default RequestMethod.GET;
+
+  Pair[] params() default {};
+
+  Pair[] headers() default {};
+
+  Pair[] attrs() default {};
 }
