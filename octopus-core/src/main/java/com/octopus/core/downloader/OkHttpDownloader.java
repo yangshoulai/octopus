@@ -17,16 +17,12 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
  */
 public class OkHttpDownloader implements Downloader {
-
-  private final Logger log = LoggerFactory.getLogger("OkHttpDownloader");
 
   private final ConnectionPool connectionPool;
 
@@ -39,7 +35,6 @@ public class OkHttpDownloader implements Downloader {
     Proxy proxy =
         config.getProxyProvider() != null ? config.getProxyProvider().provide(request) : null;
     proxy = proxy == null ? Proxy.NO_PROXY : proxy;
-    log.debug("Fetch [{}] via proxy [{}]", request, proxy);
     try {
       okhttp3.Response response =
           new OkHttpClient.Builder()

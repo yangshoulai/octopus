@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  */
 class OctopusImpl implements Octopus {
 
-  private final Logger log = LoggerFactory.getLogger("Octopus");
+  private Logger logger = LoggerFactory.getLogger("Octopus");
 
   private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
 
@@ -75,6 +75,8 @@ class OctopusImpl implements Octopus {
 
   private List<Request> seeds = new ArrayList<>();
 
+  private boolean debug = false;
+
   @Override
   public void start() throws OctopusException {
     Future<Void> future = this.startAsync();
@@ -90,7 +92,9 @@ class OctopusImpl implements Octopus {
     if (!this.translateState(State.NEW, State.STARTING)) {
       throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
     }
-    log.info("Octopus starting");
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Octopus starting");
+    }
     this.boss = this.createBossExecutor();
     this.workers = this.createWorkerExecutor();
     this.workerSemaphore = new Semaphore(this.threads);
@@ -103,7 +107,7 @@ class OctopusImpl implements Octopus {
     this.startRateLimiters();
     this.translateState(State.STARTING, State.STARTED);
     this.interval = new TimeInterval();
-    log.info(
+    logger.info(
         "Octopus started at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
     return CompletableFuture.runAsync(this::dispatch, this.boss);
   }
@@ -115,7 +119,9 @@ class OctopusImpl implements Octopus {
         && !this.translateState(state, State.STOPPING)) {
       throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
     }
-    log.info("Octopus stopping");
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Octopus stopping");
+    }
     this.boss.shutdown();
     this.workers.shutdown();
     this.stopRateLimiters();
@@ -131,13 +137,13 @@ class OctopusImpl implements Octopus {
     long completed = this.store.getCompletedSize();
     long waiting = this.store.getWaitingSize();
     long failed = total - completed - waiting;
-    log.info(
+    logger.info(
         "Total = [{}], completed = [{}], waiting = [{}], failed = [{}]",
         total,
         completed,
         waiting,
         failed);
-    log.info(
+    logger.info(
         "Octopus stopped at [{}] running [{}]",
         DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN),
         interval.intervalPretty());
@@ -165,10 +171,12 @@ class OctopusImpl implements Octopus {
             }
           }
         } else {
-          log.error("Can not store request [{}]", request);
+          logger.error("Can not store request [{}]", request);
         }
       } else {
-        log.warn("Ignore request [{}] as already exist", request);
+        if (this.debug) {
+          logger.debug("Ignore request [{}] as already exist", request);
+        }
       }
     }
   }
@@ -179,8 +187,8 @@ class OctopusImpl implements Octopus {
       try {
         Request request = this.store.get();
         if (request != null) {
-          if (log.isDebugEnabled()) {
-            log.debug(
+          if (this.debug && this.logger.isDebugEnabled()) {
+            logger.debug(
                 "Take request [{}] from store, remaining size [{}]",
                 request,
                 this.store.getWaitingSize());
@@ -189,14 +197,23 @@ class OctopusImpl implements Octopus {
           this.workers.execute(
               () -> {
                 try {
+                  if (this.debug && this.logger.isDebugEnabled()) {
+                    logger.debug("Start executing request [{}]", request);
+                  }
                   this.listeners.forEach(listener -> listener.beforeDownload(request));
                   WebSite webSite = this.getTargetWebSite(request);
                   DownloadConfig downloadConfig = this.globalDownloadConfig;
                   if (webSite != null && webSite.getRateLimiter() != null) {
+                    if (this.debug && this.logger.isDebugEnabled()) {
+                      logger.debug("Waiting for rate limiter permits");
+                    }
                     webSite.getRateLimiter().acquire();
                   }
                   if (webSite != null && webSite.getDownloadConfig() != null) {
                     downloadConfig = webSite.getDownloadConfig();
+                  }
+                  if (this.debug && this.logger.isDebugEnabled()) {
+                    logger.debug("Start download request [{}]", request);
                   }
                   Response response = this.download(request, downloadConfig);
                   this.store.markAsCompleted(request);
@@ -210,11 +227,9 @@ class OctopusImpl implements Octopus {
                 } catch (DownloadException e) {
                   this.store.markAsFailed(request);
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
-                  log.error("Download [{}] error!", request, e);
-                } catch (InterruptedException e) {
-                  e.printStackTrace();
+                  logger.error("Download [{}] error!", request, e);
                 } catch (Throwable e) {
-                  log.error("", e);
+                  logger.error("", e);
                 } finally {
                   this.workerSemaphore.release();
                   lock.lock();
@@ -229,18 +244,20 @@ class OctopusImpl implements Octopus {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
             if (this.autoStop) {
-              log.info("No more requests found, octopus will stop");
+              logger.info("No more requests found, octopus will stop");
               this.stop();
               wait = false;
             } else {
-              log.info("No more requests found, octopus will idle");
+              logger.info("No more requests found, octopus will idle");
               this.translateState(State.STARTED, State.IDLE);
             }
 
           } else {
-            log.info(
-                "No more requests found, waiting for [{}] running request complete",
-                (this.threads - this.workerSemaphore.availablePermits()));
+            if (this.debug && this.logger.isDebugEnabled()) {
+              logger.debug(
+                  "No more requests found, waiting for [{}] running request complete",
+                  (this.threads - this.workerSemaphore.availablePermits()));
+            }
           }
           if (wait) {
             lock.lock();
@@ -252,7 +269,7 @@ class OctopusImpl implements Octopus {
           }
         }
       } catch (Throwable e) {
-        log.error("Error when dispatch request", e);
+        logger.error("Error when dispatch request", e);
       }
     }
   }
@@ -291,7 +308,7 @@ class OctopusImpl implements Octopus {
                           });
                 }
               } catch (Throwable e) {
-                log.error(
+                logger.error(
                     "Error process request [{}] with processor [{}]",
                     response.getRequest(),
                     processor.getClass(),
@@ -320,8 +337,8 @@ class OctopusImpl implements Octopus {
 
   private boolean translateState(State from, State to) {
     if (this.state.compareAndSet(from, to)) {
-      if (this.log.isDebugEnabled()) {
-        log.debug("State changed [{}] => [{}]", from.getLabel(), to.getLabel());
+      if (this.debug && this.logger.isDebugEnabled()) {
+        logger.debug("State changed [{}] => [{}]", from.getLabel(), to.getLabel());
       }
       return true;
     }
@@ -397,5 +414,13 @@ class OctopusImpl implements Octopus {
 
   public void setSeeds(List<Request> seeds) {
     this.seeds = seeds;
+  }
+
+  public void setDebug(boolean debug) {
+    this.debug = debug;
+  }
+
+  public void setLogger(Logger logger) {
+    this.logger = logger;
   }
 }

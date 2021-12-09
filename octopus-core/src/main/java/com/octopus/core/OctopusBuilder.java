@@ -22,6 +22,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 import lombok.NonNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
 
 /**
@@ -49,6 +51,32 @@ public class OctopusBuilder {
   private boolean clearStoreOnStartup = true;
 
   private final List<Request> seeds = new ArrayList<>();
+
+  private boolean debug = false;
+
+  private Logger logger = LoggerFactory.getLogger("Octopus");
+
+  public OctopusBuilder setLogger(@NonNull Logger logger) {
+    this.logger = logger;
+    return this;
+  }
+
+  public OctopusBuilder setLogger(@NonNull Class<?> cls) {
+    return this.setLogger(LoggerFactory.getLogger(cls));
+  }
+
+  public OctopusBuilder setLogger(@NonNull String logger) {
+    return this.setLogger(LoggerFactory.getLogger(logger));
+  }
+
+  public OctopusBuilder debug(boolean debug) {
+    this.debug = debug;
+    return this;
+  }
+
+  public OctopusBuilder debug() {
+    return this.debug(true);
+  }
 
   public OctopusBuilder setDownloader(@NonNull Downloader downloader) {
     this.downloader = downloader;
@@ -222,6 +250,8 @@ public class OctopusBuilder {
     octopus.setAutoStop(this.autoStop);
     octopus.setClearStoreOnStartup(this.clearStoreOnStartup);
     octopus.setSeeds(this.seeds);
+    octopus.setLogger(this.logger);
+    octopus.setDebug(this.debug);
     return octopus;
   }
 }

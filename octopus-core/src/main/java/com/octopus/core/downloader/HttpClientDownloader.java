@@ -43,16 +43,12 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
 public class HttpClientDownloader implements Downloader {
-
-  private final Logger log = LoggerFactory.getLogger("HttpClientDownloader");
 
   private HttpClient httpClient;
 
@@ -90,7 +86,6 @@ public class HttpClientDownloader implements Downloader {
     Proxy proxy = this.resolveProxy(config.getProxyProvider(), request);
     HttpResponse httpResponse;
     try {
-      log.debug("Fetch [{}] via proxy [{}]", request, proxy);
       HttpUriRequest http = createHttpUriRequest(request, proxy, config);
       httpResponse = this.httpClient.execute(http);
       int statusCode = httpResponse.getStatusLine().getStatusCode();
