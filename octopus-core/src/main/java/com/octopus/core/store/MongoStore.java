@@ -6,10 +6,7 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.ReplaceOptions;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
 import org.bson.Document;
@@ -41,6 +38,8 @@ public class MongoStore implements Store {
     this.mongoClient = mongoClient;
     MongoDatabase mongoDatabase = mongoClient.getDatabase(database);
     this.requests = mongoDatabase.getCollection(collection, Document.class);
+    IndexOptions options = new IndexOptions();
+    requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name("idx_priority"));
   }
 
   public MongoStore(MongoClient mongoClient) {
