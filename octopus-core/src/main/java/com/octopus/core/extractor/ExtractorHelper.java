@@ -200,7 +200,7 @@ public class ExtractorHelper {
   public static Matcher extractMatcher(Class<?> extractorClass) {
     Extractor extractor = extractorClass.getAnnotation(Extractor.class);
     if (extractor.matcher() != null && extractor.matcher().length > 0) {
-      Matchers.and(
+      return Matchers.and(
           Arrays.stream(extractor.matcher()).map(m -> m.type().resolve(m)).toArray(Matcher[]::new));
     }
     return Matchers.ALL;
