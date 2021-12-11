@@ -1,6 +1,8 @@
 package com.octopus.core.utils;
 
 import cn.hutool.core.thread.NamedThreadFactory;
+import lombok.NonNull;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
@@ -25,6 +27,8 @@ public class RateLimiter {
 
   private ScheduledExecutorService scheduler;
 
+  private String name = " rate-limiter";
+
   public RateLimiter(int max, int period, TimeUnit unit) {
     if (max <= 0) {
       throw new IllegalArgumentException("max must > 0");
@@ -37,7 +41,7 @@ public class RateLimiter {
 
   public void start() {
     if (this.scheduler == null || this.scheduler.isShutdown()) {
-      this.scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory("worker-", false));
+      this.scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory(this.name, false));
     }
     this.scheduler.scheduleAtFixedRate(
         () -> this.semaphore.release(this.max - this.semaphore.availablePermits()),
@@ -58,6 +62,11 @@ public class RateLimiter {
       return;
     }
     throw new IllegalStateException("Rate limiter must start before acquire a permit");
+  }
+
+  public RateLimiter setName(@NonNull String name) {
+    this.name = name;
+    return this;
   }
 
   public static RateLimiter of(int max) {
