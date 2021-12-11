@@ -54,6 +54,8 @@ public class OctopusBuilder {
 
   private boolean debug = false;
 
+  private String name = "octopus";
+
   private Logger logger = LoggerFactory.getLogger("Octopus");
 
   public OctopusBuilder setLogger(@NonNull Logger logger) {
@@ -234,6 +236,11 @@ public class OctopusBuilder {
     return this;
   }
 
+  public OctopusBuilder setName(@NonNull String name) {
+    this.name = name;
+    return this;
+  }
+
   public Octopus build() {
     OctopusImpl octopus = new OctopusImpl();
     octopus.setDownloader(this.downloader == null ? new HttpClientDownloader() : this.downloader);
@@ -252,6 +259,7 @@ public class OctopusBuilder {
     octopus.setSeeds(this.seeds);
     octopus.setLogger(this.logger);
     octopus.setDebug(this.debug);
+    octopus.setName(this.name);
     return octopus;
   }
 }

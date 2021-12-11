@@ -77,6 +77,8 @@ class OctopusImpl implements Octopus {
 
   private boolean debug = false;
 
+  private String name = "octopus";
+
   @Override
   public void start() throws OctopusException {
     Future<Void> future = this.startAsync();
@@ -361,7 +363,7 @@ class OctopusImpl implements Octopus {
         new LinkedBlockingQueue<>(),
         r -> {
           Thread t = new Thread(r);
-          t.setName("boss");
+          t.setName(this.name + "-boss");
           return t;
         });
   }
@@ -373,7 +375,7 @@ class OctopusImpl implements Octopus {
         0,
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(),
-        new NamedThreadFactory("worker-", false));
+        new NamedThreadFactory(this.name + "-worker-", false));
   }
 
   public void setGlobalDownloadConfig(DownloadConfig globalDownloadConfig) {
@@ -422,5 +424,9 @@ class OctopusImpl implements Octopus {
 
   public void setLogger(Logger logger) {
     this.logger = logger;
+  }
+
+  public void setName(String name) {
+    this.name = name;
   }
 }
