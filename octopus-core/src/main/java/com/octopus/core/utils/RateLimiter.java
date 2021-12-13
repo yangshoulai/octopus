@@ -1,12 +1,12 @@
 package com.octopus.core.utils;
 
 import cn.hutool.core.thread.NamedThreadFactory;
-import lombok.NonNull;
-
+import cn.hutool.core.util.StrUtil;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -27,7 +27,7 @@ public class RateLimiter {
 
   private ScheduledExecutorService scheduler;
 
-  private String name = " rate-limiter";
+  private String name;
 
   public RateLimiter(int max, int period, TimeUnit unit) {
     if (max <= 0) {
@@ -41,6 +41,9 @@ public class RateLimiter {
 
   public void start() {
     if (this.scheduler == null || this.scheduler.isShutdown()) {
+      if (StrUtil.isBlank(name)) {
+        this.name = "rate-limiter";
+      }
       this.scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory(this.name, false));
     }
     this.scheduler.scheduleAtFixedRate(
@@ -79,5 +82,9 @@ public class RateLimiter {
 
   public static RateLimiter of(int max, int period, TimeUnit unit) {
     return new RateLimiter(max, period, unit);
+  }
+
+  public String getName() {
+    return name;
   }
 }

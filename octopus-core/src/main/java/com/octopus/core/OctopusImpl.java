@@ -4,6 +4,7 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -73,6 +74,8 @@ class OctopusImpl implements Octopus {
 
   private boolean clearStoreOnStartup = true;
 
+  private boolean clearStoreOnStop = true;
+
   private List<Request> seeds = new ArrayList<>();
 
   private boolean debug = false;
@@ -139,6 +142,9 @@ class OctopusImpl implements Octopus {
     long completed = this.store.getCompletedSize();
     long waiting = this.store.getWaitingSize();
     long failed = total - completed - waiting;
+    if (this.clearStoreOnStop) {
+      this.store.clear();
+    }
     logger.info(
         "Total = [{}], completed = [{}], waiting = [{}], failed = [{}]",
         total,
@@ -199,23 +205,14 @@ class OctopusImpl implements Octopus {
           this.workers.execute(
               () -> {
                 try {
-                  if (this.debug && this.logger.isDebugEnabled()) {
-                    logger.debug("Start executing request [{}]", request);
-                  }
                   this.listeners.forEach(listener -> listener.beforeDownload(request));
                   WebSite webSite = this.getTargetWebSite(request);
                   DownloadConfig downloadConfig = this.globalDownloadConfig;
                   if (webSite != null && webSite.getRateLimiter() != null) {
-                    if (this.debug && this.logger.isDebugEnabled()) {
-                      logger.debug("Waiting for rate limiter permits");
-                    }
                     webSite.getRateLimiter().acquire();
                   }
                   if (webSite != null && webSite.getDownloadConfig() != null) {
                     downloadConfig = webSite.getDownloadConfig();
-                  }
-                  if (this.debug && this.logger.isDebugEnabled()) {
-                    logger.debug("Start download request [{}]", request);
                   }
                   Response response = this.download(request, downloadConfig);
                   this.store.markAsCompleted(request);
@@ -323,6 +320,9 @@ class OctopusImpl implements Octopus {
     this.webSites.forEach(
         site -> {
           if (site.getRateLimiter() != null) {
+            if (StrUtil.isBlank(site.getRateLimiter().getName())) {
+              site.getRateLimiter().setName("rate-limiter/" + site.getHost());
+            }
             site.getRateLimiter().start();
           }
         });
@@ -412,6 +412,10 @@ class OctopusImpl implements Octopus {
 
   public void setClearStoreOnStartup(boolean clearStoreOnStartup) {
     this.clearStoreOnStartup = clearStoreOnStartup;
+  }
+
+  public void setClearStoreOnStop(boolean clearStoreOnStop) {
+    this.clearStoreOnStop = clearStoreOnStop;
   }
 
   public void setSeeds(List<Request> seeds) {
