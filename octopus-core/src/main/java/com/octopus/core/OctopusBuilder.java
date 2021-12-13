@@ -32,9 +32,9 @@ import redis.clients.jedis.JedisPool;
  */
 public class OctopusBuilder {
 
-  private Downloader downloader;
+  private Downloader downloader = new HttpClientDownloader();
 
-  private Store store;
+  private Store store = new MemoryStore();
 
   private int threads = Runtime.getRuntime().availableProcessors() * 2;
 
@@ -44,11 +44,13 @@ public class OctopusBuilder {
 
   private final List<Processor> processors = new ArrayList<>();
 
-  private DownloadConfig globalDownloadConfig;
+  private DownloadConfig globalDownloadConfig = new CommonDownloadConfig();
 
   private boolean autoStop = true;
 
   private boolean clearStoreOnStartup = true;
+
+  private boolean clearStoreOnStop = true;
 
   private final List<Request> seeds = new ArrayList<>();
 
@@ -95,7 +97,7 @@ public class OctopusBuilder {
     return this;
   }
 
-  public OctopusBuilder setStore(Store store) {
+  public OctopusBuilder setStore(@NonNull Store store) {
     this.store = store;
     return this;
   }
@@ -226,6 +228,15 @@ public class OctopusBuilder {
     return this;
   }
 
+  public OctopusBuilder clearStoreOnStop(boolean clearStoreOnStop) {
+    this.clearStoreOnStop = clearStoreOnStop;
+    return this;
+  }
+
+  public OctopusBuilder clearStoreOnStop() {
+    return this.clearStoreOnStop(true);
+  }
+
   public OctopusBuilder addSeeds(@NonNull Request... seeds) {
     Arrays.stream(seeds).sorted().forEach(this.seeds::add);
     return this;
@@ -241,25 +252,66 @@ public class OctopusBuilder {
     return this;
   }
 
+  public Downloader getDownloader() {
+    return downloader;
+  }
+
+  public Store getStore() {
+    return store;
+  }
+
+  public int getThreads() {
+    return threads;
+  }
+
+  public List<WebSite> getSites() {
+    return sites;
+  }
+
+  public List<Listener> getListeners() {
+    return listeners;
+  }
+
+  public List<Processor> getProcessors() {
+    return processors;
+  }
+
+  public DownloadConfig getGlobalDownloadConfig() {
+    return globalDownloadConfig;
+  }
+
+  public boolean isAutoStop() {
+    return autoStop;
+  }
+
+  public boolean isClearStoreOnStartup() {
+    return clearStoreOnStartup;
+  }
+
+  public boolean isClearStoreOnStop() {
+    return clearStoreOnStop;
+  }
+
+  public List<Request> getSeeds() {
+    return seeds;
+  }
+
+  public boolean isDebug() {
+    return debug;
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public Logger getLogger() {
+    return logger;
+  }
+
   public Octopus build() {
-    OctopusImpl octopus = new OctopusImpl();
-    octopus.setDownloader(this.downloader == null ? new HttpClientDownloader() : this.downloader);
-    octopus.setStore(this.store == null ? new MemoryStore() : this.store);
-    octopus.setThreads(this.threads);
-    octopus.setWebSites(this.sites);
-    octopus.setListeners(this.listeners);
     if (this.processors.isEmpty()) {
       processors.add(new LoggerProcessor());
     }
-    octopus.setProcessors(this.processors);
-    octopus.setGlobalDownloadConfig(
-        this.globalDownloadConfig == null ? new CommonDownloadConfig() : this.globalDownloadConfig);
-    octopus.setAutoStop(this.autoStop);
-    octopus.setClearStoreOnStartup(this.clearStoreOnStartup);
-    octopus.setSeeds(this.seeds);
-    octopus.setLogger(this.logger);
-    octopus.setDebug(this.debug);
-    octopus.setName(this.name);
-    return octopus;
+    return new OctopusImpl(this);
   }
 }

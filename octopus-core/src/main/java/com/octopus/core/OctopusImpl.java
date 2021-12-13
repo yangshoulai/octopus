@@ -15,7 +15,6 @@ import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RequestHelper;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -32,7 +31,6 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import lombok.NonNull;
 import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -40,7 +38,7 @@ import org.slf4j.LoggerFactory;
  */
 class OctopusImpl implements Octopus {
 
-  private Logger logger = LoggerFactory.getLogger("Octopus");
+  private final Logger logger;
 
   private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
 
@@ -50,37 +48,54 @@ class OctopusImpl implements Octopus {
 
   private ExecutorService workers;
 
-  private int threads;
-
   private Semaphore workerSemaphore;
 
   private final Lock lock = new ReentrantLock();
 
   private final Condition idleCondition = lock.newCondition();
 
-  private Downloader downloader;
+  private final int threads;
 
-  private Store store;
+  private final Downloader downloader;
 
-  private List<WebSite> webSites;
+  private final Store store;
 
-  private List<Listener> listeners;
+  private final List<WebSite> webSites;
 
-  private List<Processor> processors;
+  private final List<Listener> listeners;
 
-  private DownloadConfig globalDownloadConfig;
+  private final List<Processor> processors;
 
-  private boolean autoStop = false;
+  private final DownloadConfig globalDownloadConfig;
 
-  private boolean clearStoreOnStartup = true;
+  private final boolean autoStop;
 
-  private boolean clearStoreOnStop = true;
+  private final boolean clearStoreOnStartup;
 
-  private List<Request> seeds = new ArrayList<>();
+  private final boolean clearStoreOnStop;
 
-  private boolean debug = false;
+  private final List<Request> seeds;
 
-  private String name = "octopus";
+  private final boolean debug;
+
+  private final String name;
+
+  public OctopusImpl(OctopusBuilder builder) {
+    this.logger = builder.getLogger();
+    this.debug = builder.isDebug();
+    this.name = builder.getName();
+    this.seeds = builder.getSeeds();
+    this.clearStoreOnStop = builder.isClearStoreOnStop();
+    this.clearStoreOnStartup = builder.isClearStoreOnStartup();
+    this.autoStop = builder.isAutoStop();
+    this.globalDownloadConfig = builder.getGlobalDownloadConfig();
+    this.processors = builder.getProcessors();
+    this.listeners = builder.getListeners();
+    this.webSites = builder.getSites();
+    this.store = builder.getStore();
+    this.downloader = builder.getDownloader();
+    this.threads = builder.getThreads();
+  }
 
   @Override
   public void start() throws OctopusException {
@@ -376,61 +391,5 @@ class OctopusImpl implements Octopus {
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(),
         new NamedThreadFactory(this.name + "-worker-", false));
-  }
-
-  public void setGlobalDownloadConfig(DownloadConfig globalDownloadConfig) {
-    this.globalDownloadConfig = globalDownloadConfig;
-  }
-
-  public void setThreads(int threads) {
-    this.threads = threads;
-  }
-
-  public void setDownloader(Downloader downloader) {
-    this.downloader = downloader;
-  }
-
-  public void setStore(Store store) {
-    this.store = store;
-  }
-
-  public void setWebSites(List<WebSite> webSites) {
-    this.webSites = webSites;
-  }
-
-  public void setListeners(List<Listener> listeners) {
-    this.listeners = listeners;
-  }
-
-  public void setProcessors(List<Processor> processors) {
-    this.processors = processors;
-  }
-
-  public void setAutoStop(boolean autoStop) {
-    this.autoStop = autoStop;
-  }
-
-  public void setClearStoreOnStartup(boolean clearStoreOnStartup) {
-    this.clearStoreOnStartup = clearStoreOnStartup;
-  }
-
-  public void setClearStoreOnStop(boolean clearStoreOnStop) {
-    this.clearStoreOnStop = clearStoreOnStop;
-  }
-
-  public void setSeeds(List<Request> seeds) {
-    this.seeds = seeds;
-  }
-
-  public void setDebug(boolean debug) {
-    this.debug = debug;
-  }
-
-  public void setLogger(Logger logger) {
-    this.logger = logger;
-  }
-
-  public void setName(String name) {
-    this.name = name;
   }
 }
