@@ -1,6 +1,5 @@
 package com.octopus.core.utils;
 
-import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.StrUtil;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
@@ -44,7 +43,14 @@ public class RateLimiter {
       if (StrUtil.isBlank(name)) {
         this.name = "rate-limiter";
       }
-      this.scheduler = new ScheduledThreadPoolExecutor(1, new NamedThreadFactory(this.name, false));
+      this.scheduler =
+          new ScheduledThreadPoolExecutor(
+              1,
+              r -> {
+                Thread thread = new Thread(r);
+                thread.setName(this.name);
+                return thread;
+              });
     }
     this.scheduler.scheduleAtFixedRate(
         () -> this.semaphore.release(this.max - this.semaphore.availablePermits()),

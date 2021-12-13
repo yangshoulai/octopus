@@ -66,7 +66,6 @@ public class WallhereWallpaper {
   @Data
   @Extractor
   @Link(xpathSelectors = @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href"))
-  @Link(xpathSelectors = @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href"))
   public static class Wallpaper {
 
     @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href")
@@ -76,14 +75,11 @@ public class WallhereWallpaper {
 
   public static void main(String[] args) {
     Octopus.builder()
+        .setName("wallhere-spider")
+        .debug()
         .setThreads(3)
-        .addSite(WebSite.of("wallhere.com").setRateLimiter(1, 2))
-        .addProcessor(
-            Matchers.or(Matchers.JSON, Matchers.HTML),
-            WallhereWallpaper.class,
-            wallhereWallpaper -> {
-              log.debug("{}", wallhereWallpaper);
-            })
+        .addSite(WebSite.of("wallhere.com").setRateLimiter(1, 3))
+        .addProcessor(Matchers.or(Matchers.JSON, Matchers.HTML), WallhereWallpaper.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhere"))
         .addSeeds(
             "https://wallhere.com/zh/wallpapers?page=1&direction=horizontal&order=popular&format=json")
