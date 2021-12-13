@@ -21,7 +21,7 @@ public class WallhavenOctopus {
         .addProcessor(WallhavenWallpaper.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhaven"))
         .addSeeds(
-            "https://wallhaven.cc/search?categories=110&purity=100&ratios=16x9%2C16x10&topRange=3M&sorting=toplist&order=desc&page=1")
+            "https://wallhaven.cc/search?categories=110&purity=100&ratios=16x9%2C16x10&topRange=1M&sorting=toplist&order=desc&page=1")
         .build()
         .start();
   }
