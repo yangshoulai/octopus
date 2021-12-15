@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.selector;
 
+import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import java.util.ArrayList;
@@ -47,6 +48,9 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
           value = ((Attr) node).getValue();
         } else {
           value = XmlUtil.toStr(node);
+        }
+        if (!StrUtil.isBlank(value)) {
+          value = EscapeUtil.unescapeXml(value);
         }
         results.add(value);
       }
