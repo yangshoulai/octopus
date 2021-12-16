@@ -30,7 +30,7 @@ public class CssSelectorHandler extends CacheableSelectorHandler<Document, CssSe
                   } else if (selector.self()) {
                     return XmlUtil.format(e.toString());
                   } else {
-                    return e.html();
+                    return e.text();
                   }
                 })
             .filter(s -> !selector.filter() || StrUtil.isNotBlank(s))

@@ -68,37 +68,18 @@ public class ExtractorHelper {
       checkedClasses.add(type);
       Field[] fields = type.getDeclaredFields();
       for (Field field : fields) {
-        if (Selectors.hasSelectorAnnotation(field)) {
-          Class<?> fieldType = TypeUtil.getClass(field);
-          if (fieldType.isArray()) {
-            if (!checkedClasses.contains(fieldType.getComponentType())
-                && !checkIsValidClass(fieldType.getComponentType())) {
-              throw new InvalidExtractorException(
-                  "Unsupported type " + fieldType.getComponentType().getName());
-            }
-          } else if (Collection.class.isAssignableFrom(fieldType)) {
-            if (Collection.class.equals(fieldType)
-                || List.class.equals(fieldType)
-                || Set.class.equals(fieldType)) {
-              Class<?> actualType = getActualClass(field);
-              if (actualType == null) {
-                throw new InvalidExtractorException(
-                    "Can not get actual type of filed " + field.getName() + " on class " + type);
-              }
-              if (!checkedClasses.contains(actualType) && !checkIsValidClass(actualType)) {
-                throw new InvalidExtractorException("Unsupported type " + actualType.getName());
-              }
+        Class<?> fieldType = TypeUtil.getClass(field);
+        // check @Url
+        checkIsValidUrlField(field, fieldType);
 
-            } else {
-              throw new InvalidExtractorException(
-                  "Unsupported collection type "
-                      + fieldType.getName()
-                      + ", only java.lang.Collection, java.lang.List or java.lang.Set supported");
-            }
-          } else if (!checkedClasses.contains(fieldType) && !checkIsValidClass(fieldType)) {
-            throw new InvalidExtractorException("Unsupported type " + fieldType.getName());
-          }
-        }
+        // check @Param
+        checkIsValidParamField(field, fieldType);
+
+        // check @Attr
+        checkIsValidAttrField(field, fieldType);
+
+        // check @CssSelector @JsonSelector @XpathSelector @RegexSelector
+        checkIsValidSelectorFiled(field, fieldType, type, checkedClasses);
 
         // check format annotations
         checkIsValidFormatAnnotations(field);
@@ -117,6 +98,61 @@ public class ExtractorHelper {
     } else {
       throw new InvalidExtractorException(
           String.format("Class [%s] must has annotation @Extractor", type.getName()));
+    }
+  }
+
+  private static void checkIsValidUrlField(Field field, Class<?> fieldType) {
+    Url url = field.getAnnotation(Url.class);
+    if (url != null && !Convertors.isConvertibleType(fieldType)) {
+      throw new InvalidExtractorException("Invalid @Url type on field " + field.getName());
+    }
+  }
+
+  private static void checkIsValidParamField(Field field, Class<?> fieldType) {
+    Param param = field.getAnnotation(Param.class);
+    if (param != null && !Convertors.isConvertibleType(fieldType)) {
+      throw new InvalidExtractorException("Invalid @Param type on field " + field.getName());
+    }
+  }
+
+  private static void checkIsValidAttrField(Field field, Class<?> fieldType) {
+    Attr attr = field.getAnnotation(Attr.class);
+    if (attr != null && !Convertors.isConvertibleType(fieldType)) {
+      throw new InvalidExtractorException("Invalid @Attr type on field " + field.getName());
+    }
+  }
+
+  private static void checkIsValidSelectorFiled(
+      Field field, Class<?> fieldType, Class<?> type, Collection<Class<?>> checkedClasses) {
+    if (Selectors.hasSelectorAnnotation(field)) {
+      if (fieldType.isArray()) {
+        if (!checkedClasses.contains(fieldType.getComponentType())
+            && !checkIsValidClass(fieldType.getComponentType())) {
+          throw new InvalidExtractorException(
+              "Unsupported type " + fieldType.getComponentType().getName());
+        }
+      } else if (Collection.class.isAssignableFrom(fieldType)) {
+        if (Collection.class.equals(fieldType)
+            || List.class.equals(fieldType)
+            || Set.class.equals(fieldType)) {
+          Class<?> actualType = getActualClass(field);
+          if (actualType == null) {
+            throw new InvalidExtractorException(
+                "Can not get actual type of filed " + field.getName() + " on class " + type);
+          }
+          if (!checkedClasses.contains(actualType) && !checkIsValidClass(actualType)) {
+            throw new InvalidExtractorException("Unsupported type " + actualType.getName());
+          }
+
+        } else {
+          throw new InvalidExtractorException(
+              "Unsupported collection type "
+                  + fieldType.getName()
+                  + ", only java.lang.Collection, java.lang.List or java.lang.Set supported");
+        }
+      } else if (!checkedClasses.contains(fieldType) && !checkIsValidClass(fieldType)) {
+        throw new InvalidExtractorException("Unsupported type " + fieldType.getName());
+      }
     }
   }
 
@@ -229,12 +265,31 @@ public class ExtractorHelper {
     // 提取内容
     Field[] fields = extractorClass.getDeclaredFields();
     for (Field field : fields) {
-      if (Selectors.hasSelectorAnnotation(field)) {
-        List<String> selected = Selectors.select(content, field);
-        Object obj = convert(url, field, selected, requests, response);
-        if (obj != null) {
-          ReflectUtil.setFieldValue(t, field, obj);
+      List<String> selected = null;
+      if (field.getAnnotation(Url.class) != null) {
+        selected = ListUtil.toList(url);
+      } else if (field.getAnnotation(Param.class) != null) {
+        Param param = field.getAnnotation(Param.class);
+        CharSequence paramValue = UrlBuilder.of(url).getQuery().get(param.name());
+        if (paramValue != null) {
+          selected = ListUtil.toList(paramValue.toString());
+        } else if (param.def() != null) {
+          selected = ListUtil.toList(param.def());
         }
+      } else if (field.getAnnotation(Attr.class) != null) {
+        Attr attr = field.getAnnotation(Attr.class);
+        String attrVal = null;
+        Object o = response.getRequest().getAttribute(attr.name());
+        attrVal = o == null ? attr.def() : o.toString();
+        if (attrVal != null) {
+          selected = ListUtil.toList(attrVal);
+        }
+      } else if (Selectors.hasSelectorAnnotation(field)) {
+        selected = Selectors.select(content, field);
+      }
+      Object obj = convert(url, field, selected, requests, response);
+      if (obj != null) {
+        ReflectUtil.setFieldValue(t, field, obj);
       }
     }
 
