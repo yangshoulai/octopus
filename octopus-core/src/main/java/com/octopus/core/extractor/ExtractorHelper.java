@@ -357,11 +357,11 @@ public class ExtractorHelper {
                 .setPriority(link.priority())
                 .setRepeatable(link.repeatable());
         Arrays.stream(link.headers())
-            .forEach(p -> request.addHeader(p.key(), resolveValueFromProp(t, p)));
+            .forEach(p -> request.addHeader(p.name(), resolveValueFromProp(t, p)));
         Arrays.stream(link.params())
-            .forEach(p -> request.addParam(p.key(), resolveValueFromProp(t, p)));
+            .forEach(p -> request.addParam(p.name(), resolveValueFromProp(t, p)));
         Arrays.stream(link.attrs())
-            .forEach(p -> request.putAttribute(p.key(), resolveValueFromProp(t, p)));
+            .forEach(p -> request.putAttribute(p.name(), resolveValueFromProp(t, p)));
         request.setInherit(link.inherit());
         requests.add(request);
       }

@@ -14,7 +14,7 @@ import java.lang.annotation.RetentionPolicy;
 @Inherited
 public @interface Prop {
 
-  String key() default "";
+  String name() default "";
 
   String value() default "";
 
