@@ -12,9 +12,11 @@ import java.lang.annotation.RetentionPolicy;
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Pair {
+public @interface Prop {
 
   String key() default "";
 
   String value() default "";
+
+  String field() default "";
 }

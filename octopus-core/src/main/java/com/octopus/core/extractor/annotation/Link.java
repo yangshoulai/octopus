@@ -25,6 +25,8 @@ import java.lang.annotation.Target;
 @Repeatable(Links.class)
 public @interface Link {
 
+  String[] url() default {};
+
   CssSelector[] cssSelectors() default {};
 
   XpathSelector[] xpathSelectors() default {};
@@ -43,9 +45,9 @@ public @interface Link {
 
   RequestMethod method() default RequestMethod.GET;
 
-  Pair[] params() default {};
+  Prop[] params() default {};
 
-  Pair[] headers() default {};
+  Prop[] headers() default {};
 
-  Pair[] attrs() default {};
+  Prop[] attrs() default {};
 }

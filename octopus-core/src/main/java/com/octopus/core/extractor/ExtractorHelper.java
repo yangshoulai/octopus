@@ -3,12 +3,7 @@ package com.octopus.core.extractor;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.TypeUtil;
-import cn.hutool.core.util.URLUtil;
+import cn.hutool.core.util.*;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
@@ -278,12 +273,6 @@ public class ExtractorHelper {
     T t = ReflectUtil.newInstance(extractorClass);
     List<Request> requests = new ArrayList<>();
 
-    // 提取链接
-    Link[] links = extractorClass.getAnnotationsByType(Link.class);
-    for (Link link : links) {
-      requests.addAll(parseLinks(url, content, link));
-    }
-
     // 提取内容
     Field[] fields = extractorClass.getDeclaredFields();
     for (Field field : fields) {
@@ -320,6 +309,12 @@ public class ExtractorHelper {
       }
     }
 
+    // 提取链接
+    Link[] links = extractorClass.getAnnotationsByType(Link.class);
+    for (Link link : links) {
+      requests.addAll(parseLinks(t, url, content, link));
+    }
+
     // 提取自定义链接
     Method[] linksMethods = getLinksMethod(extractorClass);
     if (linksMethods != null) {
@@ -336,8 +331,9 @@ public class ExtractorHelper {
         extractorClass, method -> method.isAnnotationPresent(LinkMethod.class));
   }
 
-  private static List<Request> parseLinks(String currentUrl, String content, Link link) {
+  private static List<Request> parseLinks(Object t, String currentUrl, String content, Link link) {
     List<Request> requests = new ArrayList<>();
+    List<String> urls = new ArrayList<>(ListUtil.toList(link.url()));
 
     List<Annotation> selectorAnnotations = new ArrayList<>();
     selectorAnnotations.addAll(ListUtil.toList(link.cssSelectors()));
@@ -348,25 +344,43 @@ public class ExtractorHelper {
       for (Annotation selectorAnnotation : selectorAnnotations) {
         List<String> selected = Selectors.select(content, selectorAnnotation);
         if (selected != null && !selected.isEmpty()) {
-          RegexFormatter[] formats = link.formats();
-          for (String url : selected) {
-            url = Formatters.format(url, formats);
-            if (StrUtil.isNotBlank(url)) {
-              Request request =
-                  new Request(completeUrl(currentUrl, url), link.method())
-                      .setPriority(link.priority())
-                      .setRepeatable(link.repeatable());
-              Arrays.stream(link.headers()).forEach(p -> request.addHeader(p.key(), p.value()));
-              Arrays.stream(link.params()).forEach(p -> request.addParam(p.key(), p.value()));
-              Arrays.stream(link.attrs()).forEach(p -> request.putAttribute(p.key(), p.value()));
-              request.setInherit(link.inherit());
-              requests.add(request);
-            }
-          }
+          urls.addAll(selected);
         }
       }
     }
+    RegexFormatter[] formats = link.formats();
+    for (String url : urls) {
+      url = Formatters.format(url, formats);
+      if (StrUtil.isNotBlank(url)) {
+        Request request =
+            new Request(completeUrl(currentUrl, url), link.method())
+                .setPriority(link.priority())
+                .setRepeatable(link.repeatable());
+        Arrays.stream(link.headers())
+            .forEach(p -> request.addHeader(p.key(), resolveValueFromProp(t, p)));
+        Arrays.stream(link.params())
+            .forEach(p -> request.addParam(p.key(), resolveValueFromProp(t, p)));
+        Arrays.stream(link.attrs())
+            .forEach(p -> request.putAttribute(p.key(), resolveValueFromProp(t, p)));
+        request.setInherit(link.inherit());
+        requests.add(request);
+      }
+    }
     return requests;
+  }
+
+  private static String resolveValueFromProp(Object target, Prop prop) {
+    if (StrUtil.isNotBlank(prop.field())) {
+      Field field = ReflectUtil.getField(target.getClass(), prop.field());
+      if (field == null) {
+        throw new InvalidExtractorException(
+            "can not found field " + prop.field() + " on class " + target.getClass());
+      }
+      Object val = ReflectUtil.getFieldValue(target, field);
+
+      return val == null ? null : val.toString();
+    }
+    return prop.value();
   }
 
   private static String completeUrl(String currentUrl, String url) {

@@ -1,6 +1,5 @@
 package com.octopus.sample.tumblr;
 
-import cn.hutool.core.util.ReUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
@@ -8,20 +7,18 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Matcher;
+import com.octopus.core.extractor.annotation.*;
 import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.extractor.selector.RegexSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
+import lombok.Data;
+
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Pattern;
-import lombok.Data;
 
 /**
  * 下载汤不热博主发布的图片与视频
@@ -33,16 +30,15 @@ import lombok.Data;
 @Extractor(matcher = @Matcher(type = Type.HTML))
 public class BlogPhoto {
 
-  private static final Pattern USERNAME_PATTERN =
-      Pattern.compile(".*https://(.*)\\.tumblr\\.com/archive/?$");
-
   @RegexSelector(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
 
+  @Url
+  @RegexFormatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1)
+  private String username;
+
   @LinkMethod
   public Request getFirstPagePost(Response response) {
-    String username = ReUtil.get(USERNAME_PATTERN, response.getRequest().getUrl(), 1);
-
     Map<String, String> params = new HashMap<>();
     params.put("npf", "true");
     params.put("reblog_info", "true");
