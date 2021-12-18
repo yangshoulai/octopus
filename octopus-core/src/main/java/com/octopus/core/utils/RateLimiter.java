@@ -52,11 +52,9 @@ public class RateLimiter {
                 return thread;
               });
     }
+    long periodMills = this.unit.toMillis(this.period) / this.max;
     this.scheduler.scheduleAtFixedRate(
-        () -> this.semaphore.release(this.max - this.semaphore.availablePermits()),
-        0,
-        this.period,
-        this.unit);
+        this.semaphore::release, 0, periodMills, TimeUnit.MILLISECONDS);
   }
 
   public void stop() {
