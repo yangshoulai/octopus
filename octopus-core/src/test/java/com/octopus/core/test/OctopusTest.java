@@ -2,12 +2,11 @@ package com.octopus.core.test;
 
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
-import com.octopus.core.extractor.Attr;
-import com.octopus.core.extractor.Extractor;
-import com.octopus.core.extractor.Param;
-import com.octopus.core.extractor.Url;
+import com.octopus.core.extractor.annotation.*;
 import com.octopus.core.extractor.format.RegexFormatter;
 import lombok.Data;
+
+import java.util.List;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -35,6 +34,8 @@ public class OctopusTest {
 
   @Attr(name = "b")
   private Integer b1;
+
+  @Body private byte[] bytes;
 
   public static void main(String[] args) {
 

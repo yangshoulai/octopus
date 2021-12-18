@@ -1,4 +1,4 @@
-package com.octopus.core.extractor;
+package com.octopus.core.extractor.annotation;
 
 import com.octopus.core.processor.matcher.Matchers;
 import java.lang.annotation.Documented;
@@ -28,7 +28,7 @@ public @interface Matcher {
     /** 匹配所有 */
     ALL {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.ALL;
       }
     },
@@ -36,7 +36,7 @@ public @interface Matcher {
     /** URL正则匹配 */
     URL_REGEX {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.urlRegex(matcher.regex());
       }
     },
@@ -44,67 +44,67 @@ public @interface Matcher {
     /** 响应头正则匹配 */
     HEADER_REGEX {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.headerRegex(matcher.header(), matcher.regex());
       }
     },
     /** 响应内容正则匹配 */
     CONTENT_TYPE_REGEX {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.contentType(matcher.regex());
       }
     },
 
     HTML {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.HTML;
       }
     },
 
     JSON {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.JSON;
       }
     },
 
     IMAGE {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.IMAGE;
       }
     },
 
     VIDEO {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.VIDEO;
       }
     },
 
     AUDIO {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.AUDIO;
       }
     },
 
     OCTET_STREAM {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.OCTET_STREAM;
       }
     },
 
     MEDIA {
       @Override
-      protected com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
         return Matchers.or(Matchers.VIDEO, Matchers.AUDIO, Matchers.IMAGE, Matchers.OCTET_STREAM);
       }
     };
 
-    protected abstract com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher);
+    public abstract com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher);
   }
 }

@@ -1,9 +1,9 @@
 package com.octopus.sample.wallhaven;
 
-import com.octopus.core.extractor.Extractor;
-import com.octopus.core.extractor.Link;
-import com.octopus.core.extractor.Matcher;
-import com.octopus.core.extractor.Matcher.Type;
+import com.octopus.core.extractor.annotation.Extractor;
+import com.octopus.core.extractor.annotation.Link;
+import com.octopus.core.extractor.annotation.Matcher;
+import com.octopus.core.extractor.annotation.Matcher.Type;
 import com.octopus.core.extractor.selector.CssSelector;
 import java.util.List;
 import lombok.Data;

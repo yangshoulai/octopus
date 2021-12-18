@@ -1,4 +1,4 @@
-package com.octopus.core.extractor;
+package com.octopus.core.extractor.annotation;
 
 import java.lang.annotation.*;
 

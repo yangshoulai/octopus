@@ -1,4 +1,4 @@
-package com.octopus.core.extractor;
+package com.octopus.core.extractor.annotation;
 
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.extractor.format.RegexFormatter;

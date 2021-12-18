@@ -1,4 +1,4 @@
-package com.octopus.core.extractor;
+package com.octopus.core.extractor.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,10 +9,13 @@ import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/12/16
+ * @date 2021/11/24
  */
 @Documented
-@Target({ElementType.FIELD})
+@Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Url {}
+public @interface Links {
+
+  Link[] value() default {};
+}

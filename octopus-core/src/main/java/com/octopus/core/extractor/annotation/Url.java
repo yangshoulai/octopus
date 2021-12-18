@@ -1,4 +1,4 @@
-package com.octopus.core.extractor;
+package com.octopus.core.extractor.annotation;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,9 +15,4 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Param {
-
-  String name();
-
-  String def() default "";
-}
+public @interface Url {}

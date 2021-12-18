@@ -12,6 +12,7 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
+import com.octopus.core.extractor.annotation.*;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
@@ -69,6 +70,10 @@ public class ExtractorHelper {
       Field[] fields = type.getDeclaredFields();
       for (Field field : fields) {
         Class<?> fieldType = TypeUtil.getClass(field);
+
+        // check @Body
+        checkIsValidBodyField(field, fieldType);
+
         // check @Url
         checkIsValidUrlField(field, fieldType);
 
@@ -98,6 +103,24 @@ public class ExtractorHelper {
     } else {
       throw new InvalidExtractorException(
           String.format("Class [%s] must has annotation @Extractor", type.getName()));
+    }
+  }
+
+  private static void checkIsValidBodyField(Field field, Class<?> fieldType) {
+    Body body = field.getAnnotation(Body.class);
+    if (body != null) {
+      if (fieldType.isArray()) {
+        Class<?> componentType = fieldType.getComponentType();
+        if (!byte.class.equals(componentType)) {
+          throw new InvalidExtractorException(
+              "Invalid @Body type on field " + field.getName() + ", only byte array supported");
+        }
+      } else {
+        throw new InvalidExtractorException(
+            "Invalid @Body type on field "
+                + field.getName()
+                + ", only byte array or byte list supported");
+      }
     }
   }
 
@@ -235,7 +258,7 @@ public class ExtractorHelper {
 
   public static Matcher extractMatcher(Class<?> extractorClass) {
     Extractor extractor = extractorClass.getAnnotation(Extractor.class);
-    if (extractor.matcher() != null && extractor.matcher().length > 0) {
+    if (extractor.matcher().length > 0) {
       return Matchers.and(
           Arrays.stream(extractor.matcher()).map(m -> m.type().resolve(m)).toArray(Matcher[]::new));
     }
@@ -254,7 +277,6 @@ public class ExtractorHelper {
     }
     T t = ReflectUtil.newInstance(extractorClass);
     List<Request> requests = new ArrayList<>();
-    Extractor extractor = extractorClass.getAnnotation(Extractor.class);
 
     // 提取链接
     Link[] links = extractorClass.getAnnotationsByType(Link.class);
@@ -265,6 +287,11 @@ public class ExtractorHelper {
     // 提取内容
     Field[] fields = extractorClass.getDeclaredFields();
     for (Field field : fields) {
+      if (field.getAnnotation(Body.class) != null) {
+        ReflectUtil.setFieldValue(t, field, response.getBody());
+        continue;
+      }
+
       List<String> selected = null;
       if (field.getAnnotation(Url.class) != null) {
         selected = ListUtil.toList(url);
@@ -273,7 +300,7 @@ public class ExtractorHelper {
         CharSequence paramValue = UrlBuilder.of(url).getQuery().get(param.name());
         if (paramValue != null) {
           selected = ListUtil.toList(paramValue.toString());
-        } else if (param.def() != null) {
+        } else {
           selected = ListUtil.toList(param.def());
         }
       } else if (field.getAnnotation(Attr.class) != null) {
@@ -313,18 +340,10 @@ public class ExtractorHelper {
     List<Request> requests = new ArrayList<>();
 
     List<Annotation> selectorAnnotations = new ArrayList<>();
-    if (link.cssSelectors() != null) {
-      selectorAnnotations.addAll(ListUtil.toList(link.cssSelectors()));
-    }
-    if (link.xpathSelectors() != null) {
-      selectorAnnotations.addAll(ListUtil.toList(link.xpathSelectors()));
-    }
-    if (link.jsonSelectors() != null) {
-      selectorAnnotations.addAll(ListUtil.toList(link.jsonSelectors()));
-    }
-    if (link.regexSelectors() != null) {
-      selectorAnnotations.addAll(ListUtil.toList(link.regexSelectors()));
-    }
+    selectorAnnotations.addAll(ListUtil.toList(link.cssSelectors()));
+    selectorAnnotations.addAll(ListUtil.toList(link.xpathSelectors()));
+    selectorAnnotations.addAll(ListUtil.toList(link.jsonSelectors()));
+    selectorAnnotations.addAll(ListUtil.toList(link.regexSelectors()));
     if (!selectorAnnotations.isEmpty()) {
       for (Annotation selectorAnnotation : selectorAnnotations) {
         List<String> selected = Selectors.select(content, selectorAnnotation);

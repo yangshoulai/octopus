@@ -1,10 +1,10 @@
 package com.octopus.sample.douban;
 
 import cn.hutool.core.date.DatePattern;
-import com.octopus.core.extractor.Extractor;
-import com.octopus.core.extractor.Link;
-import com.octopus.core.extractor.Matcher;
-import com.octopus.core.extractor.Matcher.Type;
+import com.octopus.core.extractor.annotation.Extractor;
+import com.octopus.core.extractor.annotation.Link;
+import com.octopus.core.extractor.annotation.Matcher;
+import com.octopus.core.extractor.annotation.Matcher.Type;
 import com.octopus.core.extractor.convertor.DateConvertor;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.format.SplitFormatter;
