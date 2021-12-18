@@ -39,6 +39,8 @@ public @interface Link {
 
   boolean repeatable() default true;
 
+  boolean inherit() default false;
+
   RequestMethod method() default RequestMethod.GET;
 
   Pair[] params() default {};

@@ -359,6 +359,7 @@ public class ExtractorHelper {
               Arrays.stream(link.headers()).forEach(p -> request.addHeader(p.key(), p.value()));
               Arrays.stream(link.params()).forEach(p -> request.addParam(p.key(), p.value()));
               Arrays.stream(link.attrs()).forEach(p -> request.putAttribute(p.key(), p.value()));
+              request.setInherit(link.inherit());
               requests.add(request);
             }
           }

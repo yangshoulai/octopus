@@ -17,6 +17,7 @@ import com.octopus.core.store.Store;
 import com.octopus.core.utils.RequestHelper;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -318,6 +319,16 @@ class OctopusImpl implements Octopus {
                       .forEach(
                           request -> {
                             request.setParent(response.getRequest().getId());
+                            if (request.isInherit()
+                                && response.getRequest().getAttributes() != null) {
+                              Map<String, Object> attrs = response.getRequest().getAttributes();
+                              attrs.forEach(
+                                  (k, v) -> {
+                                    if (request.getAttribute(k) == null) {
+                                      request.putAttribute(k, v);
+                                    }
+                                  });
+                            }
                             this.addRequest(request);
                           });
                 }

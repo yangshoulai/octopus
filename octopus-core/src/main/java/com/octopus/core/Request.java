@@ -32,6 +32,9 @@ public class Request implements Serializable, Comparable<Request> {
 
   private String parent;
 
+  /** 是否从父请求集成属性 */
+  private boolean inherit = false;
+
   public Request() {}
 
   public Request(@NonNull String url, @NonNull RequestMethod method) {
@@ -166,6 +169,15 @@ public class Request implements Serializable, Comparable<Request> {
 
   public String getParent() {
     return parent;
+  }
+
+  public Request setInherit(boolean inherit) {
+    this.inherit = inherit;
+    return this;
+  }
+
+  public boolean isInherit() {
+    return inherit;
   }
 
   @Override
