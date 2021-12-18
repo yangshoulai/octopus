@@ -33,7 +33,7 @@ public class Matchers {
   }
 
   public static Matcher not(@NonNull Matcher matcher) {
-    return response -> !matcher.matches(response);
+    return new NotMatcher(matcher);
   }
 
   public static Matcher urlRegex(@NonNull Pattern pattern) {
