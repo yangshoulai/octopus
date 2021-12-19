@@ -6,6 +6,8 @@ import cn.hutool.core.util.XmlUtil;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.htmlcleaner.CleanerProperties;
@@ -38,25 +40,34 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   public List<String> selectWithType(Node document, XpathSelector selector) {
     List<String> results = new ArrayList<>();
     try {
-      NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);
-      for (int i = 0; i < nodes.getLength(); i++) {
-        Node node = nodes.item(i);
-        String value = null;
-        if (node instanceof CharacterData) {
-          value = ((CharacterData) node).getData();
-        } else if (node instanceof Attr) {
-          value = ((Attr) node).getValue();
-        } else {
-          value = XmlUtil.toStr(node);
+      if (selector.node()) {
+        NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);
+        for (int i = 0; i < nodes.getLength(); i++) {
+          Node node = nodes.item(i);
+          String value = null;
+          if (node instanceof CharacterData) {
+            value = ((CharacterData) node).getData();
+          } else if (node instanceof Attr) {
+            value = ((Attr) node).getValue();
+          } else {
+            value = XmlUtil.toStr(node);
+          }
+          if (!StrUtil.isBlank(value)) {
+            value = EscapeUtil.unescapeXml(value);
+          }
+          results.add(value);
         }
-        if (!StrUtil.isBlank(value)) {
-          value = EscapeUtil.unescapeXml(value);
+      } else {
+        Object val = XmlUtil.getByXPath(selector.expression(), document, XPathConstants.STRING);
+        if (val != null) {
+          results.add(val.toString());
         }
-        results.add(value);
       }
+
     } catch (Exception e) {
       e.printStackTrace();
     }
+
     return filterResults(results, selector.filter(), selector.trim(), selector.multi());
   }
 

@@ -23,4 +23,6 @@ public @interface XpathSelector {
   boolean filter() default true;
 
   boolean trim() default true;
+
+  boolean node() default true;
 }

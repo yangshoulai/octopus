@@ -13,7 +13,7 @@ public class BooleanConvertorHandler implements ConvertorHandler<Boolean, Boolea
     if (StrUtil.isBlank(val)) {
       return format != null && format.def();
     }
-    return !"0".equals(val);
+    return !"0".equals(val) && !"false".equalsIgnoreCase(val);
   }
 
   @Override

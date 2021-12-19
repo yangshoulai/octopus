@@ -303,9 +303,11 @@ public class ExtractorHelper {
       } else if (Selectors.hasSelectorAnnotation(field)) {
         selected = Selectors.select(content, field);
       }
-      Object obj = convert(url, field, selected, requests, response);
-      if (obj != null) {
-        ReflectUtil.setFieldValue(t, field, obj);
+      if (selected != null) {
+        Object obj = convert(url, field, selected, requests, response);
+        if (obj != null) {
+          ReflectUtil.setFieldValue(t, field, obj);
+        }
       }
     }
 
