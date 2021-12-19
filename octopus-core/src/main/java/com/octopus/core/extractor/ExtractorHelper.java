@@ -412,12 +412,15 @@ public class ExtractorHelper {
           }
         } else if (componentType.isAnnotationPresent(Extractor.class)) {
           for (String content : selected) {
-            Result<?> result = extract(url, content, componentType, response);
-            if (result.getObj() != null) {
-              list.add(result.getObj());
-            }
-            if (result.getRequests() != null) {
-              requests.addAll(result.getRequests());
+            List<String> formatted = format(content, field);
+            for (String s : formatted) {
+              Result<?> result = extract(url, s, componentType, response);
+              if (result.getObj() != null) {
+                list.add(result.getObj());
+              }
+              if (result.getRequests() != null) {
+                requests.addAll(result.getRequests());
+              }
             }
           }
         }
