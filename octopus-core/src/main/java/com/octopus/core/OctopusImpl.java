@@ -231,7 +231,6 @@ class OctopusImpl implements Octopus {
                     downloadConfig = webSite.getDownloadConfig();
                   }
                   Response response = this.download(request, downloadConfig);
-                  this.store.markAsCompleted(request);
                   if (response != null) {
                     this.listeners.forEach(listener -> listener.beforeProcess(response));
                     if (!response.isSuccessful()) {
@@ -239,6 +238,7 @@ class OctopusImpl implements Octopus {
                     }
                     this.process(response);
                   }
+                  this.store.markAsCompleted(request);
                 } catch (DownloadException e) {
                   this.store.markAsFailed(request);
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
