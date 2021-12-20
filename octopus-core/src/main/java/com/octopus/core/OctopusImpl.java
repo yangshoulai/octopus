@@ -75,6 +75,8 @@ class OctopusImpl implements Octopus {
 
   private final boolean clearStoreOnStop;
 
+  private final boolean ignoreSeedsWhenStoreHasRequests;
+
   private final List<Request> seeds;
 
   private final boolean debug;
@@ -88,6 +90,7 @@ class OctopusImpl implements Octopus {
     this.seeds = builder.getSeeds();
     this.clearStoreOnStop = builder.isClearStoreOnStop();
     this.clearStoreOnStartup = builder.isClearStoreOnStartup();
+    this.ignoreSeedsWhenStoreHasRequests = builder.isIgnoreSeedsWhenStoreHasRequests();
     this.autoStop = builder.isAutoStop();
     this.globalDownloadConfig = builder.getGlobalDownloadConfig();
     this.processors = builder.getProcessors();
@@ -122,7 +125,8 @@ class OctopusImpl implements Octopus {
     if (this.clearStoreOnStartup) {
       this.store.clear();
     }
-    if (this.seeds != null) {
+    if (this.seeds != null
+        && (!this.ignoreSeedsWhenStoreHasRequests || this.store.getWaitingSize() == 0)) {
       this.seeds.forEach(this::addRequest);
     }
     this.startRateLimiters();

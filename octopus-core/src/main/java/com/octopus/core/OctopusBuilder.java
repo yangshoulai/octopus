@@ -52,6 +52,8 @@ public class OctopusBuilder {
 
   private boolean clearStoreOnStop = true;
 
+  private boolean ignoreSeedsWhenStoreHasRequests = true;
+
   private final List<Request> seeds = new ArrayList<>();
 
   private boolean debug = false;
@@ -237,6 +239,15 @@ public class OctopusBuilder {
     return this.clearStoreOnStop(true);
   }
 
+  public OctopusBuilder ignoreSeedsWhenStoreHasRequests() {
+    return this.ignoreSeedsWhenStoreHasRequests(true);
+  }
+
+  public OctopusBuilder ignoreSeedsWhenStoreHasRequests(boolean ignore) {
+    this.ignoreSeedsWhenStoreHasRequests = ignore;
+    return this;
+  }
+
   public OctopusBuilder addSeeds(@NonNull Request... seeds) {
     Arrays.stream(seeds).sorted().forEach(this.seeds::add);
     return this;
@@ -306,6 +317,10 @@ public class OctopusBuilder {
 
   public Logger getLogger() {
     return logger;
+  }
+
+  public boolean isIgnoreSeedsWhenStoreHasRequests() {
+    return ignoreSeedsWhenStoreHasRequests;
   }
 
   public Octopus build() {
