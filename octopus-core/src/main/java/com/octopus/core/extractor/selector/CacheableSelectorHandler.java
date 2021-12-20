@@ -7,6 +7,8 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import java.lang.annotation.Annotation;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -16,10 +18,21 @@ import java.util.stream.Collectors;
 public abstract class CacheableSelectorHandler<T, A extends Annotation>
     implements SelectorHandler<A> {
 
-  private final LRUCache<String, T> cache;
+  private final Map<String, T> cache;
+
+  private final Object lock = new Object();
 
   public CacheableSelectorHandler() {
-    this.cache = CacheUtil.newLRUCache(10);
+    this.cache = new ConcurrentHashMap<>();
+  }
+
+  private void putCache(String id, T t) {
+    synchronized (this.lock) {
+      if (this.cache.size() >= 16) {
+        this.cache.remove(this.cache.entrySet().iterator().next().getKey());
+      }
+      this.cache.put(id, t);
+    }
   }
 
   @Override
@@ -29,7 +42,7 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
     if (doc == null) {
       doc = this.parse(content);
       if (doc != null) {
-        this.cache.put(md5, doc);
+        this.putCache(md5, doc);
       }
     }
     return this.selectWithType(doc, selector);
