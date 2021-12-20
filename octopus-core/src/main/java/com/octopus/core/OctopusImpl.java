@@ -245,6 +245,7 @@ class OctopusImpl implements Octopus {
                   logger.error("Download [{}] error!", request, e);
                 } catch (Throwable e) {
                   logger.error("", e);
+                  this.store.markAsFailed(request);
                 } finally {
                   this.workerSemaphore.release();
                   lock.lock();
