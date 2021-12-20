@@ -80,16 +80,12 @@ public class Selectors {
     for (Annotation annotation : annotations) {
       SelectorHandler<? extends Annotation> selectorHandler =
           SELECTORS.get(annotation.annotationType());
-      try {
-        Method method =
-            ReflectUtil.getMethod(
-                selectorHandler.getClass(), "select", String.class, Annotation.class);
-        List<String> results = ReflectUtil.invoke(selectorHandler, method, content, annotation);
-        if (results != null && !results.isEmpty()) {
-          return results;
-        }
-      } catch (Throwable e) {
-        log.error("", e);
+      Method method =
+          ReflectUtil.getMethod(
+              selectorHandler.getClass(), "select", String.class, Annotation.class);
+      List<String> results = ReflectUtil.invoke(selectorHandler, method, content, annotation);
+      if (results != null && !results.isEmpty()) {
+        return results;
       }
     }
     return Collections.emptyList();

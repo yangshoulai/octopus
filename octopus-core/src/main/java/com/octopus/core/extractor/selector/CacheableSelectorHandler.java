@@ -23,7 +23,7 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
   }
 
   @Override
-  public final List<String> select(String content, A selector) {
+  public final List<String> select(String content, A selector) throws Exception {
     String md5 = MD5.create().digestHex(content);
     T doc = this.cache.get(md5);
     if (doc == null) {
@@ -35,9 +35,9 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
     return this.selectWithType(doc, selector);
   }
 
-  protected abstract List<String> selectWithType(T t, A selector);
+  protected abstract List<String> selectWithType(T t, A selector) throws Exception;
 
-  protected abstract T parse(String content);
+  protected abstract T parse(String content) throws Exception;
 
   protected List<String> filterResults(
       List<String> results, boolean filter, boolean trim, boolean multi) {

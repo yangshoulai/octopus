@@ -38,45 +38,37 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   @Override
   public List<String> selectWithType(Node document, XpathSelector selector) {
     List<String> results = new ArrayList<>();
-    try {
-      if (selector.node()) {
-        NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);
-        for (int i = 0; i < nodes.getLength(); i++) {
-          Node node = nodes.item(i);
-          String value = null;
-          if (node instanceof CharacterData) {
-            value = ((CharacterData) node).getData();
-          } else if (node instanceof Attr) {
-            value = ((Attr) node).getValue();
-          } else {
-            value = XmlUtil.toStr(node, CharsetUtil.UTF_8, false, true);
-          }
-          if (!StrUtil.isBlank(value)) {
-            value = EscapeUtil.unescapeXml(value);
-          }
-          results.add(value);
-        }
-      } else {
-        Object val = XmlUtil.getByXPath(selector.expression(), document, XPathConstants.STRING);
-        if (val != null) {
-          results.add(val.toString());
-        }
-      }
 
-    } catch (Exception e) {
-      e.printStackTrace();
+    if (selector.node()) {
+      NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);
+      for (int i = 0; i < nodes.getLength(); i++) {
+        Node node = nodes.item(i);
+        String value = null;
+        if (node instanceof CharacterData) {
+          value = ((CharacterData) node).getData();
+        } else if (node instanceof Attr) {
+          value = ((Attr) node).getValue();
+        } else {
+          value = XmlUtil.toStr(node, CharsetUtil.UTF_8, false, true);
+        }
+        if (!StrUtil.isBlank(value)) {
+          value = EscapeUtil.unescapeXml(value);
+        }
+        results.add(value);
+      }
+    } else {
+      Object val = XmlUtil.getByXPath(selector.expression(), document, XPathConstants.STRING);
+      if (val != null) {
+        results.add(val.toString());
+      }
     }
 
     return filterResults(results, selector.filter(), selector.trim(), selector.multi());
   }
 
   @Override
-  protected Node parse(String content) {
-    try {
-      return this.serializer.createDOM(this.cleaner.clean(content));
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-    return null;
+  protected Node parse(String content) throws Exception {
+
+    return this.serializer.createDOM(this.cleaner.clean(content));
   }
 }

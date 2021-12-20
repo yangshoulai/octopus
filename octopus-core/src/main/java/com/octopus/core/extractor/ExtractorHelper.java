@@ -260,7 +260,7 @@ public class ExtractorHelper {
     return Matchers.ALL;
   }
 
-  public static <T> Result<T> extract(Response response, Class<T> extractorClass) {
+  public static <T> Result<T> extract(Response response, Class<T> extractorClass) throws Exception {
     return extract(response.getRequest().getUrl(), response.asText(), extractorClass, response);
   }
 

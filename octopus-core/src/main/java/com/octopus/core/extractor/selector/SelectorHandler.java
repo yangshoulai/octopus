@@ -15,5 +15,5 @@ public interface SelectorHandler<S extends Annotation> {
    * @param content 原文
    * @return 提取的内容
    */
-  List<String> select(String content, S selector);
+  List<String> select(String content, S selector) throws Exception;
 }

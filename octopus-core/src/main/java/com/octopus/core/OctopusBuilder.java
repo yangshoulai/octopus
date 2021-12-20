@@ -6,6 +6,7 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
+import com.octopus.core.exception.ProcessException;
 import com.octopus.core.extractor.ExtractorHelper;
 import com.octopus.core.extractor.InvalidExtractorException;
 import com.octopus.core.extractor.Result;
@@ -197,11 +198,20 @@ public class OctopusBuilder {
         new AbstractProcessor(matcher) {
           @Override
           public List<Request> process(Response response) {
-            Result<T> result = ExtractorHelper.extract(response, extractorClass);
-            if (callback != null) {
-              callback.accept(result.getObj());
+            try {
+              Result<T> result = ExtractorHelper.extract(response, extractorClass);
+              if (callback != null) {
+                callback.accept(result.getObj());
+              }
+              return result.getRequests();
+            } catch (Exception e) {
+              throw new ProcessException(
+                  "Error process response from request ["
+                      + response.getRequest()
+                      + "] with extractor "
+                      + extractorClass.getName(),
+                  e);
             }
-            return result.getRequests();
           }
         });
     return this;
