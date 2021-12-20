@@ -1,13 +1,12 @@
 package com.octopus.core.extractor.selector;
 
+import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import java.util.ArrayList;
 import java.util.List;
-import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathConstants;
-
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.htmlcleaner.CleanerProperties;
@@ -50,7 +49,7 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
           } else if (node instanceof Attr) {
             value = ((Attr) node).getValue();
           } else {
-            value = XmlUtil.toStr(node);
+            value = XmlUtil.toStr(node, CharsetUtil.UTF_8, false, true);
           }
           if (!StrUtil.isBlank(value)) {
             value = EscapeUtil.unescapeXml(value);
@@ -74,15 +73,7 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   @Override
   protected Node parse(String content) {
     try {
-      if (StrUtil.trim(content).startsWith("<?xml")) {
-        return XmlUtil.parseXml(content);
-      } else {
-        try {
-          return this.serializer.createDOM(this.cleaner.clean(content));
-        } catch (ParserConfigurationException e) {
-          e.printStackTrace();
-        }
-      }
+      return this.serializer.createDOM(this.cleaner.clean(content));
     } catch (Exception e) {
       e.printStackTrace();
     }
