@@ -45,8 +45,9 @@ public class MongoStore implements Store {
     this.mongoClient = mongoClient;
     MongoDatabase mongoDatabase = mongoClient.getDatabase(database);
     this.requests = mongoDatabase.getCollection(collection, Document.class);
-    IndexOptions options = new IndexOptions();
     requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name("idx_priority"));
+    this.requests.updateMany(
+        Filters.eq("state", MongoStore.STATE_EXECUTING), Updates.set("state", STATE_WAITING));
   }
 
   public MongoStore(MongoClient mongoClient) {
@@ -77,18 +78,9 @@ public class MongoStore implements Store {
               .sort(Sorts.descending("priority"))
               .limit(1)
               .first();
-      if (request == null) {
-        request =
-            this.requests
-                .find()
-                .filter(Filters.eq("state", MongoStore.STATE_WAITING))
-                .sort(Sorts.descending("priority"))
-                .limit(1)
-                .first();
-        if (request != null) {
-          this.requests.updateOne(
-              Filters.eq("_id", request.get("_id")), Updates.set("state", STATE_EXECUTING));
-        }
+      if (request != null) {
+        this.requests.updateOne(
+            Filters.eq("_id", request.get("_id")), Updates.set("state", STATE_EXECUTING));
       }
       session.commitTransaction();
     } catch (Exception e) {
