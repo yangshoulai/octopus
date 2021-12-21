@@ -1,6 +1,5 @@
 package com.octopus.core.store;
 
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
@@ -67,18 +66,21 @@ public class RedisStore implements Store {
   @Override
   public Request get() {
     try (Jedis jedis = this.pool.getResource()) {
-      Set<String> idSet = jedis.zrevrange(this.waitingKey, 0, 1);
-      if (!idSet.isEmpty()) {
-        String id = ListUtil.toList(idSet).get(0);
-        try (Transaction transaction = jedis.multi()) {
-          transaction.sadd(this.executingKey, id);
-          transaction.zrem(this.waitingKey, id);
-          transaction.exec();
+      String selected = jedis.spop(this.executingKey);
+      if (StrUtil.isBlank(selected)) {
+        Set<String> idSet = jedis.zrevrange(this.waitingKey, 0, 1);
+        if (!idSet.isEmpty()) {
+          selected = idSet.stream().findFirst().get();
+          try (Transaction transaction = jedis.multi()) {
+            transaction.sadd(this.executingKey, selected);
+            transaction.zrem(this.waitingKey, selected);
+            transaction.exec();
+          }
         }
-        if (StrUtil.isNotBlank(id)) {
-          String json = jedis.hget(this.allKey, id);
-          return JSONUtil.toBean(json, Request.class);
-        }
+      }
+      if (StrUtil.isBlank(selected)) {
+        String json = jedis.hget(this.allKey, selected);
+        return JSONUtil.toBean(json, Request.class);
       }
     }
     return null;

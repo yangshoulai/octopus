@@ -1,9 +1,9 @@
 package com.octopus.core.extractor.selector;
 
-import cn.hutool.cache.impl.LRUCache;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
+import com.octopus.core.utils.LRUCache;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -21,10 +21,6 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
     this.cache = new LRUCache<>(16);
   }
 
-  private void putCache(String id, T t) {
-    this.cache.put(id, t);
-  }
-
   @Override
   public final List<String> select(String content, A selector) throws Exception {
     String md5 = MD5.create().digestHex(content);
@@ -32,7 +28,7 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
     if (doc == null) {
       doc = this.parse(content);
       if (doc != null) {
-        this.putCache(md5, doc);
+        this.cache.put(md5, doc);
       }
     }
     return this.selectWithType(doc, selector);

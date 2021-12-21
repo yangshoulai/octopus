@@ -77,9 +77,18 @@ public class MongoStore implements Store {
               .sort(Sorts.descending("priority"))
               .limit(1)
               .first();
-      if (request != null) {
-        this.requests.updateOne(
-            Filters.eq("_id", request.get("_id")), Updates.set("state", STATE_EXECUTING));
+      if (request == null) {
+        request =
+            this.requests
+                .find()
+                .filter(Filters.eq("state", MongoStore.STATE_WAITING))
+                .sort(Sorts.descending("priority"))
+                .limit(1)
+                .first();
+        if (request != null) {
+          this.requests.updateOne(
+              Filters.eq("_id", request.get("_id")), Updates.set("state", STATE_EXECUTING));
+        }
       }
       session.commitTransaction();
     } catch (Exception e) {
