@@ -80,4 +80,9 @@ public class MemoryStore implements Store {
   public List<Request> getFailed() {
     return this.failed.stream().map(all::get).collect(Collectors.toList());
   }
+
+  @Override
+  public void clearFailed() {
+    this.failed.clear();
+  }
 }

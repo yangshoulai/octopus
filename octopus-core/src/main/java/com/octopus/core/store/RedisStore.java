@@ -157,4 +157,11 @@ public class RedisStore implements Store {
     }
     return failed;
   }
+
+  @Override
+  public void clearFailed() {
+    try (Jedis jedis = this.pool.getResource()) {
+      jedis.del(this.failedKey);
+    }
+  }
 }

@@ -280,6 +280,7 @@ class OctopusImpl implements Octopus {
                       r.setRepeatable(true);
                       this.addRequest(r);
                     });
+                this.store.clearFailed();
                 continue;
               }
             }

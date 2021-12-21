@@ -148,4 +148,9 @@ public class MongoStore implements Store {
     }
     return failed;
   }
+
+  @Override
+  public void clearFailed() {
+    this.requests.deleteMany(Filters.eq("state", MongoStore.STATE_FAILED));
+  }
 }

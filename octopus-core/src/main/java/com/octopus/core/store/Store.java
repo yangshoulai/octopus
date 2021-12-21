@@ -78,4 +78,7 @@ public interface Store {
    * @return 失败的下载请求
    */
   List<Request> getFailed();
+
+  /** 清空失败的请求 */
+  void clearFailed();
 }
