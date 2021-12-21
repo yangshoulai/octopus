@@ -68,7 +68,7 @@ public class RedisStore implements Store {
     try (Jedis jedis = this.pool.getResource()) {
       String selected = jedis.spop(this.executingKey);
       if (StrUtil.isBlank(selected)) {
-        Set<String> idSet = jedis.zrevrange(this.waitingKey, 0, 1);
+        Set<String> idSet = jedis.zrevrange(this.waitingKey, 0, 0);
         if (!idSet.isEmpty()) {
           selected = idSet.stream().findFirst().get();
           try (Transaction transaction = jedis.multi()) {
@@ -78,7 +78,7 @@ public class RedisStore implements Store {
           }
         }
       }
-      if (StrUtil.isBlank(selected)) {
+      if (StrUtil.isNotBlank(selected)) {
         String json = jedis.hget(this.allKey, selected);
         return JSONUtil.toBean(json, Request.class);
       }
