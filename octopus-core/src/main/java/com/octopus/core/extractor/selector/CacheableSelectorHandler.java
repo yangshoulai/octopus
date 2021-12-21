@@ -1,14 +1,11 @@
 package com.octopus.core.extractor.selector;
 
-import cn.hutool.cache.CacheUtil;
 import cn.hutool.cache.impl.LRUCache;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -18,21 +15,14 @@ import java.util.stream.Collectors;
 public abstract class CacheableSelectorHandler<T, A extends Annotation>
     implements SelectorHandler<A> {
 
-  private final Map<String, T> cache;
-
-  private final Object lock = new Object();
+  private final LRUCache<String, T> cache;
 
   public CacheableSelectorHandler() {
-    this.cache = new ConcurrentHashMap<>();
+    this.cache = new LRUCache<>(16);
   }
 
   private void putCache(String id, T t) {
-    synchronized (this.lock) {
-      if (this.cache.size() >= 16) {
-        this.cache.remove(this.cache.entrySet().iterator().next().getKey());
-      }
-      this.cache.put(id, t);
-    }
+    this.cache.put(id, t);
   }
 
   @Override

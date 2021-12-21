@@ -4,6 +4,8 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import lombok.NonNull;
 import redis.clients.jedis.Jedis;
@@ -140,5 +142,19 @@ public class RedisStore implements Store {
     try (Jedis jedis = this.pool.getResource()) {
       return jedis.zcard(this.waitingKey);
     }
+  }
+
+  @Override
+  public List<Request> getFailed() {
+    List<Request> failed = new ArrayList<>();
+    try (Jedis jedis = this.pool.getResource()) {
+      Set<String> idSet = jedis.smembers(this.failedKey);
+      idSet.forEach(
+          id -> {
+            String json = jedis.hget(this.allKey, id);
+            failed.add(JSONUtil.toBean(json, Request.class));
+          });
+    }
+    return failed;
   }
 }

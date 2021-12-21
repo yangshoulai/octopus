@@ -2,10 +2,13 @@ package com.octopus.core.store;
 
 import cn.hutool.core.collection.ConcurrentHashSet;
 import com.octopus.core.Request;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -13,67 +16,68 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class MemoryStore implements Store {
 
-  private final Set<String> idSet = new ConcurrentHashSet<>();
+  private final Map<String, Request> all = new ConcurrentHashMap<>();
 
-  private final BlockingQueue<Request> requests = new PriorityBlockingQueue<>();
+  private final BlockingQueue<Request> waiting = new PriorityBlockingQueue<>();
 
-  private final AtomicLong completed = new AtomicLong(0);
+  private final Set<String> completed = new ConcurrentHashSet<>();
 
-  private final AtomicLong total = new AtomicLong(0L);
-
-  private final AtomicLong failed = new AtomicLong(0);
+  private final Set<String> failed = new ConcurrentHashSet<>();
 
   @Override
   public Request get() {
-    return this.requests.poll();
+    return this.waiting.poll();
   }
 
   @Override
   public boolean put(Request request) {
-    boolean success = requests.offer(request);
+    boolean success = waiting.offer(request);
     if (success) {
-      idSet.add(request.getId());
-      this.total.incrementAndGet();
+      all.put(request.getId(), request);
     }
     return success;
   }
 
   @Override
   public boolean exists(Request request) {
-    return idSet.contains(request.getId());
+    return all.containsKey(request.getId());
   }
 
   @Override
   public void clear() {
-    this.idSet.clear();
-    this.requests.clear();
-    this.completed.set(0);
-    this.total.set(0);
-    this.failed.set(0);
+    this.all.clear();
+    this.waiting.clear();
+    this.completed.clear();
+    this.failed.clear();
   }
 
   @Override
   public void markAsCompleted(Request request) {
-    this.completed.incrementAndGet();
+    this.completed.add(request.getId());
   }
 
   @Override
   public void markAsFailed(Request request) {
-    this.failed.incrementAndGet();
+    this.failed.add(request.getId());
   }
 
   @Override
   public long getTotalSize() {
-    return this.total.get();
+    return this.all.size();
   }
 
   @Override
   public long getCompletedSize() {
-    return this.completed.get();
+    return this.completed.size();
   }
 
   @Override
   public long getWaitingSize() {
-    return this.requests.size();
+    return this.waiting.size();
+  }
+
+  @Override
+  public List<Request> getFailed() {
+    return this.failed.stream().map(all::get).collect(Collectors.toList());
   }
 }

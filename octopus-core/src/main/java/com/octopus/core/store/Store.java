@@ -1,6 +1,7 @@
 package com.octopus.core.store;
 
 import com.octopus.core.Request;
+import java.util.List;
 
 /**
  * 请求存储器
@@ -70,4 +71,11 @@ public interface Store {
    * @return 待下载请求数量
    */
   long getWaitingSize();
+
+  /**
+   * 获取所有失败的下载请求
+   *
+   * @return 失败的下载请求
+   */
+  List<Request> getFailed();
 }

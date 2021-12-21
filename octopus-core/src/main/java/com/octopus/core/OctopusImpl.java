@@ -83,6 +83,12 @@ class OctopusImpl implements Octopus {
 
   private final String name;
 
+  private final boolean replayFailedRequest;
+
+  private final int maxReplays;
+
+  private int replayTimes = 0;
+
   public OctopusImpl(OctopusBuilder builder) {
     this.logger = builder.getLogger();
     this.debug = builder.isDebug();
@@ -99,6 +105,8 @@ class OctopusImpl implements Octopus {
     this.store = builder.getStore();
     this.downloader = builder.getDownloader();
     this.threads = builder.getThreads();
+    this.replayFailedRequest = builder.isReplayFailedRequest();
+    this.maxReplays = builder.getMaxReplays();
   }
 
   @Override
@@ -263,6 +271,18 @@ class OctopusImpl implements Octopus {
         } else if (this.store.getWaitingSize() <= 0) {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
+            if (this.replayFailedRequest && this.replayTimes < this.maxReplays) {
+              this.replayTimes++;
+              List<Request> failed = this.store.getFailed();
+              if (failed != null && !failed.isEmpty()) {
+                failed.forEach(
+                    r -> {
+                      r.setRepeatable(true);
+                      this.addRequest(r);
+                    });
+                continue;
+              }
+            }
             if (this.autoStop) {
               logger.info("No more requests found, octopus will stop");
               this.stop();

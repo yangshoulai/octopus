@@ -6,9 +6,16 @@ import com.mongodb.ServerAddress;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.model.*;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.ReplaceOptions;
+import com.mongodb.client.model.Sorts;
+import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
+import java.util.ArrayList;
+import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -131,5 +138,14 @@ public class MongoStore implements Store {
   @Override
   public long getWaitingSize() {
     return this.requests.countDocuments(Filters.eq("state", MongoStore.STATE_WAITING));
+  }
+
+  @Override
+  public List<Request> getFailed() {
+    List<Request> failed = new ArrayList<>();
+    for (Document doc : this.requests.find(Filters.eq("state", MongoStore.STATE_FAILED))) {
+      failed.add(JSONUtil.toBean(doc.toJson(), Request.class));
+    }
+    return failed;
   }
 }
