@@ -30,6 +30,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.slf4j.Logger;
 
@@ -131,11 +132,19 @@ class OctopusImpl implements Octopus {
     this.workers = this.createWorkerExecutor();
     this.workerSemaphore = new Semaphore(this.threads);
     if (this.clearStoreOnStartup) {
+      if (this.debug && this.logger.isDebugEnabled()) {
+        logger.debug("Clear request store");
+      }
       this.store.clear();
     }
-    if (this.seeds != null
-        && (!this.ignoreSeedsWhenStoreHasRequests || this.store.getWaitingSize() == 0)) {
-      this.seeds.forEach(this::addRequest);
+    if (this.seeds != null) {
+      if (!this.ignoreSeedsWhenStoreHasRequests || this.store.getWaitingSize() == 0) {
+        this.seeds.forEach(this::addRequest);
+      } else {
+        if (this.debug && this.logger.isDebugEnabled()) {
+          logger.debug("Request store has remaining requests, seeds will be ignored");
+        }
+      }
     }
     this.startRateLimiters();
     this.translateState(State.STARTING, State.STARTED);
@@ -148,8 +157,8 @@ class OctopusImpl implements Octopus {
   @Override
   public void stop() throws OctopusException {
     State state = this.state.get();
-    if ((state == State.STARTED || state == State.IDLE)
-        && !this.translateState(state, State.STOPPING)) {
+    boolean isStarted = state == State.STARTED || state == State.IDLE;
+    if (!isStarted || !this.translateState(state, State.STOPPING)) {
       throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
     }
     if (this.debug && this.logger.isDebugEnabled()) {
@@ -210,8 +219,8 @@ class OctopusImpl implements Octopus {
           logger.error("Can not store request [{}]", request);
         }
       } else {
-        if (this.debug) {
-          logger.debug("Ignore request [{}] as already exist", request);
+        if (this.debug && this.logger.isDebugEnabled()) {
+          logger.debug("Ignore request [{}] as already exists", request);
         }
       }
     }
@@ -224,10 +233,7 @@ class OctopusImpl implements Octopus {
         Request request = this.store.get();
         if (request != null) {
           if (this.debug && this.logger.isDebugEnabled()) {
-            logger.debug(
-                "Take request [{}] from store, remaining size [{}]",
-                request,
-                this.store.getWaitingSize());
+            logger.debug("Take request [{}] from store", request);
           }
           this.workerSemaphore.acquire();
           this.workers.execute(
@@ -273,8 +279,14 @@ class OctopusImpl implements Octopus {
           if (this.workerSemaphore.availablePermits() == this.threads) {
             if (this.replayFailedRequest && this.replayTimes < this.maxReplays) {
               this.replayTimes++;
+              if (this.debug && this.logger.isDebugEnabled()) {
+                logger.debug("Replay failed requests {} time", this.replayTimes);
+              }
               List<Request> failed = this.store.getFailed();
               if (failed != null && !failed.isEmpty()) {
+                if (this.debug && this.logger.isDebugEnabled()) {
+                  logger.debug("Found [{}] failed requests", failed.size());
+                }
                 failed.forEach(
                     r -> {
                       r.setRepeatable(true);
@@ -282,6 +294,10 @@ class OctopusImpl implements Octopus {
                     });
                 this.store.clearFailed();
                 continue;
+              } else {
+                if (this.debug && this.logger.isDebugEnabled()) {
+                  logger.debug("No failed request found");
+                }
               }
             }
             if (this.autoStop) {
@@ -328,47 +344,40 @@ class OctopusImpl implements Octopus {
   }
 
   private void process(Response response) {
-    if (this.processors.stream().noneMatch(p -> p.matches(response))) {
+    List<Processor> matchedProcessors =
+        this.processors.stream().filter(p -> p.matches(response)).collect(Collectors.toList());
+    if (matchedProcessors.isEmpty()) {
       throw new ProcessorNotFoundException(
           String.format("No processor found for request [%s]", response.getRequest().toString()));
     }
-    this.processors.stream()
-        .filter(processor -> processor.matches(response))
-        .forEach(
-            processor -> {
-              try {
-                List<Request> newRequests = processor.process(response);
-                this.listeners.forEach(listener -> listener.afterProcess(response, newRequests));
-                if (newRequests != null) {
-                  newRequests.stream()
-                      .sorted()
-                      .forEach(
-                          request -> {
-                            request.setParent(response.getRequest().getId());
-                            if (request.isInherit()
-                                && response.getRequest().getAttributes() != null) {
-                              Map<String, Object> attrs = response.getRequest().getAttributes();
-                              attrs.forEach(
-                                  (k, v) -> {
-                                    if (request.getAttribute(k) == null) {
-                                      request.putAttribute(k, v);
-                                    }
-                                  });
-                            }
-                            this.addRequest(request);
-                          });
-                }
-              } catch (Throwable e) {
-                logger.error(
-                    "Error process request [{}] with processor [{}]",
-                    response.getRequest(),
-                    processor.getClass(),
-                    e);
-              }
-            });
+    for (Processor processor : matchedProcessors) {
+      List<Request> newRequests = processor.process(response);
+      this.listeners.forEach(listener -> listener.afterProcess(response, newRequests));
+      if (newRequests != null) {
+        newRequests.stream()
+            .sorted()
+            .forEach(
+                request -> {
+                  request.setParent(response.getRequest().getId());
+                  if (request.isInherit() && response.getRequest().getAttributes() != null) {
+                    Map<String, Object> attrs = response.getRequest().getAttributes();
+                    attrs.forEach(
+                        (k, v) -> {
+                          if (request.getAttribute(k) == null) {
+                            request.putAttribute(k, v);
+                          }
+                        });
+                  }
+                  this.addRequest(request);
+                });
+      }
+    }
   }
 
   private void startRateLimiters() {
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Start all rate limiters");
+    }
     this.webSites.forEach(
         site -> {
           if (site.getRateLimiter() != null) {
@@ -381,6 +390,9 @@ class OctopusImpl implements Octopus {
   }
 
   private void stopRateLimiters() {
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Stop all rate limiters");
+    }
     this.webSites.forEach(
         site -> {
           if (site.getRateLimiter() != null) {
@@ -407,6 +419,9 @@ class OctopusImpl implements Octopus {
   }
 
   private ExecutorService createBossExecutor() {
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Create boss executor [{}]", this.name + "-boss");
+    }
     return new ThreadPoolExecutor(
         1,
         1,
@@ -421,6 +436,9 @@ class OctopusImpl implements Octopus {
   }
 
   private ExecutorService createWorkerExecutor() {
+    if (this.debug && this.logger.isDebugEnabled()) {
+      logger.debug("Create worker executors with size [{}]", this.threads);
+    }
     return new ThreadPoolExecutor(
         this.threads,
         this.threads,
