@@ -71,7 +71,8 @@ public class Selectors {
     SelectorHandler<? extends Annotation> selectorHandler =
         SELECTORS.get(selector.annotationType());
     Method method =
-        ReflectUtil.getMethod(selectorHandler.getClass(), "select", String.class, Annotation.class);
+        ReflectUtil.getMethod(
+            selectorHandler.getClass(), "select", String.class, selector.annotationType());
     return ReflectUtil.invoke(selectorHandler, method, content, selector);
   }
 
@@ -82,7 +83,7 @@ public class Selectors {
           SELECTORS.get(annotation.annotationType());
       Method method =
           ReflectUtil.getMethod(
-              selectorHandler.getClass(), "select", String.class, Annotation.class);
+              selectorHandler.getClass(), "select", String.class, annotation.annotationType());
       List<String> results = ReflectUtil.invoke(selectorHandler, method, content, annotation);
       if (results != null && !results.isEmpty()) {
         return results;

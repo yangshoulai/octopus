@@ -78,7 +78,8 @@ public class Formatters {
       FormatterHandler<? extends Annotation> formatter =
           FORMATTERS.get(annotation.annotationType());
       Method method =
-          ReflectUtil.getMethod(formatter.getClass(), "format", String.class, Annotation.class);
+          ReflectUtil.getMethod(
+              formatter.getClass(), "format", String.class, annotation.annotationType());
       val = ReflectUtil.invoke(formatter, method, val, annotation);
     }
     return val;
@@ -113,7 +114,8 @@ public class Formatters {
       MultiLineFormatterHandler<? extends Annotation> formatter =
           MULTI_LINE_FORMATTERS.get(annotation.annotationType());
       Method method =
-          ReflectUtil.getMethod(formatter.getClass(), "format", String.class, Annotation.class);
+          ReflectUtil.getMethod(
+              formatter.getClass(), "format", String.class, annotation.annotationType());
       return ReflectUtil.invoke(formatter, method, val, annotation);
     }
 

@@ -3,6 +3,7 @@ package com.octopus.core.extractor;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
 import com.octopus.core.extractor.convertor.BooleanConvertorHandler;
+import com.octopus.core.extractor.convertor.ConvertorHandler;
 import com.octopus.core.extractor.convertor.DateConvertorHandler;
 import com.octopus.core.extractor.convertor.DoubleConvertorHandler;
 import com.octopus.core.extractor.convertor.FloatConvertorHandler;
@@ -10,9 +11,9 @@ import com.octopus.core.extractor.convertor.IntegerConvertorHandler;
 import com.octopus.core.extractor.convertor.LongConvertorHandler;
 import com.octopus.core.extractor.convertor.ShortConvertorHandler;
 import com.octopus.core.extractor.convertor.StringConvertorHandler;
-import com.octopus.core.extractor.convertor.ConvertorHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -42,7 +43,8 @@ public class Convertors {
     registerTypeConvertor(new DateConvertorHandler());
   }
 
-  public static void registerTypeConvertor(@NonNull ConvertorHandler<?, ? extends Annotation> converter) {
+  public static void registerTypeConvertor(
+      @NonNull ConvertorHandler<?, ? extends Annotation> converter) {
     Class<?>[] classes = converter.getSupportClasses();
     if (classes != null) {
       for (Class<?> cls : classes) {
@@ -65,21 +67,18 @@ public class Convertors {
     List<ConvertorHandler<?, ? extends Annotation>> converters = CONVERTERS.get(type);
     for (ConvertorHandler<?, ? extends Annotation> converter : converters) {
       Annotation annotation = null;
+      Class<? extends Annotation> annotationClass = null;
       Type[] types = TypeUtil.getTypeArguments(converter.getClass());
       if (types != null && types.length == 2) {
-        annotation = field.getAnnotation((Class<? extends Annotation>) TypeUtil.getClass(types[1]));
+        annotationClass = (Class<? extends Annotation>) TypeUtil.getClass(types[1]);
+        annotation = field.getAnnotation(annotationClass);
       }
-      converted =
-          ReflectUtil.invoke(
-              converter,
-              ReflectUtil.getMethod(
-                  converter.getClass(), "convert", String.class, Annotation.class),
-              content,
-              annotation);
-      if (converted != null) {
-        return converted;
+      if (annotationClass != null) {
+        Method method =
+            ReflectUtil.getMethod(converter.getClass(), "convert", String.class, annotationClass);
+        converted = ReflectUtil.invoke(converter, method, content, annotation);
       }
     }
-    return null;
+    return converted == null ? content : converted;
   }
 }
