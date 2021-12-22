@@ -1,9 +1,9 @@
 package com.octopus.core.extractor.selector;
 
+import cn.hutool.cache.impl.LRUCache;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
-import com.octopus.core.utils.LRUCache;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.stream.Collectors;
