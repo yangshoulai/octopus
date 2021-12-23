@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.convertor;
 
+import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 
 /**
@@ -13,9 +14,10 @@ public interface ConvertorHandler<T, A extends Annotation> {
    *
    * @param val 字符串
    * @param format 注解
+   * @param response 原始响应
    * @return 转换后的数据
    */
-  T convert(String val, A format);
+  T convert(String val, A format, Response response);
 
   /**
    * 转换器支持的数据类型

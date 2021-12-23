@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.selector;
 
+import com.octopus.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -12,7 +13,7 @@ import java.util.regex.Pattern;
 public class RegexSelectorHandler extends CacheableSelectorHandler<String, RegexSelector> {
 
   @Override
-  protected List<String> selectWithType(String content, RegexSelector selector) {
+  protected List<String> selectWithType(String content, RegexSelector selector, Response response) {
     List<String> list = new ArrayList<>();
     int[] groups = selector.groups();
     String format = selector.format();

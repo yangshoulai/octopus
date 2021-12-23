@@ -2,6 +2,7 @@ package com.octopus.core.extractor.selector;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
+import com.octopus.core.Response;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -19,7 +20,7 @@ import org.jsoup.select.Elements;
 public class CssSelectorHandler extends CacheableSelectorHandler<Document, CssSelector> {
 
   @Override
-  public List<String> selectWithType(Document document, CssSelector selector) {
+  public List<String> selectWithType(Document document, CssSelector selector, Response response) {
     Elements elements = document.select(selector.expression());
     List<String> selected =
         elements.stream()

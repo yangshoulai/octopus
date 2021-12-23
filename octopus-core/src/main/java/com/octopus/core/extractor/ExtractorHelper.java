@@ -3,11 +3,23 @@ package com.octopus.core.extractor;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.*;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.core.util.TypeUtil;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.*;
+import com.octopus.core.extractor.annotation.Attr;
+import com.octopus.core.extractor.annotation.Body;
+import com.octopus.core.extractor.annotation.Extractor;
+import com.octopus.core.extractor.annotation.Link;
+import com.octopus.core.extractor.annotation.LinkMethod;
+import com.octopus.core.extractor.annotation.Param;
+import com.octopus.core.extractor.annotation.Prop;
+import com.octopus.core.extractor.annotation.Url;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
@@ -261,12 +273,11 @@ public class ExtractorHelper {
   }
 
   public static <T> Result<T> extract(Response response, Class<T> extractorClass) throws Exception {
-    return extract(response.getRequest().getUrl(), response.asText(), extractorClass, response);
+    return extract(response.asText(), extractorClass, response);
   }
 
   @SuppressWarnings("unchecked")
-  private static <T> Result<T> extract(
-      String url, String content, Class<T> extractorClass, Response response) {
+  private static <T> Result<T> extract(String content, Class<T> extractorClass, Response response) {
     if (StrUtil.isBlank(content) || !checkIsValidExtractorClass(extractorClass)) {
       return new Result<>();
     }
@@ -283,10 +294,11 @@ public class ExtractorHelper {
 
       List<String> selected = null;
       if (field.getAnnotation(Url.class) != null) {
-        selected = ListUtil.toList(url);
+        selected = ListUtil.toList(response.getRequest().getUrl());
       } else if (field.getAnnotation(Param.class) != null) {
         Param param = field.getAnnotation(Param.class);
-        CharSequence paramValue = UrlBuilder.of(url).getQuery().get(param.name());
+        CharSequence paramValue =
+            UrlBuilder.of(response.getRequest().getUrl()).getQuery().get(param.name());
         if (paramValue != null) {
           selected = ListUtil.toList(paramValue.toString());
         } else {
@@ -301,10 +313,10 @@ public class ExtractorHelper {
           selected = ListUtil.toList(attrVal);
         }
       } else if (Selectors.hasSelectorAnnotation(field)) {
-        selected = Selectors.select(content, field);
+        selected = Selectors.select(content, field, response);
       }
       if (selected != null) {
-        Object obj = convert(url, field, selected, requests, response);
+        Object obj = convert(field, selected, requests, response);
         if (obj != null) {
           ReflectUtil.setFieldValue(t, field, obj);
         }
@@ -314,7 +326,7 @@ public class ExtractorHelper {
     // 提取链接
     Link[] links = extractorClass.getAnnotationsByType(Link.class);
     for (Link link : links) {
-      requests.addAll(parseLinks(t, url, content, link));
+      requests.addAll(parseLinks(t, content, link, response));
     }
 
     // 提取自定义链接
@@ -333,7 +345,7 @@ public class ExtractorHelper {
         extractorClass, method -> method.isAnnotationPresent(LinkMethod.class));
   }
 
-  private static List<Request> parseLinks(Object t, String currentUrl, String content, Link link) {
+  private static List<Request> parseLinks(Object t, String content, Link link, Response response) {
     List<Request> requests = new ArrayList<>();
     List<String> urls = new ArrayList<>(ListUtil.toList(link.url()));
 
@@ -344,7 +356,7 @@ public class ExtractorHelper {
     selectorAnnotations.addAll(ListUtil.toList(link.regexSelectors()));
     if (!selectorAnnotations.isEmpty()) {
       for (Annotation selectorAnnotation : selectorAnnotations) {
-        List<String> selected = Selectors.select(content, selectorAnnotation);
+        List<String> selected = Selectors.select(content, selectorAnnotation, response);
         if (selected != null && !selected.isEmpty()) {
           urls.addAll(selected);
         }
@@ -352,10 +364,10 @@ public class ExtractorHelper {
     }
     RegexFormatter[] formats = link.formats();
     for (String url : urls) {
-      url = Formatters.format(url, formats);
+      url = Formatters.format(url, formats, response);
       if (StrUtil.isNotBlank(url)) {
         Request request =
-            new Request(completeUrl(currentUrl, url), link.method())
+            new Request(completeUrl(response.getRequest().getUrl(), url), link.method())
                 .setPriority(link.priority())
                 .setRepeatable(link.repeatable());
         Arrays.stream(link.headers())
@@ -398,7 +410,7 @@ public class ExtractorHelper {
   }
 
   private static Object convert(
-      String url, Field field, List<String> selected, List<Request> requests, Response response) {
+      Field field, List<String> selected, List<Request> requests, Response response) {
     Class<?> fieldType = TypeUtil.getClass(field);
     if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
       Class<?> componentType =
@@ -407,16 +419,16 @@ public class ExtractorHelper {
         List<Object> list = new ArrayList<>();
         if (Convertors.isConvertibleType(componentType)) {
           for (String content : selected) {
-            List<String> formatted = format(content, field);
+            List<String> formatted = format(content, field, response);
             for (String s : formatted) {
-              list.add(Convertors.convert(componentType, s, field));
+              list.add(Convertors.convert(componentType, s, field, response));
             }
           }
         } else if (componentType.isAnnotationPresent(Extractor.class)) {
           for (String content : selected) {
-            List<String> formatted = format(content, field);
+            List<String> formatted = format(content, field, response);
             for (String s : formatted) {
-              Result<?> result = extract(url, s, componentType, response);
+              Result<?> result = extract(s, componentType, response);
               if (result.getObj() != null) {
                 list.add(result.getObj());
               }
@@ -431,10 +443,12 @@ public class ExtractorHelper {
             : (Set.class.equals(fieldType) ? new HashSet<>(list) : list);
       }
     } else if (Convertors.isConvertibleType(fieldType) && !selected.isEmpty()) {
-      List<String> formatted = format(selected.get(0), field);
-      return formatted.isEmpty() ? null : Convertors.convert(fieldType, formatted.get(0), field);
+      List<String> formatted = format(selected.get(0), field, response);
+      return formatted.isEmpty()
+          ? null
+          : Convertors.convert(fieldType, formatted.get(0), field, response);
     } else if (fieldType.isAnnotationPresent(Extractor.class) && !selected.isEmpty()) {
-      Result<?> result = extract(url, selected.get(0), fieldType, response);
+      Result<?> result = extract(selected.get(0), fieldType, response);
       if (result.getRequests() != null) {
         requests.addAll(result.getRequests());
       }
@@ -443,15 +457,17 @@ public class ExtractorHelper {
     return null;
   }
 
-  private static List<String> format(String content, Field field) {
+  private static List<String> format(String content, Field field, Response response) {
     List<Annotation> multiLineFormats = Formatters.getMultiLineFormatAnnotations(field);
     if (multiLineFormats.isEmpty()) {
-      return ListUtil.toList(Formatters.format(content, field));
+      return ListUtil.toList(Formatters.format(content, field, response));
     }
     List<String> formatted = Formatters.multiLineFormat(content, field);
     if (formatted == null || formatted.isEmpty()) {
       return Collections.emptyList();
     }
-    return formatted.stream().map(s -> Formatters.format(s, field)).collect(Collectors.toList());
+    return formatted.stream()
+        .map(s -> Formatters.format(s, field, response))
+        .collect(Collectors.toList());
   }
 }

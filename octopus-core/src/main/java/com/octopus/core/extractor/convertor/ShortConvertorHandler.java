@@ -1,6 +1,7 @@
 package com.octopus.core.extractor.convertor;
 
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -12,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 public class ShortConvertorHandler implements ConvertorHandler<Short, ShortConvertor> {
 
   @Override
-  public Short convert(String val, ShortConvertor format) {
+  public Short convert(String val, ShortConvertor format, Response response) {
     if (StrUtil.isBlank(val)) {
       return format != null ? format.def() : null;
     }

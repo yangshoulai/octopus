@@ -2,6 +2,7 @@ package com.octopus.core.extractor;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
+import com.octopus.core.Response;
 import com.octopus.core.extractor.convertor.BooleanConvertorHandler;
 import com.octopus.core.extractor.convertor.ConvertorHandler;
 import com.octopus.core.extractor.convertor.DateConvertorHandler;
@@ -62,7 +63,7 @@ public class Convertors {
   }
 
   @SuppressWarnings("unchecked")
-  static Object convert(Class<?> type, String content, Field field) {
+  static Object convert(Class<?> type, String content, Field field, Response response) {
     Object converted = null;
     List<ConvertorHandler<?, ? extends Annotation>> converters = CONVERTERS.get(type);
     for (ConvertorHandler<?, ? extends Annotation> converter : converters) {
@@ -75,8 +76,9 @@ public class Convertors {
       }
       if (annotationClass != null) {
         Method method =
-            ReflectUtil.getMethod(converter.getClass(), "convert", String.class, annotationClass);
-        converted = ReflectUtil.invoke(converter, method, content, annotation);
+            ReflectUtil.getMethod(
+                converter.getClass(), "convert", String.class, annotationClass, Response.class);
+        converted = ReflectUtil.invoke(converter, method, content, annotation, response);
       }
     }
     return converted == null ? content : converted;

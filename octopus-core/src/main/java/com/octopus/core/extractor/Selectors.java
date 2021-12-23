@@ -2,6 +2,7 @@ package com.octopus.core.extractor;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
+import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.selector.CacheableSelectorHandler;
 import com.octopus.core.extractor.selector.CssSelectorHandler;
@@ -64,7 +65,7 @@ public class Selectors {
     }
   }
 
-  static List<String> select(String content, Annotation selector) {
+  static List<String> select(String content, Annotation selector, Response response) {
     if (!SELECTORS.containsKey(selector.annotationType())) {
       throw new OctopusException("No selector found for type " + selector.annotationType());
     }
@@ -72,19 +73,28 @@ public class Selectors {
         SELECTORS.get(selector.annotationType());
     Method method =
         ReflectUtil.getMethod(
-            selectorHandler.getClass(), "select", String.class, selector.annotationType());
-    return ReflectUtil.invoke(selectorHandler, method, content, selector);
+            selectorHandler.getClass(),
+            "select",
+            String.class,
+            selector.annotationType(),
+            Response.class);
+    return ReflectUtil.invoke(selectorHandler, method, content, selector, response);
   }
 
-  static List<String> select(String content, Field field) {
+  static List<String> select(String content, Field field, Response response) {
     List<Annotation> annotations = getSelectorAnnotations(field);
     for (Annotation annotation : annotations) {
       SelectorHandler<? extends Annotation> selectorHandler =
           SELECTORS.get(annotation.annotationType());
       Method method =
           ReflectUtil.getMethod(
-              selectorHandler.getClass(), "select", String.class, annotation.annotationType());
-      List<String> results = ReflectUtil.invoke(selectorHandler, method, content, annotation);
+              selectorHandler.getClass(),
+              "select",
+              String.class,
+              annotation.annotationType(),
+              Response.class);
+      List<String> results =
+          ReflectUtil.invoke(selectorHandler, method, content, annotation, response);
       if (results != null && !results.isEmpty()) {
         return results;
       }

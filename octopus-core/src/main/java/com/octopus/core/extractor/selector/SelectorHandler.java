@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.selector;
 
+import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
@@ -13,7 +14,8 @@ public interface SelectorHandler<S extends Annotation> {
    * 提取内容
    *
    * @param content 原文
+   * @param response 原始响应
    * @return 提取的内容
    */
-  List<String> select(String content, S selector) throws Exception;
+  List<String> select(String content, S selector, Response response) throws Exception;
 }

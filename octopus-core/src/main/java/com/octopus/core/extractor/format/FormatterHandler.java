@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.format;
 
+import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 
 /**
@@ -8,5 +9,5 @@ import java.lang.annotation.Annotation;
  */
 public interface FormatterHandler<F extends Annotation> {
 
-  String format(String val, F format);
+  String format(String val, F format, Response response);
 }

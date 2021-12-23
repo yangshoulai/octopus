@@ -4,6 +4,7 @@ import cn.hutool.json.JSONUtil;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
+import com.octopus.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +23,7 @@ public class JsonSelectorHandler extends CacheableSelectorHandler<String, JsonSe
           .build();
 
   @Override
-  public List<String> selectWithType(String json, JsonSelector selector) {
+  public List<String> selectWithType(String json, JsonSelector selector, Response response) {
     List<String> list = new ArrayList<>();
     Object obj = JsonPath.using(CONFIGURATION).parse(json).read(selector.expression());
     if (obj instanceof JSONArray) {

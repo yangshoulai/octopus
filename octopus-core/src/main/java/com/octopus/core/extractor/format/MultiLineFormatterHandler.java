@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.format;
 
+import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 import java.util.List;
 
@@ -9,5 +10,5 @@ import java.util.List;
  */
 public interface MultiLineFormatterHandler<F extends Annotation> {
 
-  List<String> format(String val, F format);
+  List<String> format(String val, F format, Response response);
 }

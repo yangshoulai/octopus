@@ -4,6 +4,7 @@ import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
+import com.octopus.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 import javax.xml.xpath.XPathConstants;
@@ -36,7 +37,7 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   }
 
   @Override
-  public List<String> selectWithType(Node document, XpathSelector selector) {
+  public List<String> selectWithType(Node document, XpathSelector selector, Response response) {
     List<String> results = new ArrayList<>();
 
     if (selector.node()) {

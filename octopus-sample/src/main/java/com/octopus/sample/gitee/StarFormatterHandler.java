@@ -1,6 +1,7 @@
 package com.octopus.sample.gitee;
 
 import cn.hutool.core.util.NumberUtil;
+import com.octopus.core.Response;
 import com.octopus.core.extractor.format.FormatterHandler;
 
 /**
@@ -10,7 +11,7 @@ import com.octopus.core.extractor.format.FormatterHandler;
 public class StarFormatterHandler implements FormatterHandler<StarFormatter> {
 
   @Override
-  public String format(String val, StarFormatter format) {
+  public String format(String val, StarFormatter format, Response response) {
     if (val.contains("k") || val.contains("K")) {
       val = val.replaceAll("k|K", "");
       val = NumberUtil.toStr(NumberUtil.parseNumber(val).floatValue() * 1000);

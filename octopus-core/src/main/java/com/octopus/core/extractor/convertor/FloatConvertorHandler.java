@@ -2,6 +2,7 @@ package com.octopus.core.extractor.convertor;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class FloatConvertorHandler implements ConvertorHandler<Float, FloatConvertor> {
 
   @Override
-  public Float convert(String val, FloatConvertor format) {
+  public Float convert(String val, FloatConvertor format, Response response) {
     if (StrUtil.isBlank(val)) {
       return format != null ? format.def() : null;
     }

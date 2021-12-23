@@ -2,6 +2,7 @@ package com.octopus.core.extractor.format;
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
  */
 public class RegexFormatterHandler implements FormatterHandler<RegexFormatter> {
   @Override
-  public String format(String val, RegexFormatter format) {
+  public String format(String val, RegexFormatter format, Response response) {
     if (StrUtil.isBlank(val)) {
       return format == null ? val : format.def();
     }

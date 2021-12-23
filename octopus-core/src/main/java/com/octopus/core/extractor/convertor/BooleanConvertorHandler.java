@@ -1,6 +1,7 @@
 package com.octopus.core.extractor.convertor;
 
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -9,7 +10,7 @@ import cn.hutool.core.util.StrUtil;
 public class BooleanConvertorHandler implements ConvertorHandler<Boolean, BooleanConvertor> {
 
   @Override
-  public Boolean convert(String val, BooleanConvertor format) {
+  public Boolean convert(String val, BooleanConvertor format, Response response) {
     if (StrUtil.isBlank(val)) {
       return format != null && format.def();
     }

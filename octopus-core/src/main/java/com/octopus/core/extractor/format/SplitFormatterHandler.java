@@ -1,6 +1,7 @@
 package com.octopus.core.extractor.format;
 
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,7 +14,7 @@ import java.util.stream.Stream;
 public class SplitFormatterHandler implements MultiLineFormatterHandler<SplitFormatter> {
 
   @Override
-  public List<String> format(String val, SplitFormatter format) {
+  public List<String> format(String val, SplitFormatter format, Response response) {
     if (StrUtil.isBlank(val)) {
       return null;
     }

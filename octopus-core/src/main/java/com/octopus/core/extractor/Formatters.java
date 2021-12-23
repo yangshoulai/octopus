@@ -3,6 +3,7 @@ package com.octopus.core.extractor;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
+import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.format.FormatterHandler;
 import com.octopus.core.extractor.format.MultiLineFormatterHandler;
@@ -69,27 +70,31 @@ public class Formatters {
     }
   }
 
-  static String format(String val, Field field) {
-    return format(val, field.getAnnotations());
+  static String format(String val, Field field, Response response) {
+    return format(val, field.getAnnotations(), response);
   }
 
-  static String format(String val, Annotation annotation) {
+  static String format(String val, Annotation annotation, Response response) {
     if (StrUtil.isNotBlank(val) && FORMATTERS.containsKey(annotation.annotationType())) {
       FormatterHandler<? extends Annotation> formatter =
           FORMATTERS.get(annotation.annotationType());
       Method method =
           ReflectUtil.getMethod(
-              formatter.getClass(), "format", String.class, annotation.annotationType());
-      val = ReflectUtil.invoke(formatter, method, val, annotation);
+              formatter.getClass(),
+              "format",
+              String.class,
+              annotation.annotationType(),
+              Response.class);
+      val = ReflectUtil.invoke(formatter, method, val, annotation, response);
     }
     return val;
   }
 
-  static String format(String val, Annotation[] annotations) {
+  static String format(String val, Annotation[] annotations, Response response) {
     if (annotations != null) {
       for (Annotation annotation : annotations) {
         if (StrUtil.isNotBlank(val) && FORMATTERS.containsKey(annotation.annotationType())) {
-          val = format(val, annotation);
+          val = format(val, annotation, response);
         }
       }
     }

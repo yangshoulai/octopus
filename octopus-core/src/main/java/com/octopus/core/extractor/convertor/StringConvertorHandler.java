@@ -1,5 +1,7 @@
 package com.octopus.core.extractor.convertor;
 
+import com.octopus.core.Response;
+
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
@@ -7,7 +9,7 @@ package com.octopus.core.extractor.convertor;
 public class StringConvertorHandler implements ConvertorHandler<String, StringConvertor> {
 
   @Override
-  public String convert(String val, StringConvertor format) {
+  public String convert(String val, StringConvertor format, Response response) {
     if (format != null) {
       return String.format(format.format(), (val == null ? format.def() : val));
     }

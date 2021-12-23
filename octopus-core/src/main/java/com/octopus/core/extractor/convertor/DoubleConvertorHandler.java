@@ -2,6 +2,7 @@ package com.octopus.core.extractor.convertor;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
 import lombok.extern.slf4j.Slf4j;
 
@@ -13,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 public class DoubleConvertorHandler implements ConvertorHandler<Double, DoubleConvertor> {
 
   @Override
-  public Double convert(String val, DoubleConvertor format) {
+  public Double convert(String val, DoubleConvertor format, Response response) {
     if (StrUtil.isBlank(val)) {
       return format != null ? format.def() : null;
     }

@@ -4,6 +4,7 @@ import cn.hutool.cache.impl.LRUCache;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
+import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,7 +23,7 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
   }
 
   @Override
-  public final List<String> select(String content, A selector) throws Exception {
+  public final List<String> select(String content, A selector, Response response) throws Exception {
     String md5 = MD5.create().digestHex(content);
     T doc = this.cache.get(md5);
     if (doc == null) {
@@ -31,10 +32,11 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
         this.cache.put(md5, doc);
       }
     }
-    return this.selectWithType(doc, selector);
+    return this.selectWithType(doc, selector, response);
   }
 
-  protected abstract List<String> selectWithType(T t, A selector) throws Exception;
+  protected abstract List<String> selectWithType(T t, A selector, Response response)
+      throws Exception;
 
   protected abstract T parse(String content) throws Exception;
 
