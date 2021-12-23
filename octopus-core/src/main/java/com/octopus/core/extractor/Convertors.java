@@ -79,8 +79,11 @@ public class Convertors {
             ReflectUtil.getMethod(
                 converter.getClass(), "convert", String.class, annotationClass, Response.class);
         converted = ReflectUtil.invoke(converter, method, content, annotation, response);
+        if (converted != null) {
+          return converted;
+        }
       }
     }
-    return converted == null ? content : converted;
+    return content;
   }
 }
