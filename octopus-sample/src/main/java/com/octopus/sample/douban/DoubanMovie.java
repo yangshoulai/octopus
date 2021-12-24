@@ -9,6 +9,7 @@ import com.octopus.core.extractor.convertor.DateConvertor;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.format.SplitFormatter;
 import com.octopus.core.extractor.selector.CssSelector;
+import com.octopus.core.extractor.selector.RegexSelector;
 import com.octopus.core.extractor.selector.XpathSelector;
 import java.util.Date;
 import lombok.Data;
@@ -59,7 +60,7 @@ public class DoubanMovie {
   private String locale;
 
   /** 语言 */
-  @XpathSelector(expression = "//span[text()='语言:']/following::text()")
+  @RegexSelector(expression = "语言:</span>([\\S\\s]*?)<br/>",groups = 1)
   @SplitFormatter
   private String[] languages;
 

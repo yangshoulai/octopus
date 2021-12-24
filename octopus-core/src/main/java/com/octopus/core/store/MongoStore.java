@@ -1,5 +1,6 @@
 package com.octopus.core.store;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.json.JSONUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
@@ -14,6 +15,8 @@ import com.mongodb.client.model.Sorts;
 import com.mongodb.client.model.Updates;
 import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
+import com.octopus.core.Request.State;
+import com.octopus.core.Request.Status;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
@@ -29,14 +32,6 @@ public class MongoStore implements Store {
 
   public static String DEFAULT_COLLECTION = "request";
 
-  private static final String STATE_WAITING = "Waiting";
-
-  private static final String STATE_COMPLETED = "Completed";
-
-  private static final String STATE_FAILED = "Failed";
-
-  private static final String STATE_EXECUTING = "Executing";
-
   private final MongoClient mongoClient;
 
   private final MongoCollection<Document> requests;
@@ -45,9 +40,8 @@ public class MongoStore implements Store {
     this.mongoClient = mongoClient;
     MongoDatabase mongoDatabase = mongoClient.getDatabase(database);
     this.requests = mongoDatabase.getCollection(collection, Document.class);
-    requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name("idx_priority"));
-    this.requests.updateMany(
-        Filters.eq("state", MongoStore.STATE_EXECUTING), Updates.set("state", STATE_WAITING));
+    this.createIndexesIfNecessary();
+    this.updateStatus(Status.of(State.Executing), Status.of(State.Waiting));
   }
 
   public MongoStore(MongoClient mongoClient) {
@@ -74,13 +68,12 @@ public class MongoStore implements Store {
       request =
           this.requests
               .find()
-              .filter(Filters.eq("state", MongoStore.STATE_WAITING))
+              .filter(Filters.eq("status.state", State.Waiting.name()))
               .sort(Sorts.descending("priority"))
               .limit(1)
               .first();
       if (request != null) {
-        this.requests.updateOne(
-            Filters.eq("_id", request.get("_id")), Updates.set("state", STATE_EXECUTING));
+        this.updateStatusById(request.get("_id"), Status.of(State.Executing));
       }
       session.commitTransaction();
     } catch (Exception e) {
@@ -89,7 +82,9 @@ public class MongoStore implements Store {
     } finally {
       session.close();
     }
-    return request == null ? null : JSONUtil.toBean(request.toJson(), Request.class);
+    return request == null
+        ? null
+        : JSONUtil.toBean(request.toJson(), Request.class).setStatus(Status.of(State.Executing));
   }
 
   @Override
@@ -97,7 +92,6 @@ public class MongoStore implements Store {
     Document document = Document.parse(JSONUtil.toJsonStr(request));
     String id = request.getId();
     document.put("_id", id);
-    document.put("state", MongoStore.STATE_WAITING);
     UpdateResult result =
         this.requests.replaceOne(
             Filters.eq("_id", id), document, new ReplaceOptions().upsert(true));
@@ -111,19 +105,17 @@ public class MongoStore implements Store {
 
   @Override
   public void clear() {
-    this.requests.drop();
+    this.requests.deleteMany(new Document());
   }
 
   @Override
   public void markAsCompleted(Request request) {
-    Bson filter = Filters.eq("_id", request.getId());
-    this.requests.updateOne(filter, Updates.set("state", MongoStore.STATE_COMPLETED));
+    this.updateStatusById(request.getId(), Status.of(State.Completed));
   }
 
   @Override
-  public void markAsFailed(Request request) {
-    Bson filter = Filters.eq("_id", request.getId());
-    this.requests.updateOne(filter, Updates.set("state", MongoStore.STATE_FAILED));
+  public void markAsFailed(Request request, String error) {
+    this.updateStatusById(request.getId(), Status.of(State.Failed, error));
   }
 
   @Override
@@ -133,18 +125,18 @@ public class MongoStore implements Store {
 
   @Override
   public long getCompletedSize() {
-    return this.requests.countDocuments(Filters.eq("state", MongoStore.STATE_COMPLETED));
+    return this.requests.countDocuments(Filters.eq("status.state", State.Completed.name()));
   }
 
   @Override
   public long getWaitingSize() {
-    return this.requests.countDocuments(Filters.eq("state", MongoStore.STATE_WAITING));
+    return this.requests.countDocuments(Filters.eq("status.state", State.Waiting.name()));
   }
 
   @Override
   public List<Request> getFailed() {
     List<Request> failed = new ArrayList<>();
-    for (Document doc : this.requests.find(Filters.eq("state", MongoStore.STATE_FAILED))) {
+    for (Document doc : this.requests.find(Filters.eq("status.state", State.Failed.name()))) {
       failed.add(JSONUtil.toBean(doc.toJson(), Request.class));
     }
     return failed;
@@ -152,6 +144,37 @@ public class MongoStore implements Store {
 
   @Override
   public void clearFailed() {
-    this.requests.deleteMany(Filters.eq("state", MongoStore.STATE_FAILED));
+    this.requests.deleteMany(Filters.eq("status.state", State.Failed.name()));
+  }
+
+  private void updateStatusById(Object id, Status status) {
+    Bson filter = Filters.eq("_id", id);
+    this.requests.updateOne(
+        filter,
+        ListUtil.toList(
+            Updates.set("status.state", status.getState().name()),
+            Updates.set("status.message", status.getMessage())));
+  }
+
+  private void updateStatus(Status oldStatus, Status newStatus) {
+    this.requests.updateMany(
+        Filters.eq("status.state", oldStatus.getState().name()),
+        ListUtil.toList(
+            Updates.set("status.state", newStatus.getState().name()),
+            Updates.set("status.message", newStatus.getMessage())));
+  }
+
+  private void createIndexesIfNecessary() {
+    List<String> indexNames = new ArrayList<>();
+    for (Document index : this.requests.listIndexes()) {
+      indexNames.add(index.getString("name"));
+    }
+    if (!indexNames.contains("idx_priority")) {
+      requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name("idx_priority"));
+    }
+    if (!indexNames.contains("idx_status_state")) {
+      requests.createIndex(
+          Indexes.ascending("status.state"), new IndexOptions().name("idx_status_state"));
+    }
   }
 }

@@ -84,6 +84,6 @@ public class Convertors {
         }
       }
     }
-    return content;
+    return String.class.equals(type) ? content : null;
   }
 }

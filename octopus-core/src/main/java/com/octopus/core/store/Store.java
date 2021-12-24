@@ -48,8 +48,9 @@ public interface Store {
    * 标记失败的下载请求
    *
    * @param request 请求
+   * @param error 失败原因
    */
-  void markAsFailed(Request request);
+  void markAsFailed(Request request, String error);
 
   /**
    * 获取所有下载请求数量

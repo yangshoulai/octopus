@@ -4,6 +4,7 @@ import cn.hutool.core.net.url.UrlBuilder;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 import lombok.NonNull;
 
 /**
@@ -34,6 +35,8 @@ public class Request implements Serializable, Comparable<Request> {
 
   /** 是否从父请求集成属性 */
   private boolean inherit = false;
+
+  private Status status = Status.of(State.Waiting);
 
   public Request() {}
 
@@ -142,18 +145,18 @@ public class Request implements Serializable, Comparable<Request> {
     this.attributes = attributes;
   }
 
-  public Request putAttribute(String attr, Object value) {
+  public Request putAttribute(@NonNull String attr, Object value) {
     this.attributes.put(attr, value);
     return this;
   }
 
-  public Request putAttributes(Map<String, Object> attrs) {
+  public Request putAttributes(@NonNull Map<String, Object> attrs) {
     this.attributes.putAll(attrs);
     return this;
   }
 
   @SuppressWarnings("unchecked")
-  public <T> T getAttribute(String attr) {
+  public <T> T getAttribute(@NonNull String attr) {
     return (T) this.attributes.get(attr);
   }
 
@@ -178,6 +181,15 @@ public class Request implements Serializable, Comparable<Request> {
 
   public boolean isInherit() {
     return inherit;
+  }
+
+  public Request setStatus(Status status) {
+    this.status = status;
+    return this;
+  }
+
+  public Status getStatus() {
+    return status;
   }
 
   @Override
@@ -234,5 +246,41 @@ public class Request implements Serializable, Comparable<Request> {
     public String getName() {
       return name;
     }
+  }
+
+  @Data
+  public static class Status {
+
+    private State state;
+
+    private String message;
+
+    public Status(@NonNull State state, String message) {
+      this.state = state;
+      this.message = message;
+    }
+
+    public Status(@NonNull State state) {
+      this.state = state;
+    }
+
+    public static Status of(@NonNull State state, String message) {
+      return new Status(state, message);
+    }
+
+    public static Status of(@NonNull State state) {
+      return new Status(state);
+    }
+  }
+
+  public enum State {
+    /** 等待处理 */
+    Waiting,
+    /** 正在处理 */
+    Executing,
+    /** 失败 */
+    Failed,
+    /** 完成 */
+    Completed
   }
 }

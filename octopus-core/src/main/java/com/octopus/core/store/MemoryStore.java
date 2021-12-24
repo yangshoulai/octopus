@@ -1,10 +1,10 @@
 package com.octopus.core.store;
 
-import cn.hutool.core.collection.ConcurrentHashSet;
 import com.octopus.core.Request;
+import com.octopus.core.Request.State;
+import com.octopus.core.Request.Status;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.PriorityBlockingQueue;
@@ -19,10 +19,6 @@ public class MemoryStore implements Store {
   private final Map<String, Request> all = new ConcurrentHashMap<>();
 
   private final BlockingQueue<Request> waiting = new PriorityBlockingQueue<>();
-
-  private final Set<String> completed = new ConcurrentHashSet<>();
-
-  private final Set<String> failed = new ConcurrentHashSet<>();
 
   @Override
   public Request get() {
@@ -47,18 +43,16 @@ public class MemoryStore implements Store {
   public void clear() {
     this.all.clear();
     this.waiting.clear();
-    this.completed.clear();
-    this.failed.clear();
   }
 
   @Override
   public void markAsCompleted(Request request) {
-    this.completed.add(request.getId());
+    this.all.get(request.getId()).setStatus(Status.of(State.Completed));
   }
 
   @Override
-  public void markAsFailed(Request request) {
-    this.failed.add(request.getId());
+  public void markAsFailed(Request request, String error) {
+    this.all.get(request.getId()).setStatus(Status.of(State.Failed, error));
   }
 
   @Override
@@ -68,7 +62,9 @@ public class MemoryStore implements Store {
 
   @Override
   public long getCompletedSize() {
-    return this.completed.size();
+    return this.all.values().stream()
+        .filter(r -> State.Completed.equals(r.getStatus().getState()))
+        .count();
   }
 
   @Override
@@ -78,11 +74,15 @@ public class MemoryStore implements Store {
 
   @Override
   public List<Request> getFailed() {
-    return this.failed.stream().map(all::get).collect(Collectors.toList());
+    return this.all.values().stream()
+        .filter(r -> State.Failed.equals(r.getStatus().getState()))
+        .collect(Collectors.toList());
   }
 
   @Override
   public void clearFailed() {
-    this.failed.clear();
+    this.all.values().stream()
+        .filter(r -> State.Failed.equals(r.getStatus().getState()))
+        .forEach(r -> this.all.remove(r.getId()));
   }
 }

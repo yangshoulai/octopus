@@ -6,6 +6,7 @@ import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import com.octopus.core.Request.Status;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.exception.BadStatusException;
@@ -206,6 +207,7 @@ class OctopusImpl implements Octopus {
     } else {
       if (request.isRepeatable() || !this.store.exists(request)) {
         this.listeners.forEach(listener -> listener.beforeStore(request));
+        request.setStatus(Status.of(Request.State.Waiting));
         if (this.store.put(request)) {
           if (this.translateState(State.IDLE, State.STARTED)) {
             lock.lock();
@@ -258,12 +260,12 @@ class OctopusImpl implements Octopus {
                   }
                   this.store.markAsCompleted(request);
                 } catch (DownloadException e) {
-                  this.store.markAsFailed(request);
+                  this.store.markAsFailed(request, e.getMessage());
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
                   logger.error("Download [{}] error!", request, e);
                 } catch (Throwable e) {
                   logger.error("", e);
-                  this.store.markAsFailed(request);
+                  this.store.markAsFailed(request, e.getMessage());
                 } finally {
                   this.workerSemaphore.release();
                   lock.lock();
@@ -278,21 +280,18 @@ class OctopusImpl implements Octopus {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
             if (this.replayFailedRequest && this.replayTimes < this.maxReplays) {
-              this.replayTimes++;
-              if (this.debug && this.logger.isDebugEnabled()) {
-                logger.debug("Replay failed requests {} time", this.replayTimes);
-              }
               List<Request> failed = this.store.getFailed();
               if (failed != null && !failed.isEmpty()) {
+                this.replayTimes++;
                 if (this.debug && this.logger.isDebugEnabled()) {
+                  logger.debug(
+                      "Found [{}] failed requests, replay failed requests {} time",
+                      failed.size(),
+                      this.replayTimes);
                   logger.debug("Found [{}] failed requests", failed.size());
                 }
-                failed.forEach(
-                    r -> {
-                      r.setRepeatable(true);
-                      this.addRequest(r);
-                    });
                 this.store.clearFailed();
+                failed.forEach(this::addRequest);
                 continue;
               } else {
                 if (this.debug && this.logger.isDebugEnabled()) {
@@ -338,7 +337,8 @@ class OctopusImpl implements Octopus {
       if (e instanceof DownloadException) {
         throw e;
       } else {
-        throw new DownloadException(e);
+        throw new DownloadException(
+            String.format("Download failed for request [%s], %s", request, e.getMessage()), e);
       }
     }
   }

@@ -11,7 +11,9 @@ public class BadStatusException extends DownloadException {
   private Response response;
 
   public BadStatusException(Response response) {
-    super(String.format("Bad status [%s]", response.getStatus()));
+    super(
+        String.format(
+            "Bad status [%s] for request [%s]", response.getStatus(), response.getRequest()));
     this.response = response;
   }
 

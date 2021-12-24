@@ -3,8 +3,11 @@ package com.octopus.core.store;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
+import com.octopus.core.Request.State;
+import com.octopus.core.Request.Status;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import lombok.NonNull;
 import redis.clients.jedis.Jedis;
@@ -76,7 +79,9 @@ public class RedisStore implements Store {
         }
         if (StrUtil.isNotBlank(selected)) {
           String json = jedis.hget(this.allKey, selected);
-          return JSONUtil.toBean(json, Request.class);
+          Request request = JSONUtil.toBean(json, Request.class);
+          request.setStatus(Status.of(State.Executing));
+          return request;
         }
       }
     }
@@ -115,9 +120,9 @@ public class RedisStore implements Store {
   }
 
   @Override
-  public void markAsFailed(Request request) {
+  public void markAsFailed(Request request, String error) {
     try (Jedis jedis = this.pool.getResource()) {
-      jedis.sadd(this.failedKey, request.getId());
+      jedis.hset(this.failedKey, request.getId(), error);
       jedis.srem(this.executingKey, request.getId());
     }
   }
@@ -147,11 +152,13 @@ public class RedisStore implements Store {
   public List<Request> getFailed() {
     List<Request> failed = new ArrayList<>();
     try (Jedis jedis = this.pool.getResource()) {
-      Set<String> idSet = jedis.smembers(this.failedKey);
-      idSet.forEach(
-          id -> {
+      Map<String, String> fails = jedis.hgetAll(this.failedKey);
+      fails.forEach(
+          (id, error) -> {
             String json = jedis.hget(this.allKey, id);
-            failed.add(JSONUtil.toBean(json, Request.class));
+            Request request = JSONUtil.toBean(json, Request.class);
+            request.setStatus(Status.of(State.Failed, error));
+            failed.add(request);
           });
     }
     return failed;
@@ -160,6 +167,9 @@ public class RedisStore implements Store {
   @Override
   public void clearFailed() {
     try (Jedis jedis = this.pool.getResource()) {
+      for (String id : jedis.hkeys(this.failedKey)) {
+        jedis.hdel(this.allKey, id);
+      }
       jedis.del(this.failedKey);
     }
   }

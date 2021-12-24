@@ -120,7 +120,11 @@ public class Formatters {
           MULTI_LINE_FORMATTERS.get(annotation.annotationType());
       Method method =
           ReflectUtil.getMethod(
-              formatter.getClass(), "format", String.class, annotation.annotationType());
+              formatter.getClass(),
+              "format",
+              String.class,
+              annotation.annotationType(),
+              Response.class);
       return ReflectUtil.invoke(formatter, method, val, annotation);
     }
 
