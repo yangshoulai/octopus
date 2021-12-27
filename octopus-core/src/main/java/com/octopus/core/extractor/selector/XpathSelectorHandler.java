@@ -33,7 +33,7 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   public XpathSelectorHandler() {
     CleanerProperties properties = new CleanerProperties();
     this.cleaner = new HtmlCleaner(properties);
-    this.serializer = new DomSerializer(new CleanerProperties(), false);
+    this.serializer = new DomSerializer(new CleanerProperties(), false, false, false);
   }
 
   @Override
