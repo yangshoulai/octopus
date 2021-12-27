@@ -165,12 +165,12 @@ public class RedisStore implements Store {
   }
 
   @Override
-  public void clearFailed() {
+  public void delete(String id) {
     try (Jedis jedis = this.pool.getResource()) {
-      for (String id : jedis.hkeys(this.failedKey)) {
-        jedis.hdel(this.allKey, id);
-      }
-      jedis.del(this.failedKey);
+      jedis.hdel(this.allKey, id);
+      jedis.hdel(this.failedKey, id);
+      jedis.zrem(this.waitingKey, id);
+      jedis.srem(this.completedKey, id);
     }
   }
 }

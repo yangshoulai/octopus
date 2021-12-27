@@ -290,7 +290,7 @@ class OctopusImpl implements Octopus {
                       this.replayTimes);
                   logger.debug("Found [{}] failed requests", failed.size());
                 }
-                this.store.clearFailed();
+                failed.forEach(r -> this.store.delete(r.getId()));
                 failed.forEach(this::addRequest);
                 continue;
               } else {

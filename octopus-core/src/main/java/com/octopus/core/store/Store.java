@@ -80,6 +80,10 @@ public interface Store {
    */
   List<Request> getFailed();
 
-  /** 清空失败的请求 */
-  void clearFailed();
+  /**
+   * 删除一个请求
+   *
+   * @param id 请求唯一编号
+   */
+  void delete(String id);
 }

@@ -143,8 +143,8 @@ public class MongoStore implements Store {
   }
 
   @Override
-  public void clearFailed() {
-    this.requests.deleteMany(Filters.eq("status.state", State.Failed.name()));
+  public void delete(String id) {
+    this.requests.deleteOne(Filters.eq("_id", id));
   }
 
   private void updateStatusById(Object id, Status status) {

@@ -7,6 +7,7 @@ import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.exception.ProcessException;
+import com.octopus.core.extractor.Collector;
 import com.octopus.core.extractor.ExtractorHelper;
 import com.octopus.core.extractor.InvalidExtractorException;
 import com.octopus.core.extractor.Result;
@@ -21,7 +22,6 @@ import com.octopus.core.store.Store;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Consumer;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -359,7 +359,7 @@ public class OctopusBuilder {
    * @param callback 回调
    * @return OctopusBuilder
    */
-  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Consumer<T> callback) {
+  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Collector<T> callback) {
     return this.addProcessor(null, extractorClass, callback);
   }
 
@@ -384,7 +384,7 @@ public class OctopusBuilder {
    * @return OctopusBuilder
    */
   public <T> OctopusBuilder addProcessor(
-      Matcher matcher, @NonNull Class<T> extractorClass, Consumer<T> callback) {
+      Matcher matcher, @NonNull Class<T> extractorClass, Collector<T> callback) {
     if (!ExtractorHelper.checkIsValidExtractorClass(extractorClass)) {
       throw new InvalidExtractorException("Not a valid extractor class");
     }
@@ -398,7 +398,7 @@ public class OctopusBuilder {
             try {
               Result<T> result = ExtractorHelper.extract(response, extractorClass);
               if (callback != null) {
-                callback.accept(result.getObj());
+                callback.collect(result.getObj());
               }
               return result.getRequests();
             } catch (Exception e) {

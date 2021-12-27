@@ -80,9 +80,8 @@ public class MemoryStore implements Store {
   }
 
   @Override
-  public void clearFailed() {
-    this.all.values().stream()
-        .filter(r -> State.Failed.equals(r.getStatus().getState()))
-        .forEach(r -> this.all.remove(r.getId()));
+  public void delete(String id) {
+    this.all.remove(id);
+    this.waiting.removeIf(r -> r.getId().equals(id));
   }
 }
