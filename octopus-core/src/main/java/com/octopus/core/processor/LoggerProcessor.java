@@ -1,6 +1,5 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.Processor;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import java.util.List;

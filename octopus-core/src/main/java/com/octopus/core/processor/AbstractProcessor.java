@@ -1,6 +1,5 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.Processor;
 import com.octopus.core.Response;
 import com.octopus.core.processor.matcher.Matcher;
 import lombok.NonNull;

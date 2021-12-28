@@ -14,6 +14,7 @@ import com.octopus.core.extractor.Result;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.AbstractProcessor;
 import com.octopus.core.processor.LoggerProcessor;
+import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;

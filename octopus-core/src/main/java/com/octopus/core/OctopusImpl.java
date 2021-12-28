@@ -14,6 +14,7 @@ import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.listener.Listener;
+import com.octopus.core.processor.Processor;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RequestHelper;
 import java.util.Date;
@@ -288,7 +289,6 @@ class OctopusImpl implements Octopus {
                       "Found [{}] failed requests, replay failed requests {} time",
                       failed.size(),
                       this.replayTimes);
-                  logger.debug("Found [{}] failed requests", failed.size());
                 }
                 failed.forEach(r -> this.store.delete(r.getId()));
                 failed.forEach(this::addRequest);
