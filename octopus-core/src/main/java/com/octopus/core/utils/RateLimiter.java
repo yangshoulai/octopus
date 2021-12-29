@@ -41,7 +41,7 @@ public class RateLimiter {
   public void start() {
     if (this.scheduler == null || this.scheduler.isShutdown()) {
       if (StrUtil.isBlank(name)) {
-        this.name = "rate-limiter";
+        this.name = "RateLimiter";
       }
       this.scheduler =
           new ScheduledThreadPoolExecutor(

@@ -4,7 +4,7 @@ import cn.hutool.core.map.MapUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
-import com.octopus.core.downloader.CommonDownloadConfig;
+import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.annotation.Extractor;
@@ -14,6 +14,7 @@ import com.octopus.core.extractor.annotation.Matcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
+
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Map;
@@ -40,7 +41,7 @@ public class SearchPhoto {
     ProxyProvider proxyProvider =
         new PollingProxyProvider(
             new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8002)));
-    CommonDownloadConfig downloadConfig = new CommonDownloadConfig();
+    DownloadConfig downloadConfig = new DownloadConfig();
     downloadConfig.setProxyProvider(proxyProvider);
     downloadConfig.setSocketTimeout(120000);
     downloadConfig.setConnectTimeout(12000);

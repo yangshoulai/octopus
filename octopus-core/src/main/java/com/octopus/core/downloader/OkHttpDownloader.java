@@ -1,7 +1,9 @@
 package com.octopus.core.downloader;
 
 import cn.hutool.core.map.MapBuilder;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.ssl.TrustAnyHostnameVerifier;
 import com.octopus.core.Request;
 import com.octopus.core.Request.RequestMethod;
@@ -87,7 +89,10 @@ public class OkHttpDownloader implements Downloader {
     }
     String url = urlBuilder.build();
     Map<String, String> allHeaders =
-        new MapBuilder<>(config.getHeaders()).putAll(request.getHeaders()).build();
+        MapUtil.builder("Host", URLUtil.url(request.getUrl()).getHost())
+            .putAll(config.getHeaders())
+            .putAll(request.getHeaders())
+            .build();
     okhttp3.Request.Builder builder = new okhttp3.Request.Builder().url(url);
     allHeaders.forEach(builder::addHeader);
     if (request.getMethod() == RequestMethod.POST) {

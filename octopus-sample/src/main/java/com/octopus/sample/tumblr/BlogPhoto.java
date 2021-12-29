@@ -4,7 +4,7 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
-import com.octopus.core.downloader.CommonDownloadConfig;
+import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.annotation.*;
@@ -92,7 +92,7 @@ public class BlogPhoto {
     ProxyProvider proxyProvider =
         new PollingProxyProvider(
             new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8002)));
-    CommonDownloadConfig downloadConfig = new CommonDownloadConfig();
+    DownloadConfig downloadConfig = new DownloadConfig();
     downloadConfig.setProxyProvider(proxyProvider);
     downloadConfig.setSocketTimeout(120000);
     downloadConfig.setConnectTimeout(12000);

@@ -3,7 +3,7 @@ package com.octopus.sample.bing;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
-import com.octopus.core.downloader.CommonDownloadConfig;
+import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.Matcher;
@@ -34,7 +34,7 @@ public class BingWallpaper {
         .addSite(
             WebSite.of("bing.ioliu.cn")
                 .setRateLimiter(1, 5)
-                .setDownloadConfig(new CommonDownloadConfig()))
+                .setDownloadConfig(new DownloadConfig()))
         .addProcessor(BingWallpaper.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/bing"))
         .addSeeds(Request.get("https://bing.ioliu.cn"))

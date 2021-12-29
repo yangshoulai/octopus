@@ -4,8 +4,10 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
+import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
+import cn.hutool.http.Header;
 import com.octopus.core.Request.Status;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -32,6 +34,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.NonNull;
 import org.slf4j.Logger;
@@ -41,6 +44,8 @@ import org.slf4j.Logger;
  * @date 2021/11/19
  */
 class OctopusImpl implements Octopus {
+
+  private static final Pattern BASE_URL_PATTERN = Pattern.compile("^(https?://([^/]+)).*$");
 
   private final Logger logger;
 
@@ -367,6 +372,14 @@ class OctopusImpl implements Octopus {
                             request.putAttribute(k, v);
                           }
                         });
+                  }
+                  if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
+
+                    request
+                        .getHeaders()
+                        .put(
+                            Header.REFERER.getValue(),
+                            ReUtil.get(BASE_URL_PATTERN, response.getRequest().getUrl(), 1));
                   }
                   this.addRequest(request);
                 });

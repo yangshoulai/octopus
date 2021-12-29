@@ -1,7 +1,6 @@
 package com.octopus.core;
 
 import com.mongodb.MongoClient;
-import com.octopus.core.downloader.CommonDownloadConfig;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
@@ -20,13 +19,14 @@ import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -47,7 +47,7 @@ public class OctopusBuilder {
   private final List<Processor> processors = new ArrayList<>();
 
   /** 全局下载配置 */
-  private DownloadConfig globalDownloadConfig = new CommonDownloadConfig();
+  private DownloadConfig globalDownloadConfig = new DownloadConfig();
 
   /** 请求处理完毕后是否关闭爬虫 */
   private boolean autoStop = true;

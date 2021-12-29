@@ -1,7 +1,9 @@
 package com.octopus.core.downloader;
 
 import cn.hutool.core.map.MapBuilder;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.core.util.URLUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
@@ -150,7 +152,10 @@ public class HttpClientDownloader implements Downloader {
     }
 
     Map<String, String> allHeaders =
-        new MapBuilder<>(config.getHeaders()).putAll(request.getHeaders()).build();
+        MapUtil.builder("Host", URLUtil.url(request.getUrl()).getHost())
+            .putAll(config.getHeaders())
+            .putAll(request.getHeaders())
+            .build();
     allHeaders.entrySet().stream()
         .map(pair -> new BasicHeader(pair.getKey(), pair.getValue()))
         .forEach(http::setHeader);
