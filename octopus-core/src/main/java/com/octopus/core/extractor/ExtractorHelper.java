@@ -146,11 +146,11 @@ public class ExtractorHelper {
                 + clz.getName());
       }
       Class<?> filedType = TypeUtil.getClass(TypeUtil.getType(field));
-      if (!ClassUtil.isBasicType(filedType)) {
+      if (!CharSequence.class.isAssignableFrom(filedType) && !ClassUtil.isBasicType(filedType)) {
         throw new InvalidExtractorException(
             "Invalid @Prop annotation, field type "
                 + filedType.getName()
-                + " not supported, only support basic type");
+                + " not supported, only support basic type or String");
       }
     }
   }
