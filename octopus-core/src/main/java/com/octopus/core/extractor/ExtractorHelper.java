@@ -5,6 +5,7 @@ import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.TypeUtil;
@@ -106,10 +107,51 @@ public class ExtractorHelper {
           }
         }
       }
+
+      // check @Link
+      Link[] links = type.getAnnotationsByType(Link.class);
+      for (Link link : links) {
+        checkIsValidLink(type, link);
+      }
+
       VALID_EXTRACTOR_CLS.add(type);
     } else {
       throw new InvalidExtractorException(
           String.format("Class [%s] must has annotation @Extractor", type.getName()));
+    }
+  }
+
+  private static void checkIsValidLink(Class<?> clz, Link link) {
+    if (link.url().length <= 0
+        && link.regexSelectors().length <= 0
+        && link.jsonSelectors().length <= 0
+        && link.cssSelectors().length <= 0
+        && link.xpathSelectors().length <= 0) {
+      throw new InvalidExtractorException(
+          "Invalid @Link annotation, url or selectors must be specified");
+    }
+    for (Prop prop : ArrayUtil.addAll(link.attrs(), link.headers(), link.params())) {
+      checkIsValidProp(clz, prop);
+    }
+  }
+
+  private static void checkIsValidProp(Class<?> clz, Prop prop) {
+    if (StrUtil.isNotBlank(prop.field())) {
+      Field field = ReflectUtil.getField(clz, prop.field());
+      if (field == null) {
+        throw new InvalidExtractorException(
+            "Invalid @Prop annotation, filed "
+                + prop.field()
+                + " not found on Class "
+                + clz.getName());
+      }
+      Class<?> filedType = TypeUtil.getClass(TypeUtil.getType(field));
+      if (!ClassUtil.isBasicType(filedType)) {
+        throw new InvalidExtractorException(
+            "Invalid @Prop annotation, field type "
+                + filedType.getName()
+                + " not supported, only support basic type");
+      }
     }
   }
 
