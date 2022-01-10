@@ -34,11 +34,11 @@ public class RedisStore implements Store {
 
   public RedisStore(@NonNull String keyPrefix, @NonNull JedisPool pool) {
     this.pool = pool;
-    this.allKey = keyPrefix + "-" + "all";
-    this.waitingKey = keyPrefix + "-" + "waiting";
-    this.completedKey = keyPrefix + "-" + "completed";
-    this.failedKey = keyPrefix + "-" + "failed";
-    this.executingKey = keyPrefix + "-" + "executing";
+    this.allKey = keyPrefix + ":" + "all";
+    this.waitingKey = keyPrefix + ":" + "waiting";
+    this.completedKey = keyPrefix + ":" + "completed";
+    this.failedKey = keyPrefix + ":" + "failed";
+    this.executingKey = keyPrefix + ":" + "executing";
     try (Jedis jedis = this.pool.getResource()) {
       Set<String> executing = jedis.smembers(this.executingKey);
       if (!executing.isEmpty()) {
