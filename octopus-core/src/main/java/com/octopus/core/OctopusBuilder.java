@@ -15,6 +15,8 @@ import com.octopus.core.processor.AbstractProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.replay.ReplayFilter;
+import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
@@ -67,6 +69,8 @@ public class OctopusBuilder {
 
   /** 当所有请求处理完毕以后是否重放失败的请求 */
   private boolean replayFailedRequest = true;
+
+  private ReplayFilter replayFilter = ReplayFilters.all();
 
   /**
    * 重放失败请求的次数，默认 1
@@ -518,6 +522,15 @@ public class OctopusBuilder {
   }
 
   /**
+   * 设置请求重放过滤器
+   *
+   * @param replayFilter 重放过滤器
+   */
+  public void setReplayFilter(@NonNull ReplayFilter replayFilter) {
+    this.replayFilter = replayFilter;
+  }
+
+  /**
    * 设置最大失败请求重放次数
    *
    * @param maxReplays 最大重放次数
@@ -625,6 +638,10 @@ public class OctopusBuilder {
 
   public boolean isReplayFailedRequest() {
     return replayFailedRequest;
+  }
+
+  public ReplayFilter getReplayFilter() {
+    return replayFilter;
   }
 
   public int getMaxReplays() {

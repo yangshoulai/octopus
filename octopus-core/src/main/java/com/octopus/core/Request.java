@@ -264,6 +264,14 @@ public class Request implements Serializable, Comparable<Request> {
       this.state = state;
     }
 
+    public State getState() {
+      return state;
+    }
+
+    public String getMessage() {
+      return message;
+    }
+
     public static Status of(@NonNull State state, String message) {
       return new Status(state, message);
     }

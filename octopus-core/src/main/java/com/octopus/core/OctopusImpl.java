@@ -17,6 +17,7 @@ import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.Processor;
+import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RequestHelper;
 import java.util.Date;
@@ -93,6 +94,8 @@ class OctopusImpl implements Octopus {
 
   private final boolean replayFailedRequest;
 
+  private final ReplayFilter replayFilter;
+
   private final int maxReplays;
 
   private int replayTimes = 0;
@@ -114,6 +117,7 @@ class OctopusImpl implements Octopus {
     this.downloader = builder.getDownloader();
     this.threads = builder.getThreads();
     this.replayFailedRequest = builder.isReplayFailedRequest();
+    this.replayFilter = builder.getReplayFilter();
     this.maxReplays = builder.getMaxReplays();
   }
 
@@ -287,6 +291,12 @@ class OctopusImpl implements Octopus {
           if (this.workerSemaphore.availablePermits() == this.threads) {
             if (this.replayFailedRequest && this.replayTimes < this.maxReplays) {
               List<Request> failed = this.store.getFailed();
+              failed =
+                  failed == null
+                      ? null
+                      : failed.stream()
+                          .filter(this.replayFilter::filter)
+                          .collect(Collectors.toList());
               if (failed != null && !failed.isEmpty()) {
                 this.replayTimes++;
                 if (this.debug && this.logger.isDebugEnabled()) {
