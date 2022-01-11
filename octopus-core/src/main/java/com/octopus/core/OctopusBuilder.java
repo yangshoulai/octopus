@@ -526,8 +526,9 @@ public class OctopusBuilder {
    *
    * @param replayFilter 重放过滤器
    */
-  public void setReplayFilter(@NonNull ReplayFilter replayFilter) {
+  public OctopusBuilder setReplayFilter(@NonNull ReplayFilter replayFilter) {
     this.replayFilter = replayFilter;
+    return this;
   }
 
   /**
