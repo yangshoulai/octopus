@@ -241,6 +241,11 @@ class OctopusImpl implements Octopus {
   private void dispatch() {
     State state;
     while ((state = this.state.get()) == State.STARTED || state == State.IDLE) {
+      if (Thread.currentThread().isInterrupted()) {
+        logger.info("Thread interrupted, octopus will stop");
+        this.stop();
+        return;
+      }
       try {
         Request request = this.store.get();
         if (request != null) {
