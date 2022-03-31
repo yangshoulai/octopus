@@ -344,7 +344,12 @@ public class ExtractorHelper {
         if (paramValue != null) {
           selected = ListUtil.toList(paramValue.toString());
         } else {
-          selected = ListUtil.toList(param.def());
+          if (response.getRequest().getParams() != null
+              && response.getRequest().getParams().containsKey(param.name())) {
+            selected = ListUtil.toList(response.getRequest().getParams().get(param.name()));
+          } else {
+            selected = ListUtil.toList(param.def());
+          }
         }
       } else if (field.getAnnotation(Attr.class) != null) {
         Attr attr = field.getAnnotation(Attr.class);
