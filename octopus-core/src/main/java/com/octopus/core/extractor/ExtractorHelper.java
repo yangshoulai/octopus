@@ -164,6 +164,12 @@ public class ExtractorHelper {
           throw new InvalidExtractorException(
               "Invalid @Body type on field " + field.getName() + ", only byte array supported");
         }
+      } else if (List.class.isAssignableFrom(fieldType)) {
+        Class<?> actualType = getActualClass(field);
+        if (!byte.class.equals(actualType)) {
+          throw new InvalidExtractorException(
+              "Invalid @Body type on field " + field.getName() + ", only byte array supported");
+        }
       } else {
         throw new InvalidExtractorException(
             "Invalid @Body type on field "
