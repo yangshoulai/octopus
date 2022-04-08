@@ -116,6 +116,7 @@ public class RedisStore implements Store {
     try (Jedis jedis = this.pool.getResource()) {
       jedis.sadd(this.completedKey, request.getId());
       jedis.srem(this.executingKey, request.getId());
+      this.setStatus(jedis, request.getId(), State.Completed, null);
     }
   }
 
@@ -124,6 +125,7 @@ public class RedisStore implements Store {
     try (Jedis jedis = this.pool.getResource()) {
       jedis.hset(this.failedKey, request.getId(), error);
       jedis.srem(this.executingKey, request.getId());
+      this.setStatus(jedis, request.getId(), State.Completed, error);
     }
   }
 
@@ -172,5 +174,12 @@ public class RedisStore implements Store {
       jedis.zrem(this.waitingKey, id);
       jedis.srem(this.completedKey, id);
     }
+  }
+
+  private void setStatus(Jedis jedis, String id, State state, String message) {
+    String json = jedis.hget(this.allKey, id);
+    Request request = JSONUtil.toBean(json, Request.class);
+    request.setStatus(Status.of(state, message));
+    jedis.hset(this.allKey, id, JSONUtil.toJsonStr(request));
   }
 }
