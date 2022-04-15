@@ -344,6 +344,8 @@ class OctopusImpl implements Octopus {
             }
           }
         }
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
       } catch (Throwable e) {
         logger.error("Error when dispatch request", e);
       }
