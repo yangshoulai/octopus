@@ -2,8 +2,8 @@ package com.octopus.sample.wallhaven;
 
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.selector.CssSelector;
 import java.util.List;
 import lombok.Data;
@@ -17,7 +17,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor(matcher = @Matcher(type = Type.HTML))
+@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 @Link(cssSelectors = @CssSelector(expression = "img#wallpaper", attr = "src"))
 @Link(
     cssSelectors =

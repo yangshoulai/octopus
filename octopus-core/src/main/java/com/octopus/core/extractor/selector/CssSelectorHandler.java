@@ -29,7 +29,7 @@ public class CssSelectorHandler extends CacheableSelectorHandler<Document, CssSe
                   if (StrUtil.isNotBlank(selector.attr())) {
                     return e.attr(selector.attr());
                   } else if (selector.self()) {
-                    return XmlUtil.format(e.toString());
+                    return e.toString();
                   } else {
                     return e.text();
                   }

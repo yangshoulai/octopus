@@ -9,8 +9,8 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.selector.JsonSelector;
 import java.util.HashMap;
 import java.util.List;
@@ -22,7 +22,7 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor(matcher = @Matcher(type = Type.URL_REGEX, regex = ".*getAppsByCategory.*"))
+@Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAppsByCategory.*"))
 public class WallpapersPage {
 
   @JsonSelector(expression = "$.errno")

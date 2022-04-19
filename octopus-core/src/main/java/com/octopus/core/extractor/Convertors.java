@@ -1,9 +1,11 @@
 package com.octopus.core.extractor;
 
+import cn.hutool.core.convert.BasicType;
 import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.TypeUtil;
 import com.octopus.core.Response;
+import com.octopus.core.exception.OctopusException;
 import com.octopus.core.extractor.convertor.BooleanConvertorHandler;
+import com.octopus.core.extractor.convertor.CharacterConvertorHandler;
 import com.octopus.core.extractor.convertor.ConvertorHandler;
 import com.octopus.core.extractor.convertor.DateConvertorHandler;
 import com.octopus.core.extractor.convertor.DoubleConvertorHandler;
@@ -15,11 +17,9 @@ import com.octopus.core.extractor.convertor.StringConvertorHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import lombok.NonNull;
 
 /**
@@ -28,7 +28,7 @@ import lombok.NonNull;
  */
 public class Convertors {
 
-  private static final Map<Class<?>, List<ConvertorHandler<?, ? extends Annotation>>> CONVERTERS =
+  private static final Map<Class<?>, ConvertorHandler<?, ? extends Annotation>> CONVERTERS =
       new HashMap<>();
 
   static {
@@ -38,51 +38,63 @@ public class Convertors {
     registerTypeConvertor(new FloatConvertorHandler());
     registerTypeConvertor(new DoubleConvertorHandler());
     registerTypeConvertor(new BooleanConvertorHandler());
-    registerTypeConvertor(new ShortConvertorHandler());
-
+    registerTypeConvertor(new CharacterConvertorHandler());
     registerTypeConvertor(new StringConvertorHandler());
     registerTypeConvertor(new DateConvertorHandler());
   }
 
   public static void registerTypeConvertor(
       @NonNull ConvertorHandler<?, ? extends Annotation> converter) {
-    Class<?>[] classes = converter.getSupportClasses();
-    if (classes != null) {
-      for (Class<?> cls : classes) {
-        if (cls != null) {
-          List<ConvertorHandler<?, ? extends Annotation>> converters =
-              CONVERTERS.computeIfAbsent(cls, k -> new ArrayList<>());
-          converters.add(converter);
-        }
+    Class<?> type = converter.getSupportedType();
+    if (CONVERTERS.containsKey(type)) {
+      throw new OctopusException("Convertor for type " + type + " already exist");
+    }
+    CONVERTERS.put(type, converter);
+  }
+
+  static ConvertorHandler<?, ? extends Annotation> getConvertor(@NonNull Class<?> type) {
+    if (CONVERTERS.containsKey(type)) {
+      return CONVERTERS.get(type);
+    }
+    if (type.isPrimitive() && CONVERTERS.containsKey(BasicType.wrap(type))) {
+      return CONVERTERS.get(BasicType.wrap(type));
+    }
+    for (Entry<Class<?>, ConvertorHandler<?, ? extends Annotation>> entry : CONVERTERS.entrySet()) {
+      if (type.isAssignableFrom(entry.getKey())) {
+        return entry.getValue();
       }
     }
+    return null;
   }
 
   static boolean isConvertibleType(@NonNull Class<?> type) {
-    return CONVERTERS.containsKey(type);
+    if (CONVERTERS.containsKey(type)) {
+      return true;
+    }
+    if (type.isPrimitive() && CONVERTERS.containsKey(BasicType.wrap(type))) {
+      return true;
+    }
+    for (Entry<Class<?>, ConvertorHandler<?, ? extends Annotation>> entry : CONVERTERS.entrySet()) {
+      if (type.isAssignableFrom(entry.getKey())) {
+        return true;
+      }
+    }
+    return false;
   }
 
-  @SuppressWarnings("unchecked")
   static Object convert(Class<?> type, String content, Field field, Response response) {
     Object converted = null;
-    List<ConvertorHandler<?, ? extends Annotation>> converters = CONVERTERS.get(type);
-    for (ConvertorHandler<?, ? extends Annotation> converter : converters) {
-      Annotation annotation = null;
-      Class<? extends Annotation> annotationClass = null;
-      Type[] types = TypeUtil.getTypeArguments(converter.getClass());
-      if (types != null && types.length == 2) {
-        annotationClass = (Class<? extends Annotation>) TypeUtil.getClass(types[1]);
-        annotation = field.getAnnotation(annotationClass);
-      }
-      if (annotationClass != null) {
-        Method method =
-            ReflectUtil.getMethod(
-                converter.getClass(), "convert", String.class, annotationClass, Response.class);
-        converted = ReflectUtil.invoke(converter, method, content, annotation, response);
-        if (converted != null) {
-          return converted;
-        }
-      }
+    ConvertorHandler<?, ? extends Annotation> handler = getConvertor(type);
+
+    assert handler != null;
+    Class<? extends Annotation> annotationClass = handler.getSupportedAnnotationType();
+    Annotation annotation = field.getAnnotation(annotationClass);
+    Method method =
+        ReflectUtil.getMethod(
+            handler.getClass(), "convert", String.class, annotationClass, Response.class);
+    converted = ReflectUtil.invoke(handler, method, content, annotation, response);
+    if (converted != null) {
+      return converted;
     }
     return String.class.equals(type) ? content : null;
   }

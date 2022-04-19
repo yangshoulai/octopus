@@ -1,4 +1,4 @@
-package com.octopus.core.extractor.annotation;
+package com.octopus.core.extractor.selector;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Attr {
+public @interface ParamSelector {
 
   String name();
 

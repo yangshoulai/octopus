@@ -2,8 +2,8 @@ package com.octopus.sample.apc360;
 
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.convertor.DateConvertor;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
@@ -16,7 +16,7 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor(matcher = @Matcher(type = Type.URL_REGEX, regex = ".*getAllCategoriesV2.*"))
+@Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAllCategoriesV2.*"))
 @Link(
     jsonSelectors = @JsonSelector(expression = "$.data[*].id"),
     formats =

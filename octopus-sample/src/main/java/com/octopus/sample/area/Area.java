@@ -3,7 +3,7 @@ package com.octopus.sample.area;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.Attr;
+import com.octopus.core.extractor.selector.AttrSelector;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.LinkMethod;
 import com.octopus.core.extractor.selector.XpathSelector;
@@ -28,7 +28,7 @@ public class Area {
   @XpathSelector(expression = "//td[1]//a/@href")
   private String nextUrl;
 
-  @Attr(name = "parent")
+  @AttrSelector(name = "parent")
   private String parentCode;
 
   private Area parent;

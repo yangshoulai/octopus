@@ -9,8 +9,8 @@ import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
@@ -23,7 +23,7 @@ import java.util.Map;
  * @author shoulai.yang@gmail.com
  * @date 2021/12/1
  */
-@Extractor(matcher = @Matcher(type = Type.JSON))
+@Extractor(matcher = @ExtractorMatcher(type = Type.JSON))
 @Link(
     jsonSelectors = @JsonSelector(expression = "$.response.timeline._links.next.href"),
     formats = @RegexFormatter(format = "https://www.tumblr.com/api%s"))

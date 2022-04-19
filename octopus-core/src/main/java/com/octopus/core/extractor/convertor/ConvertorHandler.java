@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.convertor;
 
+import cn.hutool.core.util.ClassUtil;
 import com.octopus.core.Response;
 import java.lang.annotation.Annotation;
 
@@ -25,4 +26,23 @@ public interface ConvertorHandler<T, A extends Annotation> {
    * @return 支持的数据类型
    */
   Class<?>[] getSupportClasses();
+
+  /**
+   * 获取支持的转换类型
+   *
+   * @return 支持的转换类型
+   */
+  default Class<?> getSupportedType() {
+    return ClassUtil.getTypeArgument(this.getClass(), 0);
+  }
+
+  /**
+   * 获取支持的转化注解类型
+   *
+   * @return 支持的转化注解类型
+   */
+  @SuppressWarnings("unchecked")
+  default Class<? extends Annotation> getSupportedAnnotationType() {
+    return (Class<? extends Annotation>) ClassUtil.getTypeArgument(this.getClass(), 1);
+  }
 }

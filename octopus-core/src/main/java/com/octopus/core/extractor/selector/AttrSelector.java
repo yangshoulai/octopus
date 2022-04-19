@@ -1,4 +1,4 @@
-package com.octopus.core.extractor.annotation;
+package com.octopus.core.extractor.selector;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -15,4 +15,9 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Url {}
+public @interface AttrSelector {
+
+  String name();
+
+  String def() default "";
+}

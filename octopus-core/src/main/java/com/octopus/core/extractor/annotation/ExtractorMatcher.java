@@ -1,5 +1,6 @@
 package com.octopus.core.extractor.annotation;
 
+import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -16,7 +17,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Matcher {
+public @interface ExtractorMatcher {
 
   Type type() default Type.ALL;
 
@@ -28,7 +29,7 @@ public @interface Matcher {
     /** 匹配所有 */
     ALL {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.ALL;
       }
     },
@@ -36,7 +37,7 @@ public @interface Matcher {
     /** URL正则匹配 */
     URL_REGEX {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.urlRegex(matcher.regex());
       }
     },
@@ -44,67 +45,67 @@ public @interface Matcher {
     /** 响应头正则匹配 */
     HEADER_REGEX {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.headerRegex(matcher.header(), matcher.regex());
       }
     },
     /** 响应内容正则匹配 */
     CONTENT_TYPE_REGEX {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.contentType(matcher.regex());
       }
     },
 
     HTML {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.HTML;
       }
     },
 
     JSON {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.JSON;
       }
     },
 
     IMAGE {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.IMAGE;
       }
     },
 
     VIDEO {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.VIDEO;
       }
     },
 
     AUDIO {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.AUDIO;
       }
     },
 
     OCTET_STREAM {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.OCTET_STREAM;
       }
     },
 
     MEDIA {
       @Override
-      public com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher) {
+      public Matcher resolve(ExtractorMatcher matcher) {
         return Matchers.or(Matchers.VIDEO, Matchers.AUDIO, Matchers.IMAGE, Matchers.OCTET_STREAM);
       }
     };
 
-    public abstract com.octopus.core.processor.matcher.Matcher resolve(Matcher matcher);
+    public abstract Matcher resolve(ExtractorMatcher matcher);
   }
 }

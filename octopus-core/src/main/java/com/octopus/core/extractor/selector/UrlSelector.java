@@ -1,4 +1,4 @@
-package com.octopus.core.extractor.annotation;
+package com.octopus.core.extractor.selector;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
@@ -9,18 +9,10 @@ import java.lang.annotation.Target;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2021/11/24
+ * @date 2021/12/16
  */
 @Documented
-@Target({ElementType.TYPE})
+@Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Extractor {
-
-  /**
-   * 匹配的网页URL正则表达式
-   *
-   * @return 正则表达式
-   */
-  ExtractorMatcher[] matcher() default {};
-}
+public @interface UrlSelector {}

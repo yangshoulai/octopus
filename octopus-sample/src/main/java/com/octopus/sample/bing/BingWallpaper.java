@@ -6,8 +6,8 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.selector.XpathSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 
@@ -17,7 +17,7 @@ import com.octopus.core.processor.MediaFileDownloadProcessor;
  * @author shoulai.yang@gmail.com
  * @date 2021/1/15
  */
-@Extractor(matcher = @Matcher(type = Type.HTML))
+@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 @Link(
     xpathSelectors = @XpathSelector(expression = "//a[text()='下一页']/@href", multi = false),
     repeatable = false)

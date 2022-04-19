@@ -13,14 +13,11 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.annotation.Attr;
 import com.octopus.core.extractor.annotation.Body;
 import com.octopus.core.extractor.annotation.Extractor;
 import com.octopus.core.extractor.annotation.Link;
 import com.octopus.core.extractor.annotation.LinkMethod;
-import com.octopus.core.extractor.annotation.Param;
 import com.octopus.core.extractor.annotation.Prop;
-import com.octopus.core.extractor.annotation.Url;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
@@ -33,8 +30,12 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -47,8 +48,37 @@ public class ExtractorHelper {
 
   private static final Set<Class<?>> VALID_EXTRACTOR_CLS = new HashSet<>();
 
+  private static final Map<Class<?>, Class<?>> VALID_COLLECTION_MAP = new HashMap<>();
+
+  static {
+    VALID_COLLECTION_MAP.put(Collection.class, ArrayList.class);
+    VALID_COLLECTION_MAP.put(List.class, ArrayList.class);
+    VALID_COLLECTION_MAP.put(ArrayList.class, ArrayList.class);
+    VALID_COLLECTION_MAP.put(LinkedList.class, ArrayList.class);
+    VALID_COLLECTION_MAP.put(Set.class, HashSet.class);
+    VALID_COLLECTION_MAP.put(HashSet.class, HashSet.class);
+    VALID_COLLECTION_MAP.put(LinkedHashSet.class, LinkedHashSet.class);
+  }
+
   private static boolean checkIsValidClass(@NonNull Class<?> type) {
     return Convertors.isConvertibleType(type) || checkIsValidExtractorClass(type);
+  }
+
+  private static Class<?> getActualFieldType(Field field) {
+    Class<?> type = field.getType();
+    if (type.isArray()) {
+      return type.getComponentType();
+    } else if (Collection.class.isAssignableFrom(type)) {
+      Type actualType = TypeUtil.getActualType(type, field.getGenericType());
+      if (actualType != null) {
+        Type[] types = TypeUtil.toParameterizedType(actualType).getActualTypeArguments();
+        if (types != null && types.length > 0) {
+          return TypeUtil.getClass(types[0]);
+        }
+      }
+      return null;
+    }
+    return type;
   }
 
   private static Class<?> getActualClass(Field field) {
@@ -82,16 +112,7 @@ public class ExtractorHelper {
         // check @Body
         checkIsValidBodyField(field, fieldType);
 
-        // check @Url
-        checkIsValidUrlField(field, fieldType);
-
-        // check @Param
-        checkIsValidParamField(field, fieldType);
-
-        // check @Attr
-        checkIsValidAttrField(field, fieldType);
-
-        // check @CssSelector @JsonSelector @XpathSelector @RegexSelector
+        // check Selector annotations
         checkIsValidSelectorFiled(field, fieldType, type, checkedClasses);
 
         // check format annotations
@@ -158,78 +179,36 @@ public class ExtractorHelper {
   private static void checkIsValidBodyField(Field field, Class<?> fieldType) {
     Body body = field.getAnnotation(Body.class);
     if (body != null) {
-      if (fieldType.isArray()) {
-        Class<?> componentType = fieldType.getComponentType();
-        if (!byte.class.equals(componentType)) {
-          throw new InvalidExtractorException(
-              "Invalid @Body type on field " + field.getName() + ", only byte array supported");
-        }
-      } else if (List.class.isAssignableFrom(fieldType)) {
-        Class<?> actualType = getActualClass(field);
-        if (!byte.class.equals(actualType)) {
-          throw new InvalidExtractorException(
-              "Invalid @Body type on field " + field.getName() + ", only byte array supported");
-        }
-      } else {
+      if (!fieldType.isArray() || !byte.class.equals(fieldType.getComponentType())) {
         throw new InvalidExtractorException(
-            "Invalid @Body type on field "
-                + field.getName()
-                + ", only byte array or byte list supported");
+            "@Body annotation only supported byte array type, e.g. @Body byte[] body;");
       }
-    }
-  }
-
-  private static void checkIsValidUrlField(Field field, Class<?> fieldType) {
-    Url url = field.getAnnotation(Url.class);
-    if (url != null && !Convertors.isConvertibleType(fieldType)) {
-      throw new InvalidExtractorException("Invalid @Url type on field " + field.getName());
-    }
-  }
-
-  private static void checkIsValidParamField(Field field, Class<?> fieldType) {
-    Param param = field.getAnnotation(Param.class);
-    if (param != null && !Convertors.isConvertibleType(fieldType)) {
-      throw new InvalidExtractorException("Invalid @Param type on field " + field.getName());
-    }
-  }
-
-  private static void checkIsValidAttrField(Field field, Class<?> fieldType) {
-    Attr attr = field.getAnnotation(Attr.class);
-    if (attr != null && !Convertors.isConvertibleType(fieldType)) {
-      throw new InvalidExtractorException("Invalid @Attr type on field " + field.getName());
     }
   }
 
   private static void checkIsValidSelectorFiled(
       Field field, Class<?> fieldType, Class<?> type, Collection<Class<?>> checkedClasses) {
     if (Selectors.hasSelectorAnnotation(field)) {
-      if (fieldType.isArray()) {
-        if (!checkedClasses.contains(fieldType.getComponentType())
-            && !checkIsValidClass(fieldType.getComponentType())) {
-          throw new InvalidExtractorException(
-              "Unsupported type " + fieldType.getComponentType().getName());
-        }
-      } else if (Collection.class.isAssignableFrom(fieldType)) {
-        if (Collection.class.equals(fieldType)
-            || List.class.equals(fieldType)
-            || Set.class.equals(fieldType)) {
-          Class<?> actualType = getActualClass(field);
-          if (actualType == null) {
-            throw new InvalidExtractorException(
-                "Can not get actual type of filed " + field.getName() + " on class " + type);
-          }
-          if (!checkedClasses.contains(actualType) && !checkIsValidClass(actualType)) {
-            throw new InvalidExtractorException("Unsupported type " + actualType.getName());
-          }
-
-        } else {
-          throw new InvalidExtractorException(
-              "Unsupported collection type "
-                  + fieldType.getName()
-                  + ", only java.lang.Collection, java.lang.List or java.lang.Set supported");
-        }
-      } else if (!checkedClasses.contains(fieldType) && !checkIsValidClass(fieldType)) {
-        throw new InvalidExtractorException("Unsupported type " + fieldType.getName());
+      if (Selectors.getSelectorAnnotations(field).size() > 1) {
+        throw new InvalidExtractorException("Multi selectors found on class " + type);
+      }
+      if (Collection.class.isAssignableFrom(fieldType)
+          && !VALID_COLLECTION_MAP.containsKey(fieldType)) {
+        throw new InvalidExtractorException(
+            "Not supported collection type "
+                + fieldType
+                + " on field "
+                + field
+                + " in class "
+                + type);
+      }
+      Class<?> actualType = getActualFieldType(field);
+      if (actualType == null) {
+        throw new InvalidExtractorException(
+            "Can not get actual type of filed " + field.getName() + " on class " + type);
+      }
+      if (!checkedClasses.contains(actualType) && !Convertors.isConvertibleType(actualType)) {
+        checkIsValidExtractorClass(actualType, checkedClasses);
       }
     }
   }
@@ -341,31 +320,7 @@ public class ExtractorHelper {
       }
 
       List<String> selected = null;
-      if (field.getAnnotation(Url.class) != null) {
-        selected = ListUtil.toList(response.getRequest().getUrl());
-      } else if (field.getAnnotation(Param.class) != null) {
-        Param param = field.getAnnotation(Param.class);
-        CharSequence paramValue =
-            UrlBuilder.of(response.getRequest().getUrl()).getQuery().get(param.name());
-        if (paramValue != null) {
-          selected = ListUtil.toList(paramValue.toString());
-        } else {
-          if (response.getRequest().getParams() != null
-              && response.getRequest().getParams().containsKey(param.name())) {
-            selected = ListUtil.toList(response.getRequest().getParams().get(param.name()));
-          } else {
-            selected = ListUtil.toList(param.def());
-          }
-        }
-      } else if (field.getAnnotation(Attr.class) != null) {
-        Attr attr = field.getAnnotation(Attr.class);
-        String attrVal = null;
-        Object o = response.getRequest().getAttribute(attr.name());
-        attrVal = o == null ? attr.def() : o.toString();
-        if (attrVal != null) {
-          selected = ListUtil.toList(attrVal);
-        }
-      } else if (Selectors.hasSelectorAnnotation(field)) {
+      if (Selectors.hasSelectorAnnotation(field)) {
         selected = Selectors.select(content, field, response);
       }
       if (selected != null) {

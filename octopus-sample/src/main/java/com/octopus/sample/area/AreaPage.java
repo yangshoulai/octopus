@@ -7,8 +7,8 @@ import cn.hutool.poi.excel.ExcelWriter;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Matcher;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.XpathSelector;
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor(matcher = @Matcher(type = Type.HTML))
+@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 public class AreaPage {
 
   @XpathSelector(expression = "//tr[contains(@class, 'tr')]")

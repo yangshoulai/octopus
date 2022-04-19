@@ -4,11 +4,14 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
 import com.octopus.core.Response;
 import com.octopus.core.exception.OctopusException;
+import com.octopus.core.extractor.selector.AttrSelectorHandler;
 import com.octopus.core.extractor.selector.CacheableSelectorHandler;
 import com.octopus.core.extractor.selector.CssSelectorHandler;
 import com.octopus.core.extractor.selector.JsonSelectorHandler;
+import com.octopus.core.extractor.selector.ParamSelectorHandler;
 import com.octopus.core.extractor.selector.RegexSelectorHandler;
 import com.octopus.core.extractor.selector.SelectorHandler;
+import com.octopus.core.extractor.selector.UrlSelectorHandler;
 import com.octopus.core.extractor.selector.XpathSelectorHandler;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -37,6 +40,9 @@ public class Selectors {
     registerSelector(new XpathSelectorHandler());
     registerSelector(new JsonSelectorHandler());
     registerSelector(new RegexSelectorHandler());
+    registerSelector(new UrlSelectorHandler());
+    registerSelector(new ParamSelectorHandler());
+    registerSelector(new AttrSelectorHandler());
   }
 
   @SuppressWarnings("unchecked")

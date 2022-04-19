@@ -8,10 +8,11 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.extractor.annotation.*;
-import com.octopus.core.extractor.annotation.Matcher.Type;
+import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.extractor.format.RegexFormatter;
 import com.octopus.core.extractor.selector.JsonSelector;
 import com.octopus.core.extractor.selector.RegexSelector;
+import com.octopus.core.extractor.selector.UrlSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import lombok.Data;
 
@@ -27,13 +28,13 @@ import java.util.Map;
  * @date 2021/11/30
  */
 @Data
-@Extractor(matcher = @Matcher(type = Type.HTML))
+@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 public class BlogPhoto {
 
   @RegexSelector(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
 
-  @Url
+  @UrlSelector
   @RegexFormatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1)
   private String username;
 
@@ -55,7 +56,7 @@ public class BlogPhoto {
    * @date 2021/11/30
    */
   @Data
-  @Extractor(matcher = @Matcher(type = Type.JSON))
+  @Extractor(matcher = @ExtractorMatcher(type = Type.JSON))
   @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media.url"))
   @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media[0].url"))
   public static class PostResponse {

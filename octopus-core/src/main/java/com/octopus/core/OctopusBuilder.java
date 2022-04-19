@@ -5,13 +5,10 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
-import com.octopus.core.exception.ProcessException;
 import com.octopus.core.extractor.Collector;
 import com.octopus.core.extractor.ExtractorHelper;
-import com.octopus.core.extractor.InvalidExtractorException;
-import com.octopus.core.extractor.Result;
 import com.octopus.core.listener.Listener;
-import com.octopus.core.processor.AbstractProcessor;
+import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.matcher.Matcher;
@@ -21,14 +18,13 @@ import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.store.Store;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import lombok.NonNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -390,32 +386,10 @@ public class OctopusBuilder {
    */
   public <T> OctopusBuilder addProcessor(
       Matcher matcher, @NonNull Class<T> extractorClass, Collector<T> callback) {
-    if (!ExtractorHelper.checkIsValidExtractorClass(extractorClass)) {
-      throw new InvalidExtractorException("Not a valid extractor class");
-    }
     if (matcher == null) {
       matcher = ExtractorHelper.extractMatcher(extractorClass);
     }
-    this.processors.add(
-        new AbstractProcessor(matcher) {
-          @Override
-          public List<Request> process(Response response) {
-            try {
-              Result<T> result = ExtractorHelper.extract(response, extractorClass);
-              if (callback != null) {
-                callback.collect(result.getObj());
-              }
-              return result.getRequests();
-            } catch (Exception e) {
-              throw new ProcessException(
-                  "Error process response from request ["
-                      + response.getRequest()
-                      + "] with extractor "
-                      + extractorClass.getName(),
-                  e);
-            }
-          }
-        });
+    this.processors.add(new ExtractorProcessor<T>(extractorClass, matcher, callback));
     return this;
   }
 
