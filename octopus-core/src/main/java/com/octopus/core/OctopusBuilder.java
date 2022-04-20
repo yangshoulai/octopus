@@ -5,12 +5,13 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
-import com.octopus.core.extractor.Collector;
-import com.octopus.core.extractor.ExtractorHelper;
+import com.octopus.core.processor.extractor.Collector;
+import com.octopus.core.processor.extractor.ExtractorHelper;
 import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
+import com.octopus.core.processor.extractor.InvalidExtractorException;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
@@ -388,6 +389,10 @@ public class OctopusBuilder {
       Matcher matcher, @NonNull Class<T> extractorClass, Collector<T> callback) {
     if (matcher == null) {
       matcher = ExtractorHelper.extractMatcher(extractorClass);
+      if (matcher == null) {
+        throw new InvalidExtractorException(
+            "Extractor " + extractorClass + " does not provide a matcher");
+      }
     }
     this.processors.add(new ExtractorProcessor<T>(extractorClass, matcher, callback));
     return this;

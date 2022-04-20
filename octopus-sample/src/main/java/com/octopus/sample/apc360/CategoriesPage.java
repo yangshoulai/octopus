@@ -1,12 +1,12 @@
 package com.octopus.sample.apc360;
 
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.extractor.convertor.DateConvertor;
-import com.octopus.core.extractor.format.RegexFormatter;
-import com.octopus.core.extractor.selector.JsonSelector;
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
+import com.octopus.core.processor.extractor.convertor.DateConvertor;
+import com.octopus.core.processor.extractor.format.RegexFormatter;
+import com.octopus.core.processor.extractor.selector.JsonSelector;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;

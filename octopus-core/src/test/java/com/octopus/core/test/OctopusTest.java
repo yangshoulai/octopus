@@ -2,12 +2,12 @@ package com.octopus.core.test;
 
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
-import com.octopus.core.extractor.annotation.Body;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.format.RegexFormatter;
-import com.octopus.core.extractor.selector.AttrSelector;
-import com.octopus.core.extractor.selector.ParamSelector;
-import com.octopus.core.extractor.selector.UrlSelector;
+import com.octopus.core.processor.extractor.annotation.Body;
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.format.RegexFormatter;
+import com.octopus.core.processor.extractor.selector.AttrSelector;
+import com.octopus.core.processor.extractor.selector.ParamSelector;
+import com.octopus.core.processor.extractor.selector.UrlSelector;
 import lombok.Data;
 
 /**

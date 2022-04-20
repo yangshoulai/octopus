@@ -6,11 +6,10 @@ import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.extractor.format.RegexFormatter;
-import com.octopus.core.extractor.selector.XpathSelector;
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
+import com.octopus.core.processor.extractor.selector.XpathSelector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -29,7 +28,6 @@ import lombok.extern.slf4j.Slf4j;
 public class AreaPage {
 
   @XpathSelector(expression = "//tr[contains(@class, 'tr')]")
-  @RegexFormatter(format = "<table>%s</table>")
   private List<Area> areas;
 
   public static void main(String[] args) {

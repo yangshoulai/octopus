@@ -2,7 +2,7 @@ package com.octopus.sample.gitee;
 
 import cn.hutool.core.util.NumberUtil;
 import com.octopus.core.Response;
-import com.octopus.core.extractor.format.FormatterHandler;
+import com.octopus.core.processor.extractor.format.FormatterHandler;
 
 /**
  * @author shoulai.yang@gmail.com

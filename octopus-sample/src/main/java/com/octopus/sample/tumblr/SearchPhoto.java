@@ -7,12 +7,12 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.extractor.format.RegexFormatter;
-import com.octopus.core.extractor.selector.JsonSelector;
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
+import com.octopus.core.processor.extractor.format.RegexFormatter;
+import com.octopus.core.processor.extractor.selector.JsonSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 
 import java.net.InetSocketAddress;

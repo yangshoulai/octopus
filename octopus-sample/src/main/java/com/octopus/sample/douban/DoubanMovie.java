@@ -1,17 +1,18 @@
 package com.octopus.sample.douban;
 
 import cn.hutool.core.date.DatePattern;
-import com.octopus.core.extractor.annotation.Extractor;
-import com.octopus.core.extractor.annotation.Link;
-import com.octopus.core.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.extractor.convertor.DateConvertor;
-import com.octopus.core.extractor.format.RegexFormatter;
-import com.octopus.core.extractor.format.SplitFormatter;
-import com.octopus.core.extractor.selector.CssSelector;
-import com.octopus.core.extractor.selector.RegexSelector;
-import com.octopus.core.extractor.selector.XpathSelector;
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.convertor.DateConvertor;
+import com.octopus.core.processor.extractor.format.RegexFormatter;
+import com.octopus.core.processor.extractor.format.SplitFormatter;
+import com.octopus.core.processor.extractor.selector.CssSelector;
+import com.octopus.core.processor.extractor.selector.RegexSelector;
+import com.octopus.core.processor.extractor.selector.XpathSelector;
 import java.util.Date;
+import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 
@@ -41,7 +42,7 @@ public class DoubanMovie {
 
   /** 导演 */
   @XpathSelector(expression = "//a[@rel='v:directedBy']/text()")
-  private String[] directors;
+  private List<String> directors;
 
   /** 编辑 */
   @XpathSelector(expression = "//span[text()='编剧']/../span[@class='attrs']/a/text()")

@@ -3,12 +3,13 @@ package com.octopus.core.processor;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
-import com.octopus.core.extractor.Collector;
-import com.octopus.core.extractor.ExtractorHelper;
-import com.octopus.core.extractor.InvalidExtractorException;
-import com.octopus.core.extractor.Result;
+import com.octopus.core.processor.extractor.Collector;
+import com.octopus.core.processor.extractor.ExtractorHelper;
+import com.octopus.core.processor.extractor.InvalidExtractorException;
+import com.octopus.core.processor.extractor.Result;
 import com.octopus.core.processor.matcher.Matcher;
 import java.util.List;
+import java.util.Objects;
 import lombok.NonNull;
 
 /**
@@ -24,11 +25,17 @@ public class ExtractorProcessor<T> implements Processor {
   private final Collector<T> collector;
 
   public ExtractorProcessor(@NonNull Class<T> extractorClass) {
-    this(extractorClass, ExtractorHelper.extractMatcher(extractorClass), null);
+    this(
+        extractorClass,
+        Objects.requireNonNull(ExtractorHelper.extractMatcher(extractorClass)),
+        null);
   }
 
   public ExtractorProcessor(@NonNull Class<T> extractorClass, Collector<T> collector) {
-    this(extractorClass, ExtractorHelper.extractMatcher(extractorClass), collector);
+    this(
+        extractorClass,
+        Objects.requireNonNull(ExtractorHelper.extractMatcher(extractorClass)),
+        collector);
   }
 
   public ExtractorProcessor(
