@@ -5,7 +5,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.ReUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
 import com.octopus.core.Request.Status;
@@ -13,16 +12,18 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.exception.BadStatusException;
 import com.octopus.core.exception.DownloadException;
+import com.octopus.core.exception.IllegalStateException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
-import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.store.Store;
+import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -72,7 +73,7 @@ class OctopusImpl implements Octopus {
 
   private final List<WebSite> webSites;
 
-  private final List<Listener> listeners;
+  private final List<OctopusListener> listeners;
 
   private final List<Processor> processors;
 
@@ -134,7 +135,7 @@ class OctopusImpl implements Octopus {
   @Override
   public Future<Void> startAsync() throws OctopusException {
     if (!this.translateState(State.NEW, State.STARTING)) {
-      throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
+      throw new IllegalStateException(this.state.get());
     }
     if (this.debug && this.logger.isDebugEnabled()) {
       logger.debug("Octopus starting");
@@ -170,7 +171,7 @@ class OctopusImpl implements Octopus {
     State state = this.state.get();
     boolean isStarted = state == State.STARTED || state == State.IDLE;
     if (!isStarted || !this.translateState(state, State.STOPPING)) {
-      throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
+      throw new IllegalStateException(this.state.get());
     }
     if (this.debug && this.logger.isDebugEnabled()) {
       logger.debug("Octopus stopping");
@@ -209,7 +210,7 @@ class OctopusImpl implements Octopus {
   public void addRequest(@NonNull Request request) throws OctopusException {
     State state = this.state.get();
     if (state.getState() >= State.STOPPING.getState()) {
-      throw new OctopusException("Illegal octopus state [" + this.state.get().getLabel() + "]");
+      throw new IllegalStateException(this.state.get());
     }
     request.setId(RequestHelper.generateId(request));
     if (state.getState() <= State.NEW.getState()) {
@@ -270,9 +271,9 @@ class OctopusImpl implements Octopus {
                   }
                   this.store.markAsCompleted(request);
                 } catch (DownloadException e) {
+                  logger.error("Download [{}] error!", request, e);
                   this.store.markAsFailed(request, e.getMessage());
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
-                  logger.error("Download [{}] error!", request, e);
                 } catch (Throwable e) {
                   logger.error("", e);
                   this.store.markAsFailed(request, e.getMessage());
@@ -289,7 +290,7 @@ class OctopusImpl implements Octopus {
         } else if (this.store.getWaitingSize() <= 0) {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
-            if (this.replayFailedRequest && this.replayTimes < this.maxReplays) {
+            if (this.autoStop && this.replayFailedRequest && this.replayTimes < this.maxReplays) {
               List<Request> failed = this.store.getFailed();
               failed =
                   failed == null
@@ -364,38 +365,40 @@ class OctopusImpl implements Octopus {
     List<Processor> matchedProcessors =
         this.processors.stream().filter(p -> p.matches(response)).collect(Collectors.toList());
     if (matchedProcessors.isEmpty()) {
-      throw new ProcessorNotFoundException(
-          String.format("No processor found for request [%s]", response.getRequest().toString()));
+      throw new ProcessorNotFoundException(response.getRequest());
     }
     for (Processor processor : matchedProcessors) {
       List<Request> newRequests = processor.process(response);
       this.listeners.forEach(listener -> listener.afterProcess(response, newRequests));
-      if (newRequests != null) {
-        newRequests.stream()
-            .sorted()
-            .forEach(
-                request -> {
-                  request.setParent(response.getRequest().getId());
-                  if (request.isInherit() && response.getRequest().getAttributes() != null) {
-                    Map<String, Object> attrs = response.getRequest().getAttributes();
-                    attrs.forEach(
-                        (k, v) -> {
-                          if (request.getAttribute(k) == null) {
-                            request.putAttribute(k, v);
-                          }
-                        });
-                  }
-                  if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
+      this.addNewRequests(response.getRequest(), newRequests);
+    }
+  }
 
-                    request
-                        .getHeaders()
-                        .put(
-                            Header.REFERER.getValue(),
-                            ReUtil.get(BASE_URL_PATTERN, response.getRequest().getUrl(), 1));
-                  }
-                  this.addRequest(request);
-                });
-      }
+  private void addNewRequests(Request parentRequest, List<Request> newRequests) {
+    if (newRequests != null) {
+      newRequests.stream()
+          .sorted()
+          .forEach(
+              request -> {
+                request.setParent(parentRequest.getId());
+                if (request.isInherit() && parentRequest.getAttributes() != null) {
+                  Map<String, Object> attrs = parentRequest.getAttributes();
+                  attrs.forEach(
+                      (k, v) -> {
+                        if (request.getAttribute(k) == null) {
+                          request.putAttribute(k, v);
+                        }
+                      });
+                }
+                if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
+                  request
+                      .getHeaders()
+                      .put(
+                          Header.REFERER.getValue(),
+                          ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
+                }
+                this.addRequest(request);
+              });
     }
   }
 
@@ -403,27 +406,20 @@ class OctopusImpl implements Octopus {
     if (this.debug && this.logger.isDebugEnabled()) {
       logger.debug("Start all rate limiters");
     }
-    this.webSites.forEach(
-        site -> {
-          if (site.getRateLimiter() != null) {
-            if (StrUtil.isBlank(site.getRateLimiter().getName())) {
-              site.getRateLimiter().setName("rate-limiter/" + site.getHost());
-            }
-            site.getRateLimiter().start();
-          }
-        });
+    this.webSites.stream()
+        .map(WebSite::getRateLimiter)
+        .filter(Objects::nonNull)
+        .forEach(RateLimiter::start);
   }
 
   private void stopRateLimiters() {
     if (this.debug && this.logger.isDebugEnabled()) {
       logger.debug("Stop all rate limiters");
     }
-    this.webSites.forEach(
-        site -> {
-          if (site.getRateLimiter() != null) {
-            site.getRateLimiter().stop();
-          }
-        });
+    this.webSites.stream()
+        .map(WebSite::getRateLimiter)
+        .filter(Objects::nonNull)
+        .forEach(RateLimiter::stop);
   }
 
   private boolean translateState(State from, State to) {

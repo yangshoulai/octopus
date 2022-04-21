@@ -20,5 +20,7 @@ public @interface DateConvertor {
 
   String pattern() default DatePattern.NORM_DATETIME_PATTERN;
 
+  String def() default "";
+
   boolean ignorable() default true;
 }

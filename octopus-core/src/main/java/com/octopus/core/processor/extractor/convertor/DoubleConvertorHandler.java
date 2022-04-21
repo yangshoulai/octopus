@@ -3,7 +3,8 @@ package com.octopus.core.processor.extractor.convertor;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
-import com.octopus.core.exception.OctopusException;
+import com.octopus.core.processor.extractor.ConvertException;
+import java.util.Date;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -14,23 +15,18 @@ import lombok.extern.slf4j.Slf4j;
 public class DoubleConvertorHandler implements ConvertorHandler<Double, DoubleConvertor> {
 
   @Override
-  public Double convert(String val, DoubleConvertor format, Response response) {
+  public Double convert(String val, DoubleConvertor format, Response response)
+      throws ConvertException {
     if (StrUtil.isBlank(val)) {
-      return format != null ? format.def() : null;
+      return format.def();
     }
     try {
       return NumberUtil.parseDouble(val);
     } catch (Exception e) {
-      if (format != null && !format.ignorable()) {
-        throw new OctopusException(e);
+      if (!format.ignorable()) {
+        throw new ConvertException(val, Double.class);
       }
-      log.debug("", e);
     }
     return null;
-  }
-
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {double.class, Double.class};
   }
 }

@@ -6,5 +6,10 @@ package com.octopus.core.processor.extractor;
  */
 public interface Collector<R> {
 
+  /**
+   * 提取结果收集
+   *
+   * @param r 结果
+   */
   void collect(R r);
 }

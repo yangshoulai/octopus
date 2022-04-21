@@ -3,7 +3,7 @@ package com.octopus.core.processor.extractor.convertor;
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
-import com.octopus.core.exception.OctopusException;
+import com.octopus.core.processor.extractor.ConvertException;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -14,23 +14,17 @@ import lombok.extern.slf4j.Slf4j;
 public class LongConvertorHandler implements ConvertorHandler<Long, LongConvertor> {
 
   @Override
-  public Long convert(String val, LongConvertor format, Response response) {
+  public Long convert(String val, LongConvertor format, Response response) throws ConvertException {
     if (StrUtil.isBlank(val)) {
-      return format != null ? format.def() : null;
+      return format.def();
     }
     try {
       return NumberUtil.parseLong(val);
     } catch (Exception e) {
-      if (format != null && !format.ignorable()) {
-        throw new OctopusException(e);
+      if (!format.ignorable()) {
+        throw new ConvertException(val, Long.class);
       }
-      log.debug("", e);
     }
     return null;
-  }
-
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {long.class, Long.class};
   }
 }

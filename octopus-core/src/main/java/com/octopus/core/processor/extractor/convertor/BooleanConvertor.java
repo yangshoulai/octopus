@@ -18,4 +18,6 @@ import java.lang.annotation.Target;
 public @interface BooleanConvertor {
 
   boolean def() default false;
+
+  String[] falseValues() default {"0", "非", "否", "off", "no", "f"};
 }

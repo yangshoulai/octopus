@@ -19,6 +19,5 @@ public @interface DoubleConvertor {
 
   double def() default 0d;
 
-
   boolean ignorable() default true;
 }

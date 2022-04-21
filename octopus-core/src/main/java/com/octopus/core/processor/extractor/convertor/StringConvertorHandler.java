@@ -1,6 +1,7 @@
 package com.octopus.core.processor.extractor.convertor;
 
 import com.octopus.core.Response;
+import com.octopus.core.processor.extractor.ConvertException;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -9,15 +10,8 @@ import com.octopus.core.Response;
 public class StringConvertorHandler implements ConvertorHandler<String, StringConvertor> {
 
   @Override
-  public String convert(String val, StringConvertor format, Response response) {
-    if (format != null) {
-      return String.format(format.format(), (val == null ? format.def() : val));
-    }
-    return val;
-  }
-
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {CharSequence.class, String.class};
+  public String convert(String val, StringConvertor format, Response response)
+      throws ConvertException {
+    return String.format(format.format(), (val == null ? format.def() : val));
   }
 }

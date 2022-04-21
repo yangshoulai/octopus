@@ -1,7 +1,5 @@
-package com.octopus.core.listener;
+package com.octopus.core;
 
-import com.octopus.core.Request;
-import com.octopus.core.Response;
 import com.octopus.core.exception.DownloadException;
 import java.util.List;
 
@@ -11,7 +9,7 @@ import java.util.List;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/19
  */
-public interface Listener {
+public interface OctopusListener {
 
   /**
    * 请求进入队列之前

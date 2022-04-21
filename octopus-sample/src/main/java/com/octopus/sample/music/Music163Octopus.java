@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
-import com.octopus.core.listener.AttributeInheritListener;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.utils.RateLimiter;
 
@@ -22,7 +21,6 @@ public class Music163Octopus {
         .autoStop()
         .addSeeds("https://music.163.com/discover/toplist?id=3778678")
         .addSite(WebSite.of("music.163.com").setRateLimiter(RateLimiter.of(1, 5)))
-        .addListener(new AttributeInheritListener())
         .addProcessor(new ListPageProcessor())
         .addProcessor(new PlayerUrlProcessor())
         .addProcessor(

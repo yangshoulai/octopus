@@ -1,5 +1,6 @@
 package com.octopus.core;
 
+import cn.hutool.core.util.StrUtil;
 import com.mongodb.MongoClient;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -7,7 +8,6 @@ import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.processor.extractor.ExtractorHelper;
-import com.octopus.core.listener.Listener;
 import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
@@ -41,7 +41,7 @@ public class OctopusBuilder {
 
   private final List<WebSite> sites = new ArrayList<>();
 
-  private final List<Listener> listeners = new ArrayList<>();
+  private final List<OctopusListener> listeners = new ArrayList<>();
 
   private final List<Processor> processors = new ArrayList<>();
 
@@ -318,6 +318,9 @@ public class OctopusBuilder {
    * @return OctopusBuilder
    */
   public OctopusBuilder addSite(@NonNull WebSite site) {
+    if (site.getRateLimiter() != null && StrUtil.isBlank(site.getRateLimiter().getName())) {
+      site.getRateLimiter().setName("rate-limiter/" + site.getHost());
+    }
     this.sites.add(site);
     return this;
   }
@@ -328,7 +331,7 @@ public class OctopusBuilder {
    * @param listener 监听器
    * @return OctopusBuilder
    */
-  public OctopusBuilder addListener(@NonNull Listener listener) {
+  public OctopusBuilder addListener(@NonNull OctopusListener listener) {
     this.listeners.add(listener);
     return this;
   }
@@ -572,7 +575,7 @@ public class OctopusBuilder {
     return sites;
   }
 
-  public List<Listener> getListeners() {
+  public List<OctopusListener> getListeners() {
     return listeners;
   }
 
@@ -632,6 +635,7 @@ public class OctopusBuilder {
     if (this.processors.isEmpty()) {
       processors.add(new LoggerProcessor());
     }
+
     return new OctopusImpl(this);
   }
 }

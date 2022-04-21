@@ -2,6 +2,7 @@ package com.octopus.core.processor.extractor.convertor;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
+import com.octopus.core.processor.extractor.ConvertException;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -10,15 +11,11 @@ import com.octopus.core.Response;
 public class CharacterConvertorHandler implements ConvertorHandler<Character, CharacterConvertor> {
 
   @Override
-  public Character convert(String val, CharacterConvertor format, Response response) {
+  public Character convert(String val, CharacterConvertor format, Response response)
+      throws ConvertException {
     if (StrUtil.isBlank(val)) {
       return null;
     }
     return val.charAt(0);
-  }
-
-  @Override
-  public Class<?>[] getSupportClasses() {
-    return new Class[] {boolean.class, Boolean.class};
   }
 }

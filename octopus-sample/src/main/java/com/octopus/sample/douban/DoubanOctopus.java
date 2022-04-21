@@ -17,6 +17,7 @@ public class DoubanOctopus {
   public static void main(String[] args) {
     List<DoubanMovie> movies = new ArrayList<>();
     Octopus.builder()
+        .debug()
         .addSite(WebSite.of("movie.douban.com").setRateLimiter(1))
         .addSeeds("https://movie.douban.com/top250?start=0&filter=")
         // 通过注解来提取页面影片数据
