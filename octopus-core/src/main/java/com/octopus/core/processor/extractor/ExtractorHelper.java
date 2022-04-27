@@ -23,6 +23,7 @@ import com.octopus.core.processor.matcher.Matcher;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.GenericArrayType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
@@ -35,6 +36,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.NonNull;
@@ -45,7 +47,7 @@ import lombok.NonNull;
  */
 public class ExtractorHelper {
 
-  private static final Set<Class<?>> VALID_EXTRACTOR_CLS = new HashSet<>();
+  private static final Set<String> VALID_EXTRACTOR_CLS = new HashSet<>();
 
   private static final Map<Class<? extends Collection>, Class<? extends Collection>>
       VALID_COLLECTION_MAP = new HashMap<>();
@@ -65,56 +67,71 @@ public class ExtractorHelper {
     return !Collection.class.isAssignableFrom(type) || VALID_COLLECTION_MAP.containsKey(type);
   }
 
-  private static Class<?> getActualFieldType(Field field) {
-    Class<?> type = field.getType();
-    if (type.isArray()) {
-      return type.getComponentType();
-    } else if (Collection.class.isAssignableFrom(type)) {
-      Type actualType = TypeUtil.getActualType(type, field.getGenericType());
-      if (actualType != null) {
+  private static ConvertType getFieldConvertType(Type type, Field field) {
+    ConvertType convertType = new ConvertType();
+    Type actualType = TypeUtil.getActualType(type, field);
+    Class<?> clz = TypeUtil.getClass(actualType);
+    if (clz != null) {
+      convertType.setArray(clz.isArray());
+      convertType.setCollection(Collection.class.isAssignableFrom(clz));
+      convertType.setActualType(actualType);
+      if (clz.isArray()) {
+        convertType.setComponentType(clz.getComponentType());
+      } else if (Collection.class.isAssignableFrom(clz)) {
         Type[] types = TypeUtil.toParameterizedType(actualType).getActualTypeArguments();
         if (types != null && types.length > 0) {
-          return TypeUtil.getClass(types[0]);
+          convertType.setActualType(types[0]);
+          convertType.setComponentType(TypeUtil.getClass(types[0]));
         }
+        convertType.setCollectionClass(clz);
+      } else {
+        convertType.setComponentType(clz);
       }
-      return null;
+    } else if (actualType instanceof GenericArrayType) {
+      convertType.setArray(true);
+      actualType =
+          TypeUtil.getActualType(type, ((GenericArrayType) actualType).getGenericComponentType());
+      convertType.setActualType(actualType);
+      convertType.setComponentType(TypeUtil.getClass(actualType));
     }
-    return type;
-  }
-
-  private static Class<?> getActualClass(Field field) {
-    Type actualType = TypeUtil.getActualType(TypeUtil.getClass(field), field);
-    if (actualType != null) {
-      Type[] types = TypeUtil.toParameterizedType(actualType).getActualTypeArguments();
-      if (types != null && types.length > 0) {
-        return TypeUtil.getClass(types[0]);
-      }
-    }
-    return null;
+    return convertType;
   }
 
   public static boolean checkIsValidExtractorClass(@NonNull Class<?> type) {
-    checkIsValidExtractorClass(type, new HashSet<>());
+    return checkIsValidExtractorClass(type, type);
+  }
+
+  public static boolean checkIsValidExtractorClass(
+      @NonNull Class<?> type, @NonNull Type actualType) {
+    checkIsValidExtractorClass(type, actualType, new HashSet<>());
     return true;
   }
 
+  private static Field[] getFieldAnnotatedBySelector(Class<?> cls) {
+    return ReflectUtil.getFields(
+        cls, f -> f.getAnnotation(Body.class) != null || Selectors.hasSelectorAnnotation(f));
+  }
+
   private static void checkIsValidExtractorClass(
-      @NonNull Class<?> type, Collection<Class<?>> checkedClasses)
+      @NonNull Class<?> type, @NonNull Type actualType, Collection<String> checkedClasses)
       throws InvalidExtractorException {
-    if (VALID_EXTRACTOR_CLS.contains(type)) {
+    if (VALID_EXTRACTOR_CLS.contains(actualType.toString())) {
       return;
     }
     if (type.isAnnotationPresent(Extractor.class)) {
-      checkedClasses.add(type);
-      Field[] fields = type.getDeclaredFields();
+      checkedClasses.add(actualType.toString());
+      Field[] fields = getFieldAnnotatedBySelector(type);
       for (Field field : fields) {
-        Class<?> fieldType = TypeUtil.getClass(field);
-
+        ConvertType convertType = getFieldConvertType(actualType, field);
+        if (convertType.getComponentType() == null) {
+          throw new InvalidExtractorException(
+              "Field type [" + type + "@" + field + "] is not convertible");
+        }
         // check @Body
-        checkIsValidBodyField(field, fieldType);
+        checkIsValidBodyField(field, convertType);
 
         // check Selector annotations
-        checkIsValidSelectorFiled(field, fieldType, type, checkedClasses);
+        checkIsValidSelectorFiled(field, convertType, type, checkedClasses);
 
         // check format annotations
         checkIsValidFormatAnnotations(field);
@@ -136,7 +153,7 @@ public class ExtractorHelper {
         checkIsValidLink(type, link);
       }
 
-      VALID_EXTRACTOR_CLS.add(type);
+      VALID_EXTRACTOR_CLS.add(actualType.toString());
     } else {
       throw new InvalidExtractorException(
           String.format("Class [%s] must has annotation @Extractor", type.getName()));
@@ -177,10 +194,10 @@ public class ExtractorHelper {
     }
   }
 
-  private static void checkIsValidBodyField(Field field, Class<?> fieldType) {
+  private static void checkIsValidBodyField(Field field, ConvertType convertType) {
     Body body = field.getAnnotation(Body.class);
     if (body != null) {
-      if (!fieldType.isArray() || !byte.class.equals(fieldType.getComponentType())) {
+      if (!convertType.isArray() || !byte.class.equals(convertType.getComponentType())) {
         throw new InvalidExtractorException(
             "@Body annotation only supported byte array type, e.g. @Body byte[] body;");
       }
@@ -188,27 +205,24 @@ public class ExtractorHelper {
   }
 
   private static void checkIsValidSelectorFiled(
-      Field field, Class<?> fieldType, Class<?> type, Collection<Class<?>> checkedClasses) {
+      Field field, ConvertType convertType, Class<?> type, Collection<String> checkedClasses) {
     if (Selectors.hasSelectorAnnotation(field)) {
       if (Selectors.getSelectorAnnotations(field).size() > 1) {
         throw new InvalidExtractorException("Multi selectors found on class " + type);
       }
-      if (!isValidCollectionType(fieldType)) {
+      if (convertType.isCollection() && !isValidCollectionType(convertType.getCollectionClass())) {
         throw new InvalidExtractorException(
             "Not supported collection type "
-                + fieldType
+                + convertType.getCollectionClass()
                 + " on field "
                 + field
                 + " in class "
                 + type);
       }
-      Class<?> actualType = getActualFieldType(field);
-      if (actualType == null) {
-        throw new InvalidExtractorException(
-            "Can not get actual type of filed " + field.getName() + " on class " + type);
-      }
-      if (!checkedClasses.contains(actualType) && !Convertors.isConvertibleType(actualType)) {
-        checkIsValidExtractorClass(actualType, checkedClasses);
+      Class<?> componentType = convertType.getComponentType();
+
+      if (!checkedClasses.contains(componentType) && !Convertors.isConvertibleType(componentType)) {
+        checkIsValidExtractorClass(componentType, convertType.getActualType(), checkedClasses);
       }
     }
   }
@@ -296,18 +310,23 @@ public class ExtractorHelper {
   }
 
   public static <T> Result<T> extract(Response response, Class<T> extractorClass) {
-    return extract(response.asText(), extractorClass, response);
+    return extract(response.asText(), extractorClass, extractorClass, response);
   }
 
-  private static <T> Result<T> extract(String content, Class<T> extractorClass, Response response) {
-    if (StrUtil.isBlank(content) || !checkIsValidExtractorClass(extractorClass)) {
+  private static <T> Result<T> extract(
+      String content, Class<T> extractorClass, Type actualType, Response response) {
+    if (StrUtil.isBlank(content)
+        || !checkIsValidExtractorClass(extractorClass, Objects.requireNonNull(actualType))) {
       return new Result<>();
     }
     T t = ReflectUtil.newInstance(extractorClass);
     List<Request> requests = new ArrayList<>();
 
     // 提取内容
-    Field[] fields = extractorClass.getDeclaredFields();
+    Field[] fields =
+        ReflectUtil.getFields(
+            extractorClass,
+            f -> f.getAnnotation(Body.class) != null || Selectors.hasSelectorAnnotation(f));
     for (Field field : fields) {
       if (field.getAnnotation(Body.class) != null) {
         ReflectUtil.setFieldValue(t, field, response.getBody());
@@ -319,7 +338,8 @@ public class ExtractorHelper {
         selected = Selectors.select(content, field, response);
       }
       if (selected != null) {
-        Object obj = convert(field, selected, requests, response);
+        ConvertType convertType = getFieldConvertType(actualType, field);
+        Object obj = convert(field, convertType, selected, requests, response);
         if (obj != null) {
           ReflectUtil.setFieldValue(t, field, obj);
         }
@@ -409,51 +429,57 @@ public class ExtractorHelper {
 
   @SuppressWarnings("unchecked")
   private static Object convert(
-      Field field, List<String> selected, List<Request> requests, Response response) {
-    Class<?> fieldType = TypeUtil.getClass(field);
-    if (fieldType.isArray() || Collection.class.isAssignableFrom(fieldType)) {
-      Class<?> componentType =
-          fieldType.isArray() ? fieldType.getComponentType() : getActualClass(field);
-      if (componentType != null) {
-        List<Object> list = new ArrayList<>();
-        if (Convertors.isConvertibleType(componentType)) {
-          for (String content : selected) {
-            List<String> formatted = format(content, field, response);
-            for (String s : formatted) {
-              list.add(Convertors.convert(componentType, s, field, response));
-            }
-          }
-        } else if (componentType.isAnnotationPresent(Extractor.class)) {
-          for (String content : selected) {
-            List<String> formatted = format(content, field, response);
-            for (String s : formatted) {
-              Result<?> result = extract(s, componentType, response);
-              if (result.getObj() != null) {
-                list.add(result.getObj());
-              }
-              if (result.getRequests() != null) {
-                requests.addAll(result.getRequests());
-              }
-            }
+      Field field,
+      ConvertType convertType,
+      List<String> selected,
+      List<Request> requests,
+      Response response) {
+    if (convertType.isArray() || convertType.isCollection()) {
+      List<Object> list = new ArrayList<>();
+      if (Convertors.isConvertibleType(convertType.getComponentType())) {
+        for (String content : selected) {
+          List<String> formatted = format(content, field, response);
+          for (String s : formatted) {
+            list.add(Convertors.convert(convertType.getComponentType(), s, field, response));
           }
         }
-
-        if (fieldType.isArray()) {
-          return list.toArray();
-        } else {
-          Collection<Object> collection =
-              ReflectUtil.newInstance(VALID_COLLECTION_MAP.get(fieldType));
-          collection.addAll(list);
-          return collection;
+      } else if (convertType.getComponentType().isAnnotationPresent(Extractor.class)) {
+        for (String content : selected) {
+          List<String> formatted = format(content, field, response);
+          for (String s : formatted) {
+            Result<?> result =
+                extract(s, convertType.getComponentType(), convertType.getActualType(), response);
+            if (result.getObj() != null) {
+              list.add(result.getObj());
+            }
+            if (result.getRequests() != null) {
+              requests.addAll(result.getRequests());
+            }
+          }
         }
       }
-    } else if (Convertors.isConvertibleType(fieldType) && !selected.isEmpty()) {
+      if (convertType.isArray()) {
+        return list.toArray();
+      } else {
+        Collection<Object> collection =
+            ReflectUtil.newInstance(VALID_COLLECTION_MAP.get(convertType.getCollectionClass()));
+        collection.addAll(list);
+        return collection;
+      }
+    } else if (Convertors.isConvertibleType(convertType.getComponentType())
+        && !selected.isEmpty()) {
       List<String> formatted = format(selected.get(0), field, response);
       return formatted.isEmpty()
           ? null
-          : Convertors.convert(fieldType, formatted.get(0), field, response);
-    } else if (fieldType.isAnnotationPresent(Extractor.class) && !selected.isEmpty()) {
-      Result<?> result = extract(selected.get(0), fieldType, response);
+          : Convertors.convert(convertType.getComponentType(), formatted.get(0), field, response);
+    } else if (convertType.getComponentType().isAnnotationPresent(Extractor.class)
+        && !selected.isEmpty()) {
+      Result<?> result =
+          extract(
+              selected.get(0),
+              convertType.getComponentType(),
+              convertType.getActualType(),
+              response);
       if (result.getRequests() != null) {
         requests.addAll(result.getRequests());
       }
