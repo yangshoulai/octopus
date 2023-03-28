@@ -1,16 +1,13 @@
 package com.octopus.core.processor.extractor;
 
-import java.lang.reflect.Type;
 import lombok.Data;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2022/4/27
+ * @date 2023/3/28
  */
 @Data
-class ConvertType {
-
-  private Type actualType;
+public class FieldType {
 
   private boolean isArray;
 
@@ -18,5 +15,7 @@ class ConvertType {
 
   private Class<?> collectionClass;
 
-  private Class<?> componentType;
+  private Class<?> componentClass;
+
+
 }
