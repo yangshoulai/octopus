@@ -8,6 +8,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 /**
@@ -16,28 +17,32 @@ import org.jsoup.select.Elements;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CssSelectorHandler extends CacheableSelectorHandler<Document, CssSelector> {
+public class CssSelectorHandler extends CacheableSelectorHandler<Document> {
 
   @Override
-  public List<String> selectWithType(Document document, CssSelector selector, Response response) {
-    Elements elements = document.select(selector.expression());
-    List<String> selected =
-        elements.stream()
-            .map(
-                e -> {
-                  if (StrUtil.isNotBlank(selector.attr())) {
-                    return e.attr(selector.attr());
-                  } else if (selector.self()) {
-                    return e.toString();
-                  } else {
-                    return e.text();
-                  }
-                })
-            .filter(s -> !selector.filter() || StrUtil.isNotBlank(s))
-            .map(s -> selector.trim() ? StrUtil.trim(s) : s)
-            .collect(Collectors.toList());
-
-    return filterResults(selected, selector.filter(), selector.trim(), selector.multi());
+  public List<String> doSelectWithDoc(
+      Document document, Selector selector, boolean multi, Response response) {
+    Elements elements = new Elements();
+    if (multi) {
+      elements = document.select(selector.value());
+    } else {
+      Element e = document.selectFirst(selector.value());
+      if (e != null) {
+        elements = new Elements(e);
+      }
+    }
+    return elements.stream()
+        .map(
+            e -> {
+              if (StrUtil.isNotBlank(selector.attr())) {
+                return e.attr(selector.attr());
+              } else if (selector.self()) {
+                return e.toString();
+              } else {
+                return e.text();
+              }
+            })
+        .collect(Collectors.toList());
   }
 
   @Override

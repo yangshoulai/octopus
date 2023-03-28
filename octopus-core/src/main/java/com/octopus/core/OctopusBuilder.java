@@ -6,13 +6,10 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
-import com.octopus.core.processor.extractor.Collector;
-import com.octopus.core.processor.extractor.ExtractorHelper;
 import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
-import com.octopus.core.processor.extractor.InvalidExtractorException;
-import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.MemoryStore;
@@ -354,50 +351,19 @@ public class OctopusBuilder {
    * @return OctopusBuilder
    */
   public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass) {
-    return this.addProcessor(null, extractorClass);
+    return this.addProcessor(extractorClass, null);
   }
 
   /**
    * 添加响应处理器
    *
-   * @param extractorClass 响应提取器
-   * @param callback 回调
-   * @return OctopusBuilder
-   */
-  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Collector<T> callback) {
-    return this.addProcessor(null, extractorClass, callback);
-  }
-
-  /**
-   * 添加响应处理器
-   *
-   * @param extractorClass 响应提取器
-   * @param matcher 匹配器
-   * @return OctopusBuilder
-   */
-  public <T> OctopusBuilder addProcessor(Matcher matcher, @NonNull Class<T> extractorClass) {
-    return this.addProcessor(matcher, extractorClass, null);
-  }
-
-  /**
-   * 添加响应处理器
-   *
-   * @param matcher 匹配器
    * @param extractorClass 响应提取器
    * @param callback 回调
    * @param <T> 提取内容
    * @return OctopusBuilder
    */
-  public <T> OctopusBuilder addProcessor(
-      Matcher matcher, @NonNull Class<T> extractorClass, Collector<T> callback) {
-    if (matcher == null) {
-      matcher = ExtractorHelper.extractMatcher(extractorClass);
-      if (matcher == null) {
-        throw new InvalidExtractorException(
-            "Extractor " + extractorClass + " does not provide a matcher");
-      }
-    }
-    this.processors.add(new ExtractorProcessor<T>(extractorClass, matcher, callback));
+  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Collector<T> callback) {
+    this.processors.add(new ExtractorProcessor<T>(extractorClass, callback));
     return this;
   }
 

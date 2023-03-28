@@ -10,8 +10,6 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.xml.xpath.XPathConstants;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
@@ -24,9 +22,7 @@ import org.w3c.dom.NodeList;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-@EqualsAndHashCode(callSuper = true)
-@Data
-public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSelector> {
+public class XpathSelectorHandler extends CacheableSelectorHandler<Node> {
 
   private static final String TAG_TD = "td";
 
@@ -34,9 +30,9 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
 
   private static final String TAG_TABLE = "table";
 
-  private HtmlCleaner cleaner;
+  private final HtmlCleaner cleaner;
 
-  private DomSerializer serializer;
+  private final DomSerializer serializer;
 
   public XpathSelectorHandler() {
     CleanerProperties properties = new CleanerProperties();
@@ -45,12 +41,13 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
   }
 
   @Override
-  public List<String> selectWithType(Node document, XpathSelector selector, Response response) {
+  public List<String> doSelectWithDoc(
+      Node document, Selector selector, boolean multi, Response response) {
     List<String> results = new ArrayList<>();
-
     if (selector.node()) {
-      NodeList nodes = XmlUtil.getNodeListByXPath(selector.expression(), document);
-      for (int i = 0; i < nodes.getLength(); i++) {
+      NodeList nodes = XmlUtil.getNodeListByXPath(selector.value(), document);
+      int end = multi ? nodes.getLength() : 1;
+      for (int i = 0; i < end; i++) {
         Node node = nodes.item(i);
         String value = null;
         if (node instanceof CharacterData) {
@@ -66,13 +63,12 @@ public class XpathSelectorHandler extends CacheableSelectorHandler<Node, XpathSe
         results.add(value);
       }
     } else {
-      Object val = XmlUtil.getByXPath(selector.expression(), document, XPathConstants.STRING);
+      Object val = XmlUtil.getByXPath(selector.value(), document, XPathConstants.STRING);
       if (val != null) {
         results.add(val.toString());
       }
     }
-
-    return filterResults(results, selector.filter(), selector.trim(), selector.multi());
+    return results;
   }
 
   @Override

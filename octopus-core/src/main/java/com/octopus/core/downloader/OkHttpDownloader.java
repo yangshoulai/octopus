@@ -1,6 +1,5 @@
 package com.octopus.core.downloader;
 
-import cn.hutool.core.map.MapBuilder;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.util.URLUtil;
@@ -24,7 +23,7 @@ import okhttp3.ResponseBody;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
  */
-public class OkHttpDownloader implements Downloader {
+public class OkHttpDownloader extends AbstractDownloader {
 
   private final ConnectionPool connectionPool;
 
@@ -34,30 +33,27 @@ public class OkHttpDownloader implements Downloader {
 
   @Override
   public Response download(Request request, DownloadConfig config) throws DownloadException {
-    Proxy proxy =
-        config.getProxyProvider() != null ? config.getProxyProvider().provide(request) : null;
-    proxy = proxy == null ? Proxy.NO_PROXY : proxy;
-    try {
-      okhttp3.Response response =
-          new OkHttpClient.Builder()
-              .connectionPool(this.connectionPool)
-              .hostnameVerifier(new TrustAnyHostnameVerifier())
-              .connectTimeout(config.getConnectTimeout(), TimeUnit.MILLISECONDS)
-              .readTimeout(config.getSocketTimeout(), TimeUnit.MILLISECONDS)
-              .writeTimeout(config.getSocketTimeout(), TimeUnit.MILLISECONDS)
-              .callTimeout(
-                  2L * (config.getConnectTimeout() + config.getSocketTimeout()),
-                  TimeUnit.MILLISECONDS)
-              .proxy(proxy)
-              .build()
-              .newCall(createRequest(request, config))
-              .execute();
+    Proxy proxy = this.resolveProxy(config.getProxyProvider(), request);
+    try (okhttp3.Response response =
+        new OkHttpClient.Builder()
+            .connectionPool(this.connectionPool)
+            .hostnameVerifier(new TrustAnyHostnameVerifier())
+            .connectTimeout(config.getConnectTimeout(), TimeUnit.MILLISECONDS)
+            .readTimeout(config.getSocketTimeout(), TimeUnit.MILLISECONDS)
+            .writeTimeout(config.getSocketTimeout(), TimeUnit.MILLISECONDS)
+            .callTimeout(
+                2L * (config.getConnectTimeout() + config.getSocketTimeout()),
+                TimeUnit.MILLISECONDS)
+            .proxy(proxy)
+            .build()
+            .newCall(createRequest(request, config))
+            .execute()) {
       Response r = new Response(request);
       r.setStatus(response.code());
       Charset charset = null;
       String mineType = null;
-      if (response.body() != null) {
-        ResponseBody body = response.body();
+      ResponseBody body = response.body();
+      if (body != null) {
         r.setBody(body.bytes());
         MediaType mediaType = body.contentType();
         if (mediaType != null) {

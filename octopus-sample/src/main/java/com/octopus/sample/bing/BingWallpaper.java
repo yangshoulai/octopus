@@ -4,12 +4,12 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
+import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.selector.XpathSelector;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Selector;
 
 /**
  * 下载必应壁纸 https://bing.ioliu.cn/
@@ -19,10 +19,10 @@ import com.octopus.core.processor.MediaFileDownloadProcessor;
  */
 @Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 @Link(
-    xpathSelectors = @XpathSelector(expression = "//a[text()='下一页']/@href", multi = false),
+    selectors = @Selector(type = Selector.Type.Xpath, value = "//a[text()='下一页']/@href"),
     repeatable = false)
 @Link(
-    xpathSelectors = @XpathSelector(expression = "//a[@class='ctrl download']/@href"),
+    selectors = @Selector(type = Selector.Type.Xpath, value = "//a[@class='ctrl download']/@href"),
     repeatable = false,
     priority = 2)
 public class BingWallpaper {

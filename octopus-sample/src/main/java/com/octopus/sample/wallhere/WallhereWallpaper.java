@@ -8,16 +8,15 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
+import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.annotation.Links;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.CssSelector;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
-import com.octopus.core.processor.extractor.selector.XpathSelector;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Selector.Type;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,14 +29,11 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @Data
-@Extractor
-@Links(
-    @Link(
-        cssSelectors =
-            @CssSelector(expression = ".hub-photomodal > a", multi = false, attr = "href")))
+@Extractor(matcher = @ExtractorMatcher(type = ExtractorMatcher.Type.JSON))
+@Links(@Link(selectors = @Selector(value = ".hub-photomodal > a", attr = "href")))
 public class WallhereWallpaper {
 
-  @JsonSelector(expression = "$.data")
+  @Selector(type = Type.Json, value = "$.data")
   private WallpaperXml xml;
 
   @LinkMethod
@@ -59,17 +55,20 @@ public class WallhereWallpaper {
   @Extractor
   public static class WallpaperXml {
 
-    @CssSelector(expression = ".item")
+    @Selector(value = ".item")
     private Wallpaper[] wallpapers;
   }
 
   @Data
   @Extractor
-  @Link(xpathSelectors = @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href"))
+  @Link(
+      selectors = @Selector(type = Type.Xpath, value = "//div[@class='item-container']/a[1]/@href"))
   public static class Wallpaper {
 
-    @XpathSelector(expression = "//div[@class='item-container']/a[1]/@href")
-    @RegexFormatter(format = "https://wallhere.com%s")
+    @Selector(
+        type = Type.Xpath,
+        value = "//div[@class='item-container']/a[1]/@href",
+        formatters = @Formatter(format = "https://wallhere.com%s"))
     private String href;
   }
 
@@ -79,7 +78,7 @@ public class WallhereWallpaper {
         .debug()
         .setThreads(3)
         .addSite(WebSite.of("wallhere.com").setRateLimiter(1, 3))
-        .addProcessor(Matchers.or(Matchers.JSON, Matchers.HTML), WallhereWallpaper.class)
+        .addProcessor(WallhereWallpaper.class)
         .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhere"))
         .addSeeds(
             "https://wallhere.com/zh/wallpapers?page=1&direction=horizontal&order=popular&format=json")

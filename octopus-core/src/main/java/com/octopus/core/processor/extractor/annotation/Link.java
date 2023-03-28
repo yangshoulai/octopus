@@ -1,11 +1,7 @@
 package com.octopus.core.processor.extractor.annotation;
 
 import com.octopus.core.Request.RequestMethod;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.CssSelector;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
-import com.octopus.core.processor.extractor.selector.RegexSelector;
-import com.octopus.core.processor.extractor.selector.XpathSelector;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -27,15 +23,8 @@ public @interface Link {
 
   String[] url() default {};
 
-  CssSelector[] cssSelectors() default {};
+  Selector[] selectors() default {};
 
-  XpathSelector[] xpathSelectors() default {};
-
-  JsonSelector[] jsonSelectors() default {};
-
-  RegexSelector[] regexSelectors() default {};
-
-  RegexFormatter[] formats() default {};
 
   int priority() default 0;
 

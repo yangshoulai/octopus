@@ -10,14 +10,15 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/30
  */
-public class RegexSelectorHandler extends CacheableSelectorHandler<String, RegexSelector> {
+public class RegexSelectorHandler extends CacheableSelectorHandler<String> {
 
   @Override
-  protected List<String> selectWithType(String content, RegexSelector selector, Response response) {
+  protected List<String> doSelectWithDoc(
+      String content, Selector selector, boolean multi, Response response) {
     List<String> list = new ArrayList<>();
     int[] groups = selector.groups();
     String format = selector.format();
-    Pattern pattern = Pattern.compile(selector.expression());
+    Pattern pattern = Pattern.compile(selector.value());
     Matcher matcher = pattern.matcher(content);
     while (matcher.find()) {
       List<String> args = new ArrayList<>();
@@ -25,8 +26,11 @@ public class RegexSelectorHandler extends CacheableSelectorHandler<String, Regex
         args.add(matcher.group(group));
       }
       list.add(String.format(format, args.toArray()));
+      if (!multi) {
+        break;
+      }
     }
-    return filterResults(list, selector.filter(), selector.trim(), selector.multi());
+    return list;
   }
 
   @Override

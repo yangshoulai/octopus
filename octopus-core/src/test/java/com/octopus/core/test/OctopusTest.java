@@ -2,12 +2,10 @@ package com.octopus.core.test;
 
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
-import com.octopus.core.processor.extractor.annotation.Body;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.AttrSelector;
-import com.octopus.core.processor.extractor.selector.ParamSelector;
-import com.octopus.core.processor.extractor.selector.UrlSelector;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Selector.Type;
 import lombok.Data;
 
 /**
@@ -18,26 +16,23 @@ import lombok.Data;
 @Extractor
 public class OctopusTest {
 
-  @UrlSelector private String url;
+  @Selector(type = Type.Url)
+  private String url;
 
-  @UrlSelector
-  @RegexFormatter(regex = "^.*?\\?a=(\\d+)$", groups = 1)
+  @Selector(type = Type.Url, formatters = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
   private String a;
 
-  @UrlSelector
-  @RegexFormatter(regex = "^.*?\\?a=(\\d+)$", groups = 1)
+  @Selector(type = Type.Url, formatters = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
   private Integer a1;
 
-  @ParamSelector(name = "a")
+  @Selector(type = Type.Param, value = "a")
   private String a2;
 
-  @AttrSelector(name = "b")
+  @Selector(type = Type.Attr, value = "b")
   private String b;
 
-  @AttrSelector(name = "b")
+  @Selector(type = Type.Attr, value = "b")
   private Integer b1;
-
-  @Body private byte[] bytes;
 
   public static void main(String[] args) {
 

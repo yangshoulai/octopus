@@ -31,6 +31,8 @@ public class Response implements Serializable {
 
   private String text;
 
+  private Document document;
+
   public Response(@NonNull Request request) {
     this.request = request;
   }

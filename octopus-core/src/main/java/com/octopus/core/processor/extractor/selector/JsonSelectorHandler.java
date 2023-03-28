@@ -14,7 +14,7 @@ import net.minidev.json.JSONArray;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/27
  */
-public class JsonSelectorHandler extends CacheableSelectorHandler<String, JsonSelector> {
+public class JsonSelectorHandler extends CacheableSelectorHandler<String> {
 
   private static final Configuration CONFIGURATION =
       Configuration.builder()
@@ -23,9 +23,10 @@ public class JsonSelectorHandler extends CacheableSelectorHandler<String, JsonSe
           .build();
 
   @Override
-  public List<String> selectWithType(String json, JsonSelector selector, Response response) {
+  public List<String> doSelectWithDoc(
+      String json, Selector selector, boolean multi, Response response) {
     List<String> list = new ArrayList<>();
-    Object obj = JsonPath.using(CONFIGURATION).parse(json).read(selector.expression());
+    Object obj = JsonPath.using(CONFIGURATION).parse(json).read(selector.value());
     if (obj instanceof JSONArray) {
       JSONArray array = (JSONArray) obj;
       for (Object o : array) {
@@ -36,7 +37,7 @@ public class JsonSelectorHandler extends CacheableSelectorHandler<String, JsonSe
         }
       }
     }
-    return filterResults(list, selector.filter(), selector.trim(), selector.multi());
+    return list;
   }
 
   @Override

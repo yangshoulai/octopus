@@ -17,11 +17,12 @@ public class WallhavenOctopus {
         .debug()
         .setThreads(2)
         .useOkHttpDownloader()
-        .addSite(WebSite.of("wallhaven.cc").setRateLimiter(1, 3))
+        .addSite(WebSite.of("wallhaven.cc").setRateLimiter(1, 2))
         .addProcessor(WallhavenWallpaper.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/wallhaven"))
+        .addProcessor(
+            new MediaFileDownloadProcessor("/Users/yann/Downloads/wallpapers/wallhaven/anime"))
         .addSeeds(
-            "https://wallhaven.cc/search?categories=110&purity=100&ratios=16x9%2C16x10&topRange=1M&sorting=toplist&order=desc&page=1")
+            "https://wallhaven.cc/search?categories=010&purity=110&ratios=16x9%2C16x10&topRange=6M&sorting=toplist&order=desc&page=1")
         .build()
         .start();
   }

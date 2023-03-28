@@ -9,7 +9,7 @@ import com.octopus.core.WebSite;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.selector.XpathSelector;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +27,7 @@ import lombok.extern.slf4j.Slf4j;
 @Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 public class AreaPage {
 
-  @XpathSelector(expression = "//tr[contains(@class, 'tr')]")
+  @Selector(type = Selector.Type.Xpath, value = "//tr[contains(@class, 'tr')]")
   private List<Area> areas;
 
   public static void main(String[] args) {

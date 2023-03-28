@@ -7,19 +7,19 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
-import com.octopus.core.processor.extractor.annotation.*;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
-import com.octopus.core.processor.extractor.selector.RegexSelector;
-import com.octopus.core.processor.extractor.selector.UrlSelector;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
-import lombok.Data;
-
+import com.octopus.core.processor.extractor.annotation.Extractor;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
+import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.annotation.LinkMethod;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.HashMap;
 import java.util.Map;
+import lombok.Data;
 
 /**
  * 下载汤不热博主发布的图片与视频
@@ -31,11 +31,12 @@ import java.util.Map;
 @Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
 public class BlogPhoto {
 
-  @RegexSelector(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
+  @Selector(type = Selector.Type.Regex, value = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
 
-  @UrlSelector
-  @RegexFormatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1)
+  @Selector(
+      type = Selector.Type.Url,
+      formatters = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
   private String username;
 
   @LinkMethod
@@ -57,20 +58,20 @@ public class BlogPhoto {
    */
   @Data
   @Extractor(matcher = @ExtractorMatcher(type = Type.JSON))
-  @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media.url"))
-  @Link(jsonSelectors = @JsonSelector(expression = "$.response.posts[*].content[*].media[0].url"))
+  @Link(selectors = @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media.url"))
+  @Link(selectors = @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media[0].url"))
   public static class PostResponse {
 
-    @JsonSelector(expression = "$.meta.status")
+    @Selector(type = Selector.Type.Json, value = "$.meta.status")
     private int status;
 
-    @JsonSelector(expression = "$.response.total_posts")
+    @Selector(type = Selector.Type.Json, value = "$.response.total_posts")
     private int totalPosts;
 
-    @JsonSelector(expression = "$.response.posts[*].content[*].media.url")
+    @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media.url")
     private String[] videos;
 
-    @JsonSelector(expression = "$.response.posts[*].content[*].media[*].url")
+    @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media[*].url")
     private String[] photos;
 
     @LinkMethod

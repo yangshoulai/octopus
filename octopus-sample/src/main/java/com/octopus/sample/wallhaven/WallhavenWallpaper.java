@@ -1,10 +1,10 @@
 package com.octopus.sample.wallhaven;
 
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.selector.CssSelector;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -18,17 +18,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
-@Link(cssSelectors = @CssSelector(expression = "img#wallpaper", attr = "src"))
-@Link(
-    cssSelectors =
-        @CssSelector(expression = "#thumbs .thumb-listing-page ul li a.preview", attr = "href"))
-@Link(
-    cssSelectors =
-        @CssSelector(expression = "ul.pagination li a.next", attr = "href", multi = false))
+@Link(selectors = @Selector(value = "img#wallpaper", attr = "src"))
+@Link(selectors = @Selector(value = "#thumbs .thumb-listing-page ul li a.preview", attr = "href"))
+@Link(selectors = @Selector(value = "ul.pagination li a.next", attr = "href"))
 public class WallhavenWallpaper {
 
   /** 壁纸列表 */
-  @CssSelector(expression = "#thumbs .thumb-listing-page ul li")
+  @Selector(value = "#thumbs .thumb-listing-page ul li")
   private List<Wallpaper> wallpapers;
 
   /** 壁纸数据 */
@@ -37,15 +33,15 @@ public class WallhavenWallpaper {
   public static class Wallpaper {
 
     /** 壁纸图片链接 */
-    @CssSelector(expression = "img", attr = "data-src")
+    @Selector(value = "img", attr = "data-src")
     private String src;
 
     /** 壁纸预览图链接 */
-    @CssSelector(expression = "a.preview", attr = "href")
+    @Selector(value = "a.preview", attr = "href")
     private String previewSrc;
 
     /** 壁纸分辨率 */
-    @CssSelector(expression = ".wall-res")
+    @Selector(value = ".wall-res")
     private String resolution;
   }
 }

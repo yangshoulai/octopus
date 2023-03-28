@@ -3,26 +3,18 @@ package com.octopus.core.processor.extractor.selector;
 import cn.hutool.core.collection.ListUtil;
 import com.octopus.core.Response;
 import java.util.List;
-import lombok.Data;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-@Data
-public class AttrSelectorHandler implements SelectorHandler<AttrSelector> {
+public class AttrSelectorHandler extends AbstractSelectorHandler {
 
   @Override
-  public List<String> select(String content, AttrSelector selector, Response response)
-      throws Exception {
-    Object attr = response.getRequest().getAttribute(selector.name());
-    String val = null;
-    if (attr != null) {
-      val = attr.toString();
-    }
-    if (val == null) {
-      val = selector.def();
-    }
-    return val == null ? ListUtil.empty() : ListUtil.of(val);
+  public List<String> doMultiSelect(String content, Selector selector, Response response)
+      throws SelectException {
+    Object attr = response.getRequest().getAttribute(selector.value());
+    String val = attr == null ? null : attr.toString();
+    return val == null ? null : ListUtil.of(val);
   }
 }

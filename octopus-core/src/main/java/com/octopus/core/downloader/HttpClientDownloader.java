@@ -1,13 +1,11 @@
 package com.octopus.core.downloader;
 
-import cn.hutool.core.map.MapBuilder;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.util.URLUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
-import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
 import java.io.IOException;
@@ -50,7 +48,7 @@ import org.apache.http.util.EntityUtils;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
-public class HttpClientDownloader implements Downloader {
+public class HttpClientDownloader extends AbstractDownloader {
 
   private HttpClient httpClient;
 
@@ -124,14 +122,6 @@ public class HttpClientDownloader implements Downloader {
               "Fetch [%s] via proxy [%s] failed, caused by %s", request, proxy, e.getMessage()),
           e);
     }
-  }
-
-  private Proxy resolveProxy(ProxyProvider proxyProvider, Request request) {
-    Proxy proxy = null;
-    if (proxyProvider != null) {
-      proxy = proxyProvider.provide(request);
-    }
-    return proxy == null ? Proxy.NO_PROXY : proxy;
   }
 
   private HttpUriRequest createHttpUriRequest(Request request, Proxy proxy, DownloadConfig config) {

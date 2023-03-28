@@ -8,10 +8,10 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
+import com.octopus.core.processor.extractor.annotation.LinkMethod;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,19 +25,19 @@ import lombok.Data;
 @Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAppsByCategory.*"))
 public class WallpapersPage {
 
-  @JsonSelector(expression = "$.errno")
+  @Selector(type = Selector.Type.Json, value = "$.errno")
   private int errno;
 
-  @JsonSelector(expression = "$.errmsg")
+  @Selector(type = Selector.Type.Json, value = "$.errmsg")
   private String errmsg;
 
-  @JsonSelector(expression = "$.consume")
+  @Selector(type = Selector.Type.Json, value = "$.consume")
   private int consume;
 
-  @JsonSelector(expression = "$.total")
+  @Selector(type = Selector.Type.Json, value = "$.total")
   private int total;
 
-  @JsonSelector(expression = "$.data[*]")
+  @Selector(type = Selector.Type.Json, value = "$.data[*]")
   private List<Wallpaper> wallpapers;
 
   @LinkMethod
@@ -60,13 +60,13 @@ public class WallpapersPage {
   @Extractor
   public static class Wallpaper {
 
-    @JsonSelector(expression = "$.id")
+    @Selector(type = Selector.Type.Json, value = "$.id")
     private int id;
 
-    @JsonSelector(expression = "$.class_id")
+    @Selector(type = Selector.Type.Json, value = "$.class_id")
     private int categoryId;
 
-    @JsonSelector(expression = "$.url")
+    @Selector(type = Selector.Type.Json, value = "$.url")
     private String url;
 
     @LinkMethod

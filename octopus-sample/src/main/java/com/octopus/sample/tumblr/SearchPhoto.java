@@ -7,14 +7,13 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
+import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
-
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.util.Map;
@@ -25,22 +24,28 @@ import java.util.Map;
  */
 @Extractor(matcher = @ExtractorMatcher(type = Type.JSON))
 @Link(
-    jsonSelectors = @JsonSelector(expression = "$.response.timeline._links.next.href"),
-    formats = @RegexFormatter(format = "https://www.tumblr.com/api%s"))
+    selectors =
+        @Selector(
+            type = Selector.Type.Json,
+            value = "$.response.timeline._links.next.href",
+            formatters = @Formatter(format = "https://www.tumblr.com/api%s")))
 @Link(
-    jsonSelectors =
-        @JsonSelector(
-            expression =
+    selectors =
+        @Selector(
+            type = Selector.Type.Json,
+            value =
                 "$.response.timeline.elements[?(@.type == 'photo')].photos[*].original_size.url"))
 @Link(
-    jsonSelectors =
-        @JsonSelector(expression = "$.response.timeline.elements[?(@.type == 'video')].video_url"))
+    selectors =
+        @Selector(
+            type = Selector.Type.Json,
+            value = "$.response.timeline.elements[?(@.type == 'video')].video_url"))
 public class SearchPhoto {
 
   public static void main(String[] args) {
     ProxyProvider proxyProvider =
         new PollingProxyProvider(
-            new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8002)));
+            new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("127.0.0.1", 17890)));
     DownloadConfig downloadConfig = new DownloadConfig();
     downloadConfig.setProxyProvider(proxyProvider);
     downloadConfig.setSocketTimeout(120000);
@@ -62,7 +67,8 @@ public class SearchPhoto {
     Octopus.builder()
         .addSeeds(seed)
         .addProcessor(SearchPhoto.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/" + keyword))
+        .useOkHttpDownloader()
+        .addProcessor(new MediaFileDownloadProcessor("/Users/yann/Downloads/tumblr/" + keyword))
         .setGlobalDownloadConfig(downloadConfig)
         .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
         .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))

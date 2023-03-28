@@ -1,12 +1,11 @@
 package com.octopus.sample.apc360;
 
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
 import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
-import com.octopus.core.processor.extractor.convertor.DateConvertor;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.selector.JsonSelector;
+import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;
@@ -18,46 +17,48 @@ import lombok.Data;
 @Data
 @Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAllCategoriesV2.*"))
 @Link(
-    jsonSelectors = @JsonSelector(expression = "$.data[*].id"),
-    formats =
-        @RegexFormatter(
-            format =
-                "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s"))
+    selectors =
+        @Selector(
+            type = Selector.Type.Json,
+            value = "$.data[*].id",
+            formatters =
+                @Formatter(
+                    format =
+                        "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s")))
 public class CategoriesPage {
 
-  @JsonSelector(expression = "$.errno")
+  @Selector(type = Selector.Type.Json, value = "$.errno")
   private int errno;
 
-  @JsonSelector(expression = "$.errmsg")
+  @Selector(type = Selector.Type.Json, value = "$.errmsg")
   private String errmsg;
 
-  @JsonSelector(expression = "$.consume")
+  @Selector(type = Selector.Type.Json, value = "$.consume")
   private int consume;
 
-  @JsonSelector(expression = "$.total")
+  @Selector(type = Selector.Type.Json, value = "$.total")
   private int total;
 
-  @JsonSelector(expression = "$.data[*]")
+  @Selector(type = Selector.Type.Json, value = "$.data[*]")
   private List<Category> categories;
 
   @Data
   @Extractor
   public static class Category {
 
-    @JsonSelector(expression = "$.id")
+    @Selector(type = Selector.Type.Json, value = "$.id")
     private int id;
 
-    @JsonSelector(expression = "$.name")
+    @Selector(type = Selector.Type.Json, value = "$.name")
     private String name;
 
-    @JsonSelector(expression = "$.order_num")
+    @Selector(type = Selector.Type.Json, value = "$.order_num")
     private int orderNum;
 
-    @JsonSelector(expression = "$.tag")
+    @Selector(type = Selector.Type.Json, value = "$.tag")
     private String tag;
 
-    @JsonSelector(expression = "$.create_time")
-    @DateConvertor
+    @Selector(type = Selector.Type.Json, value = "$.create_time")
     private Date createTime;
   }
 }

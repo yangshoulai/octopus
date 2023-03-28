@@ -6,10 +6,9 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
-import com.octopus.core.processor.extractor.format.RegexFormatter;
-import com.octopus.core.processor.extractor.format.SplitFormatter;
-import com.octopus.core.processor.extractor.selector.CssSelector;
-import com.octopus.core.processor.extractor.selector.XpathSelector;
+import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Selector.Type;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Extractor
 public class KxDaiLiOctopus {
 
-  @CssSelector(expression = "table.active tbody tr", self = true)
+  @Selector(value = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
 
   @LinkMethod
@@ -40,27 +39,28 @@ public class KxDaiLiOctopus {
   @Extractor
   public static class KxDaiLiProxy {
 
-    @XpathSelector(expression = "//td[1]/text()")
+    @Selector(value = "//td[1]/text()")
     private String host;
 
-    @XpathSelector(expression = "//td[2]/text()")
+    @Selector(value = "//td[2]/text()")
     private int port;
 
-    @XpathSelector(expression = "//td[3]/text()")
+    @Selector(value = "//td[3]/text()")
     private String level;
 
-    @XpathSelector(expression = "//td[4]/text()")
-    @SplitFormatter
+    @Selector(value = "//td[4]/text()", formatters = @Formatter(split = true))
     private String[] types;
 
-    @XpathSelector(expression = "//td[5]/text()")
-    @RegexFormatter(regex = "^(.*) 秒$", groups = 1)
+    @Selector(
+        type = Type.Xpath,
+        value = "//td[5]/text()",
+        formatters = @Formatter(regex = "^(.*) 秒$", groups = 1))
     private double responseSeconds;
 
-    @XpathSelector(expression = "//td[6]/text()")
+    @Selector(type = Type.Xpath, value = "//td[6]/text()")
     private String location;
 
-    @XpathSelector(expression = "//td[7]/text()")
+    @Selector(type = Type.Xpath, value = "//td[7]/text()")
     private String lastVerifyTime;
   }
 

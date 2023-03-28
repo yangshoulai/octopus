@@ -1,20 +1,15 @@
 package com.octopus.core.processor.extractor.selector;
 
 import cn.hutool.cache.impl.LRUCache;
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.octopus.core.Response;
-import java.lang.annotation.Annotation;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/26
  */
-public abstract class CacheableSelectorHandler<T, A extends Annotation>
-    implements SelectorHandler<A> {
+public abstract class CacheableSelectorHandler<T> extends AbstractSelectorHandler {
 
   private final LRUCache<String, T> cache;
 
@@ -23,33 +18,69 @@ public abstract class CacheableSelectorHandler<T, A extends Annotation>
   }
 
   @Override
-  public final List<String> select(String content, A selector, Response response) throws Exception {
-    String md5 = MD5.create().digestHex(content);
+  protected List<String> doMultiSelect(String source, Selector selector, Response response)
+      throws SelectException {
+    try {
+      T doc = this.getCacheOrCreate(source);
+      if (doc != null) {
+        return this.doSelectWithDoc(doc, selector, true, response);
+      }
+    } catch (Exception e) {
+      throw new SelectException(e);
+    }
+    return null;
+  }
+
+  @Override
+  protected String doSingleSelect(String source, Selector selector, Response response)
+      throws SelectException {
+    try {
+      T doc = this.getCacheOrCreate(source);
+      if (doc != null) {
+        List<String> results = this.doSelectWithDoc(doc, selector, false, response);
+        return results == null || results.isEmpty() ? null : results.get(0);
+      }
+    } catch (Exception e) {
+      throw new SelectException(e);
+    }
+    return null;
+  }
+
+  private T getCacheOrCreate(String source) throws Exception {
+    String md5 = MD5.create().digestHex(source);
     T doc = this.cache.get(md5);
     if (doc == null) {
-      doc = this.parse(content);
-      if (doc != null) {
-        this.cache.put(md5, doc);
+      try {
+        doc = this.parse(source);
+        if (doc != null) {
+          this.cache.put(md5, doc);
+        }
+      } catch (Exception e) {
+        throw new SelectException(e);
       }
     }
-    return this.selectWithType(doc, selector, response);
+    return doc;
   }
 
-  protected abstract List<String> selectWithType(T t, A selector, Response response)
-      throws Exception;
+  /**
+   * 从文档中选择内容
+   *
+   * @param t 文档
+   * @param selector 选择器
+   * @param multi 是否多选
+   * @param response 请求响应
+   * @return 内容
+   * @throws SelectException 选取异常
+   */
+  protected abstract List<String> doSelectWithDoc(
+      T t, Selector selector, boolean multi, Response response) throws SelectException;
 
+  /**
+   * 解析文档
+   *
+   * @param content 内容
+   * @return 文档
+   * @throws Exception 解析异常
+   */
   protected abstract T parse(String content) throws Exception;
-
-  protected List<String> filterResults(
-      List<String> results, boolean filter, boolean trim, boolean multi) {
-    List<String> list =
-        results.stream()
-            .filter(s -> !filter || StrUtil.isNotBlank(s))
-            .map(s -> trim ? StrUtil.trim(s) : s)
-            .collect(Collectors.toList());
-    if (multi) {
-      return list;
-    }
-    return list.isEmpty() ? list : ListUtil.toList(list.get(0));
-  }
 }
