@@ -2,9 +2,9 @@ package com.octopus.core.processor;
 
 import com.octopus.core.Request;
 import com.octopus.core.Response;
+import com.octopus.core.logging.Logger;
+import com.octopus.core.logging.LoggerFactory;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -16,7 +16,7 @@ public class LoggerProcessor implements Processor {
 
   @Override
   public List<Request> process(Response response) {
-    log.info("{}", response);
+    log.info(response.toString());
     return null;
   }
 

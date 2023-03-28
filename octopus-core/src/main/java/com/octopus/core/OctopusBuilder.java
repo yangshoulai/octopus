@@ -6,6 +6,8 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
+import com.octopus.core.logging.Logger;
+import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
 import com.octopus.core.processor.Processor;
@@ -20,8 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import lombok.NonNull;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import redis.clients.jedis.JedisPool;
 
 /**

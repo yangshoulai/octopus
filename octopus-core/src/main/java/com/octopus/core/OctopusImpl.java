@@ -15,6 +15,7 @@ import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.IllegalStateException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
+import com.octopus.core.logging.Logger;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.store.Store;
@@ -39,7 +40,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import lombok.NonNull;
-import org.slf4j.Logger;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -162,7 +162,9 @@ class OctopusImpl implements Octopus {
     this.translateState(State.STARTING, State.STARTED);
     this.interval = new TimeInterval();
     logger.info(
-        "Octopus started at [{}]", DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN));
+        "Octopus started at ["
+            + DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN)
+            + "]");
     return CompletableFuture.runAsync(this::dispatch, this.boss);
   }
 
@@ -195,15 +197,14 @@ class OctopusImpl implements Octopus {
       this.store.clear();
     }
     logger.info(
-        "Total = [{}], completed = [{}], waiting = [{}], failed = [{}]",
-        total,
-        completed,
-        waiting,
-        failed);
+        String.format(
+            "Total = [%s], completed = [%s], waiting = [%s], failed = [%s]",
+            total, completed, waiting, failed));
     logger.info(
-        "Octopus stopped at [{}] running [{}]",
-        DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN),
-        interval.intervalPretty());
+        String.format(
+            "Octopus stopped at [%s] running [%s]",
+            DateUtil.format(new Date(), DatePattern.NORM_DATETIME_PATTERN),
+            interval.intervalPretty()));
   }
 
   @Override
@@ -229,11 +230,11 @@ class OctopusImpl implements Octopus {
             }
           }
         } else {
-          logger.error("Can not store request [{}]", request);
+          logger.error(String.format("Can not store request [%s]", request));
         }
       } else {
         if (this.debug && this.logger.isDebugEnabled()) {
-          logger.debug("Ignore request [{}] as already exists", request);
+          logger.debug(String.format("Ignore request [%s] as already exists", request));
         }
       }
     }
@@ -246,7 +247,7 @@ class OctopusImpl implements Octopus {
         Request request = this.store.get();
         if (request != null) {
           if (this.debug && this.logger.isDebugEnabled()) {
-            logger.debug("Take request [{}] from store", request);
+            logger.debug(String.format("Take request [%s] from store", request));
           }
           this.workerSemaphore.acquire();
           this.workers.execute(
@@ -271,7 +272,7 @@ class OctopusImpl implements Octopus {
                   }
                   this.store.markAsCompleted(request);
                 } catch (DownloadException e) {
-                  logger.error("Download [{}] error!", request, e);
+                  logger.error(String.format("Download [%s] error!", request), e);
                   this.store.markAsFailed(request, e.getMessage());
                   this.listeners.forEach(listener -> listener.onDownloadError(request, e));
                 } catch (Throwable e) {
@@ -302,9 +303,9 @@ class OctopusImpl implements Octopus {
                 this.replayTimes++;
                 if (this.debug && this.logger.isDebugEnabled()) {
                   logger.debug(
-                      "Found [{}] failed requests, replay failed requests {} time",
-                      failed.size(),
-                      this.replayTimes);
+                      String.format(
+                          "Found [%s] failed requests, replay failed requests %s time",
+                          failed.size(), this.replayTimes));
                 }
                 failed.forEach(r -> this.store.delete(r.getId()));
                 failed.forEach(this::addRequest);
@@ -327,8 +328,9 @@ class OctopusImpl implements Octopus {
           } else {
             if (this.debug && this.logger.isDebugEnabled()) {
               logger.debug(
-                  "No more requests found, waiting for [{}] running request complete",
-                  (this.threads - this.workerSemaphore.availablePermits()));
+                  String.format(
+                      "No more requests found, waiting for [%s] running request complete",
+                      (this.threads - this.workerSemaphore.availablePermits())));
             }
           }
           if (wait) {
@@ -425,7 +427,7 @@ class OctopusImpl implements Octopus {
   private boolean translateState(State from, State to) {
     if (this.state.compareAndSet(from, to)) {
       if (this.debug && this.logger.isDebugEnabled()) {
-        logger.debug("State changed [{}] => [{}]", from.getLabel(), to.getLabel());
+        logger.debug(String.format("State changed [%s] => [%s]", from.getLabel(), to.getLabel()));
       }
       return true;
     }
@@ -441,7 +443,7 @@ class OctopusImpl implements Octopus {
 
   private ExecutorService createBossExecutor() {
     if (this.debug && this.logger.isDebugEnabled()) {
-      logger.debug("Create boss executor [{}]", this.name + "-boss");
+      logger.debug(String.format("Create boss executor [%s]", this.name + "-boss"));
     }
     return new ThreadPoolExecutor(
         1,
@@ -458,7 +460,7 @@ class OctopusImpl implements Octopus {
 
   private ExecutorService createWorkerExecutor() {
     if (this.debug && this.logger.isDebugEnabled()) {
-      logger.debug("Create worker executors with size [{}]", this.threads);
+      logger.debug(String.format("Create worker executors with size [%s]", this.threads));
     }
     return new ThreadPoolExecutor(
         this.threads,
