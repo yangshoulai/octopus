@@ -3,6 +3,8 @@ package com.octopus.sample.apc360;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
+import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.sample.Constants;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -19,9 +21,9 @@ public class Apc360Wallpaper {
         .addSite(WebSite.of("p2.qhimg.com").setRateLimiter(16, 1))
         .addSeeds(
             "http://wallpaper.apc.360.cn/index.php?c=WallPaper&a=getAllCategoriesV2&from=360chrome")
-        .addProcessor(CategoriesPage.class)
-        .addProcessor(WallpapersPage.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/360"))
+        .addProcessor(Matchers.urlRegex(".*getAllCategoriesV2.*"), CategoriesPage.class)
+        .addProcessor(Matchers.urlRegex(".*getAppsByCategory.*"), WallpapersPage.class)
+        .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/wallpapers/360"))
         .build()
         .start();
   }

@@ -9,14 +9,12 @@ import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
+import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.sample.Constants;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
@@ -28,8 +26,8 @@ import lombok.Data;
  * @date 2021/11/30
  */
 @Data
-@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
-public class BlogPhoto {
+@Extractor
+public class TumblrBlog {
 
   @Selector(type = Selector.Type.Regex, value = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
@@ -52,14 +50,20 @@ public class BlogPhoto {
         .addHeader("Authorization", "Bearer " + this.apiToken);
   }
 
-  /**
-   * @author shoulai.yang@gmail.com
-   * @date 2021/11/30
-   */
   @Data
-  @Extractor(matcher = @ExtractorMatcher(type = Type.JSON))
-  @Link(selectors = @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media.url"))
-  @Link(selectors = @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media[0].url"))
+  @Extractor(
+      links = {
+        @Link(
+            selectors =
+                @Selector(
+                    type = Selector.Type.Json,
+                    value = "$.response.posts[*].content[*].media.url")),
+        @Link(
+            selectors =
+                @Selector(
+                    type = Selector.Type.Json,
+                    value = "$.response.posts[*].content[*].media[0].url"))
+      })
   public static class PostResponse {
 
     @Selector(type = Selector.Type.Json, value = "$.meta.status")
@@ -91,9 +95,7 @@ public class BlogPhoto {
   }
 
   public static void main(String[] args) {
-    ProxyProvider proxyProvider =
-        new PollingProxyProvider(
-            new Proxy(Proxy.Type.HTTP, new InetSocketAddress("127.0.0.1", 8002)));
+    ProxyProvider proxyProvider = new PollingProxyProvider(Constants.PROXY);
     DownloadConfig downloadConfig = new DownloadConfig();
     downloadConfig.setProxyProvider(proxyProvider);
     downloadConfig.setSocketTimeout(120000);
@@ -101,9 +103,9 @@ public class BlogPhoto {
 
     Octopus.builder()
         .addSeeds("https://2djp.tumblr.com/archive")
-        .addProcessor(BlogPhoto.class)
-        .addProcessor(PostResponse.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/tumblr/2djp"))
+        .addProcessor(Matchers.HTML, TumblrBlog.class)
+        .addProcessor(Matchers.JSON, PostResponse.class)
+        .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/2djp"))
         .setGlobalDownloadConfig(downloadConfig)
         .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
         .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))

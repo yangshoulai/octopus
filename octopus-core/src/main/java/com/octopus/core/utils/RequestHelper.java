@@ -25,10 +25,9 @@ public class RequestHelper {
     UrlQuery query = new UrlQuery(new TreeMap<>(map));
     urlBuilder.setQuery(query);
     url = urlBuilder.build();
-    return MD5.create()
-        .digestHex(
-            ArrayUtil.addAll(
-                String.format("%s-%s", request.getMethod(), url).getBytes(StandardCharsets.UTF_8),
-                request.getBody()));
+    byte[] requestBytes =
+        ArrayUtil.addAll(
+            (request.getMethod() + url).getBytes(StandardCharsets.UTF_8), request.getBody());
+    return MD5.create().digestHex(requestBytes);
   }
 }

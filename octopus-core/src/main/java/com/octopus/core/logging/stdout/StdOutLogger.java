@@ -8,6 +8,8 @@ import com.octopus.core.logging.Logger;
  */
 public class StdOutLogger implements Logger {
 
+  public StdOutLogger(String name) {}
+
   @Override
   public boolean isDebugEnabled() {
     return true;

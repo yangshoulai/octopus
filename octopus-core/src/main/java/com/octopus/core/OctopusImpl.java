@@ -12,10 +12,10 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.exception.BadStatusException;
 import com.octopus.core.exception.DownloadException;
-import com.octopus.core.exception.IllegalStateException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.logging.Logger;
+import com.octopus.core.processor.MatchableProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.store.Store;
@@ -75,7 +75,7 @@ class OctopusImpl implements Octopus {
 
   private final List<OctopusListener> listeners;
 
-  private final List<Processor> processors;
+  private final List<MatchableProcessor> processors;
 
   private final DownloadConfig globalDownloadConfig;
 
@@ -89,8 +89,6 @@ class OctopusImpl implements Octopus {
 
   private final List<Request> seeds;
 
-  private final boolean debug;
-
   private final String name;
 
   private final boolean replayFailedRequest;
@@ -99,11 +97,8 @@ class OctopusImpl implements Octopus {
 
   private final int maxReplays;
 
-  private int replayTimes = 0;
-
   public OctopusImpl(OctopusBuilder builder) {
     this.logger = builder.getLogger();
-    this.debug = builder.isDebug();
     this.name = builder.getName();
     this.seeds = builder.getSeeds();
     this.clearStoreOnStop = builder.isClearStoreOnStop();
@@ -135,25 +130,25 @@ class OctopusImpl implements Octopus {
   @Override
   public Future<Void> startAsync() throws OctopusException {
     if (!this.translateState(State.NEW, State.STARTING)) {
-      throw new IllegalStateException(this.state.get());
+      throw new OctopusException("Illegal state " + this.state.get());
     }
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug("Octopus starting");
     }
     this.boss = this.createBossExecutor();
     this.workers = this.createWorkerExecutor();
     this.workerSemaphore = new Semaphore(this.threads);
     if (this.clearStoreOnStartup) {
-      if (this.debug && this.logger.isDebugEnabled()) {
+      if (this.logger.isDebugEnabled()) {
         logger.debug("Clear request store");
       }
       this.store.clear();
     }
-    if (this.seeds != null) {
+    if (this.seeds != null && !this.seeds.isEmpty()) {
       if (!this.ignoreSeedsWhenStoreHasRequests || this.store.getWaitingSize() == 0) {
         this.seeds.forEach(this::addRequest);
       } else {
-        if (this.debug && this.logger.isDebugEnabled()) {
+        if (this.logger.isDebugEnabled()) {
           logger.debug("Request store has remaining requests, seeds will be ignored");
         }
       }
@@ -173,9 +168,9 @@ class OctopusImpl implements Octopus {
     State state = this.state.get();
     boolean isStarted = state == State.STARTED || state == State.IDLE;
     if (!isStarted || !this.translateState(state, State.STOPPING)) {
-      throw new IllegalStateException(this.state.get());
+      throw new OctopusException("Illegal state " + this.state.get());
     }
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug("Octopus stopping");
     }
     this.boss.shutdown();
@@ -211,7 +206,7 @@ class OctopusImpl implements Octopus {
   public void addRequest(@NonNull Request request) throws OctopusException {
     State state = this.state.get();
     if (state.getState() >= State.STOPPING.getState()) {
-      throw new IllegalStateException(this.state.get());
+      throw new OctopusException("Illegal state " + this.state.get());
     }
     request.setId(RequestHelper.generateId(request));
     if (state.getState() <= State.NEW.getState()) {
@@ -233,7 +228,7 @@ class OctopusImpl implements Octopus {
           logger.error(String.format("Can not store request [%s]", request));
         }
       } else {
-        if (this.debug && this.logger.isDebugEnabled()) {
+        if (this.logger.isDebugEnabled()) {
           logger.debug(String.format("Ignore request [%s] as already exists", request));
         }
       }
@@ -242,11 +237,12 @@ class OctopusImpl implements Octopus {
 
   private void dispatch() {
     State state;
-    while ((state = this.state.get()) == State.STARTED || state == State.IDLE) {
+    while (!Thread.currentThread().isInterrupted()
+        && ((state = this.state.get()) == State.STARTED || state == State.IDLE)) {
       try {
         Request request = this.store.get();
         if (request != null) {
-          if (this.debug && this.logger.isDebugEnabled()) {
+          if (this.logger.isDebugEnabled()) {
             logger.debug(String.format("Take request [%s] from store", request));
           }
           this.workerSemaphore.acquire();
@@ -271,50 +267,20 @@ class OctopusImpl implements Octopus {
                     this.process(response);
                   }
                   this.store.markAsCompleted(request);
-                } catch (DownloadException e) {
-                  logger.error(String.format("Download [%s] error!", request), e);
-                  this.store.markAsFailed(request, e.getMessage());
-                  this.listeners.forEach(listener -> listener.onDownloadError(request, e));
                 } catch (Throwable e) {
                   logger.error("", e);
                   this.store.markAsFailed(request, e.getMessage());
+                  this.listeners.forEach(listener -> listener.onError(request, e));
                 } finally {
                   this.workerSemaphore.release();
-                  lock.lock();
-                  try {
-                    idleCondition.signalAll();
-                  } finally {
-                    lock.unlock();
-                  }
+                  this.idleSignal();
                 }
               });
         } else if (this.store.getWaitingSize() <= 0) {
           boolean wait = true;
           if (this.workerSemaphore.availablePermits() == this.threads) {
-            if (this.autoStop && this.replayFailedRequest && this.replayTimes < this.maxReplays) {
-              List<Request> failed = this.store.getFailed();
-              failed =
-                  failed == null
-                      ? null
-                      : failed.stream()
-                          .filter(this.replayFilter::filter)
-                          .collect(Collectors.toList());
-              if (failed != null && !failed.isEmpty()) {
-                this.replayTimes++;
-                if (this.debug && this.logger.isDebugEnabled()) {
-                  logger.debug(
-                      String.format(
-                          "Found [%s] failed requests, replay failed requests %s time",
-                          failed.size(), this.replayTimes));
-                }
-                failed.forEach(r -> this.store.delete(r.getId()));
-                failed.forEach(this::addRequest);
-                continue;
-              } else {
-                if (this.debug && this.logger.isDebugEnabled()) {
-                  logger.debug("No failed request found");
-                }
-              }
+            if (this.replayFailedRequest && this.replyFailedRequests()) {
+              continue;
             }
             if (this.autoStop) {
               logger.info("No more requests found, octopus will stop");
@@ -326,7 +292,7 @@ class OctopusImpl implements Octopus {
             }
 
           } else {
-            if (this.debug && this.logger.isDebugEnabled()) {
+            if (this.logger.isDebugEnabled()) {
               logger.debug(
                   String.format(
                       "No more requests found, waiting for [%s] running request complete",
@@ -334,20 +300,57 @@ class OctopusImpl implements Octopus {
             }
           }
           if (wait) {
-            lock.lock();
-            try {
-              idleCondition.await();
-            } finally {
-              lock.unlock();
-            }
+            this.idleWait();
           }
         }
       } catch (InterruptedException e) {
-        Thread.currentThread().interrupt();
+        this.stop();
       } catch (Throwable e) {
         logger.error("Error when dispatch request", e);
       }
     }
+  }
+
+  private void idleWait() throws InterruptedException {
+    lock.lock();
+    try {
+      idleCondition.await();
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  private void idleSignal() {
+    lock.lock();
+    try {
+      idleCondition.signalAll();
+    } finally {
+      lock.unlock();
+    }
+  }
+
+  private boolean replyFailedRequests() {
+    List<Request> failed = this.store.getFailed();
+    if (failed != null) {
+      failed = failed.stream().filter(this.replayFilter::filter).collect(Collectors.toList());
+    }
+    if (failed != null && !failed.isEmpty()) {
+      failed =
+          failed.stream()
+              .filter(f -> f.getFailTimes() < this.maxReplays)
+              .collect(Collectors.toList());
+      failed.forEach(f -> f.setFailTimes(f.getFailTimes() + 1));
+      if (this.logger.isDebugEnabled()) {
+        logger.debug(String.format("Found [%s] failed requests to replay", failed.size()));
+      }
+      failed.forEach(r -> this.store.delete(r.getId()));
+      failed.forEach(this::addRequest);
+    } else {
+      if (this.logger.isDebugEnabled()) {
+        logger.debug("No failed request found");
+      }
+    }
+    return failed != null && !failed.isEmpty();
   }
 
   private Response download(Request request, DownloadConfig config) throws DownloadException {
@@ -370,42 +373,54 @@ class OctopusImpl implements Octopus {
       throw new ProcessorNotFoundException(response.getRequest());
     }
     for (Processor processor : matchedProcessors) {
-      List<Request> newRequests = processor.process(response);
-      this.listeners.forEach(listener -> listener.afterProcess(response, newRequests));
-      this.addNewRequests(response.getRequest(), newRequests);
+      processor.process(
+          response,
+          new Octopus() {
+            @Override
+            public void start() throws OctopusException {
+              OctopusImpl.this.start();
+            }
+
+            @Override
+            public Future<Void> startAsync() throws OctopusException {
+              return OctopusImpl.this.startAsync();
+            }
+
+            @Override
+            public void stop() throws OctopusException {
+              OctopusImpl.this.stop();
+            }
+
+            @Override
+            public void addRequest(Request request) throws OctopusException {
+              OctopusImpl.this.addNewRequests(response.getRequest(), request);
+            }
+          });
+      this.listeners.forEach(listener -> listener.afterProcess(response));
     }
   }
 
-  private void addNewRequests(Request parentRequest, List<Request> newRequests) {
-    if (newRequests != null) {
-      newRequests.stream()
-          .sorted()
-          .forEach(
-              request -> {
-                request.setParent(parentRequest.getId());
-                if (request.isInherit() && parentRequest.getAttributes() != null) {
-                  Map<String, Object> attrs = parentRequest.getAttributes();
-                  attrs.forEach(
-                      (k, v) -> {
-                        if (request.getAttribute(k) == null) {
-                          request.putAttribute(k, v);
-                        }
-                      });
-                }
-                if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
-                  request
-                      .getHeaders()
-                      .put(
-                          Header.REFERER.getValue(),
-                          ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
-                }
-                this.addRequest(request);
-              });
+  private void addNewRequests(Request parentRequest, @NonNull Request request) {
+    request.setParent(parentRequest.getId());
+    if (request.isInherit() && parentRequest.getAttributes() != null) {
+      Map<String, Object> attrs = parentRequest.getAttributes();
+      attrs.forEach(
+          (k, v) -> {
+            if (request.getAttribute(k) == null) {
+              request.putAttribute(k, v);
+            }
+          });
     }
+    if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
+      request
+          .getHeaders()
+          .put(Header.REFERER.getValue(), ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
+    }
+    this.addRequest(request);
   }
 
   private void startRateLimiters() {
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug("Start all rate limiters");
     }
     this.webSites.stream()
@@ -415,7 +430,7 @@ class OctopusImpl implements Octopus {
   }
 
   private void stopRateLimiters() {
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug("Stop all rate limiters");
     }
     this.webSites.stream()
@@ -426,7 +441,7 @@ class OctopusImpl implements Octopus {
 
   private boolean translateState(State from, State to) {
     if (this.state.compareAndSet(from, to)) {
-      if (this.debug && this.logger.isDebugEnabled()) {
+      if (this.logger.isDebugEnabled()) {
         logger.debug(String.format("State changed [%s] => [%s]", from.getLabel(), to.getLabel()));
       }
       return true;
@@ -442,7 +457,7 @@ class OctopusImpl implements Octopus {
   }
 
   private ExecutorService createBossExecutor() {
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug(String.format("Create boss executor [%s]", this.name + "-boss"));
     }
     return new ThreadPoolExecutor(
@@ -459,7 +474,7 @@ class OctopusImpl implements Octopus {
   }
 
   private ExecutorService createWorkerExecutor() {
-    if (this.debug && this.logger.isDebugEnabled()) {
+    if (this.logger.isDebugEnabled()) {
       logger.debug(String.format("Create worker executors with size [%s]", this.threads));
     }
     return new ThreadPoolExecutor(

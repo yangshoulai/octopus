@@ -9,6 +9,7 @@ import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.HttpUtil;
+import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
@@ -28,7 +29,6 @@ import com.octopus.core.processor.extractor.selector.SelectorHandler;
 import com.octopus.core.processor.extractor.selector.SelectorHandlerRegistry;
 import com.octopus.core.processor.extractor.type.TypeHandler;
 import com.octopus.core.processor.extractor.type.TypeHandlerRegistry;
-import com.octopus.core.processor.matcher.Matcher;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -49,8 +49,6 @@ public class ExtractorProcessor<T> implements Processor {
 
   private final Class<T> extractorClass;
 
-  private final Matcher matcher;
-
   private final Collector<T> collector;
 
   public ExtractorProcessor(@NonNull Class<T> extractorClass) {
@@ -64,23 +62,17 @@ public class ExtractorProcessor<T> implements Processor {
     } catch (ValidateException e) {
       throw new InvalidExtractorException(e);
     }
-    this.matcher = this.resolveMatcher();
     this.collector = collector;
   }
 
-  private Matcher resolveMatcher() {
-    Extractor extractor = extractorClass.getAnnotation(Extractor.class);
-    return extractor.matcher().type().resolve(extractor.matcher());
-  }
-
   @Override
-  public List<Request> process(Response response) {
+  public void process(Response response, Octopus octopus) {
     try {
       Result<T> result = this.extract(response.asText(), response, this.extractorClass);
       if (collector != null) {
         collector.collect(result.getObj());
       }
-      return result.getRequests();
+      result.getRequests().forEach(octopus::addRequest);
     } catch (Exception e) {
       throw new ProcessException(
           "Error process response from request ["
@@ -100,7 +92,7 @@ public class ExtractorProcessor<T> implements Processor {
     for (Field field : fields) {
       this.extractField(result, source, field, response);
     }
-    Link[] links = extractorClass.getAnnotationsByType(Link.class);
+    Link[] links = extractorClass.getAnnotation(Extractor.class).links();
     for (Link link : links) {
       this.extractLink(result, link, source, response);
     }
@@ -260,10 +252,5 @@ public class ExtractorProcessor<T> implements Processor {
         ReflectUtil.setFieldValue(result.getObj(), field, obj);
       }
     }
-  }
-
-  @Override
-  public boolean matches(Response response) {
-    return this.matcher.matches(response);
   }
 }

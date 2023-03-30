@@ -1,27 +1,31 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.Request;
+import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
-import java.util.List;
+import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.processor.matcher.Matchers;
+import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
-public class LoggerProcessor implements Processor {
+public class LoggerProcessor extends MatchableProcessor {
 
   private final Logger log = LoggerFactory.getLogger("Octopus");
 
-  @Override
-  public List<Request> process(Response response) {
-    log.info(response.toString());
-    return null;
+  public LoggerProcessor() {
+    this(Matchers.ALL);
+  }
+
+  public LoggerProcessor(@NonNull Matcher matcher) {
+    super(matcher);
   }
 
   @Override
-  public boolean matches(Response response) {
-    return true;
+  public void process(Response response, Octopus octopus) {
+    log.info(response.toString());
   }
 }

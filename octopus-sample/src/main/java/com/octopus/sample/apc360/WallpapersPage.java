@@ -8,8 +8,6 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.selector.Selector;
 import java.util.HashMap;
@@ -22,7 +20,7 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAppsByCategory.*"))
+@Extractor
 public class WallpapersPage {
 
   @Selector(type = Selector.Type.Json, value = "$.errno")

@@ -6,10 +6,10 @@ import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.sample.Constants;
 
 /**
  * 下载必应壁纸 https://bing.ioliu.cn/
@@ -17,26 +17,28 @@ import com.octopus.core.processor.extractor.selector.Selector;
  * @author shoulai.yang@gmail.com
  * @date 2021/1/15
  */
-@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
-@Link(
-    selectors = @Selector(type = Selector.Type.Xpath, value = "//a[text()='下一页']/@href"),
-    repeatable = false)
-@Link(
-    selectors = @Selector(type = Selector.Type.Xpath, value = "//a[@class='ctrl download']/@href"),
-    repeatable = false,
-    priority = 2)
+@Extractor(
+    links = {
+      @Link(
+          selectors = @Selector(type = Selector.Type.Xpath, value = "//a[text()='下一页']/@href"),
+          repeatable = false),
+      @Link(
+          selectors =
+              @Selector(type = Selector.Type.Xpath, value = "//a[@class='ctrl download']/@href"),
+          repeatable = false,
+          priority = 2)
+    })
 public class BingWallpaper {
 
   public static void main(String[] args) {
     Octopus.builder()
         .setThreads(2)
-        .autoStop()
         .addSite(
             WebSite.of("bing.ioliu.cn")
                 .setRateLimiter(1, 5)
                 .setDownloadConfig(new DownloadConfig()))
-        .addProcessor(BingWallpaper.class)
-        .addProcessor(new MediaFileDownloadProcessor("../../../downloads/wallpapers/bing"))
+        .addProcessor(Matchers.HTML, BingWallpaper.class)
+        .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/wallpapers/bing"))
         .addSeeds(Request.get("https://bing.ioliu.cn"))
         .build()
         .start();

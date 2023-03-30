@@ -5,6 +5,7 @@ import com.octopus.core.Request;
 import java.net.Proxy;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.IntUnaryOperator;
 import lombok.NonNull;
 
 /**
@@ -17,12 +18,22 @@ public class PollingProxyProvider implements ProxyProvider {
 
   private final AtomicInteger index = new AtomicInteger(0);
 
+  private final IntUnaryOperator updater;
+
   public PollingProxyProvider(@NonNull Proxy... proxies) {
-    this.proxies = ListUtil.toList(proxies);
+    this(ListUtil.toList(proxies));
   }
 
   public PollingProxyProvider(@NonNull List<Proxy> proxies) {
     this.proxies = proxies;
+    this.updater =
+        pre -> {
+          if (pre >= this.proxies.size() - 1) {
+            return 0;
+          } else {
+            return pre + 1;
+          }
+        };
   }
 
   @Override
@@ -30,15 +41,7 @@ public class PollingProxyProvider implements ProxyProvider {
     if (proxies.isEmpty()) {
       return Proxy.NO_PROXY;
     }
-    int i =
-        index.getAndUpdate(
-            pre -> {
-              if (pre >= this.proxies.size() - 1) {
-                return 0;
-              } else {
-                return pre + 1;
-              }
-            });
+    int i = index.getAndUpdate(this.updater);
     return this.proxies.get(i);
   }
 }

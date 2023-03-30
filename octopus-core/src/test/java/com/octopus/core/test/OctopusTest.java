@@ -6,6 +6,7 @@ import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.matcher.Matchers;
 import lombok.Data;
 
 /**
@@ -38,7 +39,7 @@ public class OctopusTest {
 
     Octopus.builder()
         .addSeeds(Request.get("https://wwww.baidu.com?a=1").putAttribute("b", 2))
-        .addProcessor(OctopusTest.class, System.out::println)
+        .addProcessor(Matchers.ALL, OctopusTest.class, System.out::println)
         .build()
         .start();
   }

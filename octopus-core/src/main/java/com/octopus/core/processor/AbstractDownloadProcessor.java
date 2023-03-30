@@ -4,12 +4,11 @@ import cn.hutool.core.io.FileUtil;
 import cn.hutool.core.lang.UUID;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.Request;
+import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.matcher.Matcher;
 import java.io.File;
-import java.util.List;
 import java.util.Map;
 import lombok.NonNull;
 
@@ -17,14 +16,14 @@ import lombok.NonNull;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
-public abstract class AbstractDownloadProcessor extends AbstractProcessor {
+public abstract class AbstractDownloadProcessor extends MatchableProcessor {
 
   public AbstractDownloadProcessor(@NonNull Matcher matcher) {
     super(matcher);
   }
 
   @Override
-  public List<Request> process(Response response) {
+  public void process(Response response, Octopus octopus) {
     File downloadDir = this.resolveSaveDir(response);
     String fileName = this.resolveSaveName(response);
     try {
@@ -33,7 +32,6 @@ public abstract class AbstractDownloadProcessor extends AbstractProcessor {
       throw new ProcessException(
           String.format("Can not save file [%s]", FileUtil.file(downloadDir, fileName)), e);
     }
-    return null;
   }
 
   /**

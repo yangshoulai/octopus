@@ -7,30 +7,29 @@ import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.ContentType;
 import cn.hutool.http.Header;
 import cn.hutool.http.HttpUtil;
+import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.processor.AbstractProcessor;
+import com.octopus.core.processor.MatchableProcessor;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.jsoup.select.Elements;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23
  */
-public class ListPageProcessor extends AbstractProcessor {
+public class ListPageProcessor extends MatchableProcessor {
 
   public ListPageProcessor() {
     super(r -> r.getRequest().getUrl().contains("/discover/toplist"));
   }
 
   @Override
-  public List<Request> process(Response response) {
+  public void process(Response response, Octopus octopus) {
     Elements elements = response.asDocument().select("ul.f-hide li a");
-    return elements.stream()
+    elements.stream()
         .map(
             el -> {
               String id = el.attr("href").replace("/song?id=", "");
@@ -40,7 +39,7 @@ public class ListPageProcessor extends AbstractProcessor {
               params.put("level", "standard");
               params.put("encodeType", "aac");
               params.put("csrf_token", "");
-              Map<String, String> encryptParams = EncryptUtil.getEncryptParams(params);
+              Map<String, String> encryptParams = Encrypt.getEncryptParams(params);
               return Request.post(
                       UrlBuilder.create()
                           .setScheme("https")
@@ -52,6 +51,6 @@ public class ListPageProcessor extends AbstractProcessor {
                   .addHeader(Header.CONTENT_TYPE.getValue(), ContentType.FORM_URLENCODED.getValue())
                   .putAttribute("name", name);
             })
-        .collect(Collectors.toList());
+        .forEach(octopus::addRequest);
   }
 }

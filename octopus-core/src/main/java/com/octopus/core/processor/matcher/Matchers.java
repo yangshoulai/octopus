@@ -24,6 +24,9 @@ public class Matchers {
 
   public static final Matcher OCTET_STREAM = contentType(".*application/octet-stream.*");
 
+  public static final Matcher MEDIA =
+      Matchers.or(Matchers.IMAGE, Matchers.VIDEO, Matchers.AUDIO, Matchers.OCTET_STREAM);
+
   public static Matcher and(@NonNull Matcher... matchers) {
     return new AndMatcher(ListUtil.of(matchers));
   }

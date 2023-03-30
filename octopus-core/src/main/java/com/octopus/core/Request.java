@@ -38,6 +38,9 @@ public class Request implements Serializable, Comparable<Request> {
 
   private Status status = Status.of(State.Waiting);
 
+  /** 失败次数 */
+  private int failTimes = 0;
+
   public Request() {}
 
   public Request(@NonNull String url, @NonNull RequestMethod method) {
@@ -190,6 +193,14 @@ public class Request implements Serializable, Comparable<Request> {
 
   public Status getStatus() {
     return status;
+  }
+
+  public int getFailTimes() {
+    return failTimes;
+  }
+
+  public void setFailTimes(int failTimes) {
+    this.failTimes = failTimes;
   }
 
   @Override

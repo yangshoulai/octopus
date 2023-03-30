@@ -1,8 +1,6 @@
 package com.octopus.sample.apc360;
 
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
@@ -15,16 +13,18 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor(matcher = @ExtractorMatcher(type = Type.URL_REGEX, regex = ".*getAllCategoriesV2.*"))
-@Link(
-    selectors =
-        @Selector(
-            type = Selector.Type.Json,
-            value = "$.data[*].id",
-            formatters =
-                @Formatter(
-                    format =
-                        "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s")))
+@Extractor(
+    links = {
+      @Link(
+          selectors =
+              @Selector(
+                  type = Selector.Type.Json,
+                  value = "$.data[*].id",
+                  formatters =
+                      @Formatter(
+                          format =
+                              "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s")))
+    })
 public class CategoriesPage {
 
   @Selector(type = Selector.Type.Json, value = "$.errno")

@@ -4,15 +4,13 @@ import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.matcher.Matchers;
 import java.util.Collection;
 import java.util.List;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 获取Gitee所有推荐项目 https://gitee.com/explore/all
@@ -20,14 +18,16 @@ import lombok.extern.slf4j.Slf4j;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-@Slf4j
 @Data
-@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
-@Link(
-    selectors =
-        @Selector(type = Selector.Type.Xpath, value = "//a[@rel='next'][position()=2]/@href"),
-    repeatable = false,
-    priority = 1)
+@Extractor(
+    links =
+        @Link(
+            selectors =
+                @Selector(
+                    type = Selector.Type.Xpath,
+                    value = "//a[@rel='next'][position()=2]/@href"),
+            repeatable = false,
+            priority = 1))
 public class GiteeProject {
 
   @Selector(type = Selector.Type.Css, value = ".items .item", self = true)
@@ -62,10 +62,11 @@ public class GiteeProject {
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
         .addSeeds("https://gitee.com/explore/all?order=starred")
         .addProcessor(
+            Matchers.HTML,
             GiteeProject.class,
             gitee -> {
               if (gitee.getProjects() != null) {
-                gitee.getProjects().forEach(p -> log.debug("{}", JSONUtil.toJsonStr(p)));
+                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
               }
             })
         .build()

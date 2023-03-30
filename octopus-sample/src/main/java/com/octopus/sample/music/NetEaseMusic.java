@@ -7,6 +7,7 @@ import com.octopus.core.Response;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.utils.RateLimiter;
+import com.octopus.sample.Constants;
 
 /**
  * 下载网易云音乐热歌榜歌曲
@@ -14,17 +15,16 @@ import com.octopus.core.utils.RateLimiter;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23
  */
-public class Music163Octopus {
+public class NetEaseMusic {
 
   public static void main(String[] args) {
     Octopus.builder()
-        .autoStop()
         .addSeeds("https://music.163.com/discover/toplist?id=3778678")
         .addSite(WebSite.of("music.163.com").setRateLimiter(RateLimiter.of(1, 5)))
         .addProcessor(new ListPageProcessor())
         .addProcessor(new PlayerUrlProcessor())
         .addProcessor(
-            new MediaFileDownloadProcessor(FileUtil.file("../../downloads/music")) {
+            new MediaFileDownloadProcessor(FileUtil.file(Constants.DOWNLOAD_DIR + "/music")) {
               @Override
               protected String resolveSaveName(Response response) {
                 String suffix = FileUtil.getSuffix(response.getRequest().getUrl());

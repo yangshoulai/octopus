@@ -8,15 +8,14 @@ import lombok.NonNull;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
-public abstract class AbstractProcessor implements Processor {
+public abstract class MatchableProcessor implements Processor {
 
   private final Matcher matcher;
 
-  public AbstractProcessor(@NonNull Matcher matcher) {
+  public MatchableProcessor(@NonNull Matcher matcher) {
     this.matcher = matcher;
   }
 
-  @Override
   public boolean matches(Response response) {
     return matcher.matches(response);
   }

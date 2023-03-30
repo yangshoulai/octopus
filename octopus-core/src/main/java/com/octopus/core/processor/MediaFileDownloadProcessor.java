@@ -16,8 +16,6 @@ public class MediaFileDownloadProcessor extends DefaultDownloadProcessor {
   }
 
   public MediaFileDownloadProcessor(@NonNull File saveDirectory) {
-    super(
-        Matchers.or(Matchers.IMAGE, Matchers.AUDIO, Matchers.VIDEO, Matchers.OCTET_STREAM),
-        saveDirectory);
+    super(Matchers.MEDIA, saveDirectory);
   }
 }

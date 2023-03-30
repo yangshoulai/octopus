@@ -19,7 +19,7 @@ import javax.crypto.spec.IvParameterSpec;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23
  */
-public class EncryptUtil {
+public class Encrypt {
 
   private static final String KEY_SEEDS =
       "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

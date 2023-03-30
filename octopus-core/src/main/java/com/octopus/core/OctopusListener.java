@@ -1,8 +1,5 @@
 package com.octopus.core;
 
-import com.octopus.core.exception.DownloadException;
-import java.util.List;
-
 /**
  * 爬虫拦截器
  *
@@ -26,13 +23,12 @@ public interface OctopusListener {
   default void beforeDownload(Request request) {}
 
   /**
-   * 下载异常
+   * 异常
    *
    * @param request 下载请求
-   * @param e 下载异常
+   * @param e 异常
    */
-  default void onDownloadError(Request request, DownloadException e) {
-  }
+  default void onError(Request request, Throwable e) {}
 
   /**
    * 请求下载之后，处理之前
@@ -45,7 +41,6 @@ public interface OctopusListener {
    * 请求处理之后
    *
    * @param response 下载响应
-   * @param newRequests 新的下载请求
    */
-  default void afterProcess(Response response, List<Request> newRequests) {}
+  default void afterProcess(Response response) {}
 }

@@ -10,8 +10,12 @@ import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.ExtractorProcessor;
 import com.octopus.core.processor.LoggerProcessor;
+import com.octopus.core.processor.MatchableProcessor;
+import com.octopus.core.processor.MatchedProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.extractor.Collector;
+import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.MemoryStore;
@@ -40,7 +44,7 @@ public class OctopusBuilder {
 
   private final List<OctopusListener> listeners = new ArrayList<>();
 
-  private final List<Processor> processors = new ArrayList<>();
+  private final List<MatchableProcessor> processors = new ArrayList<>();
 
   /** 全局下载配置 */
   private DownloadConfig globalDownloadConfig = new DownloadConfig();
@@ -75,9 +79,7 @@ public class OctopusBuilder {
 
   private final List<Request> seeds = new ArrayList<>();
 
-  private boolean debug = false;
-
-  private String name = "octopus";
+  private String name = "Octopus";
 
   private Logger logger = LoggerFactory.getLogger("Octopus");
 
@@ -110,30 +112,6 @@ public class OctopusBuilder {
    */
   public OctopusBuilder setLogger(@NonNull String logger) {
     return this.setLogger(LoggerFactory.getLogger(logger));
-  }
-
-  /**
-   * 设置爬虫是否debug
-   *
-   * <p>debug时打印详细日志
-   *
-   * @param debug 是否debug
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder debug(boolean debug) {
-    this.debug = debug;
-    return this;
-  }
-
-  /**
-   * 设置爬虫debug状态
-   *
-   * <p>debug时打印详细日志
-   *
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder debug() {
-    return this.debug(true);
   }
 
   /**
@@ -340,7 +318,22 @@ public class OctopusBuilder {
    * @return OctopusBuilder
    */
   public OctopusBuilder addProcessor(@NonNull Processor processor) {
-    this.processors.add(processor);
+    if (processor instanceof MatchableProcessor) {
+      this.processors.add((MatchableProcessor) processor);
+      return this;
+    } else {
+      return this.addProcessor(Matchers.ALL, processor);
+    }
+  }
+
+  /**
+   * 添加响应处理器
+   *
+   * @param processor 响应处理器
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder addProcessor(@NonNull Matcher matcher, @NonNull Processor processor) {
+    this.processors.add(new MatchedProcessor(matcher, processor));
     return this;
   }
 
@@ -351,20 +344,33 @@ public class OctopusBuilder {
    * @return OctopusBuilder
    */
   public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass) {
-    return this.addProcessor(extractorClass, null);
+    return this.addProcessor(new ExtractorProcessor<>(extractorClass));
   }
 
   /**
    * 添加响应处理器
    *
+   * @param matcher 匹配器
+   * @param extractorClass 响应提取器
+   * @return OctopusBuilder
+   */
+  public <T> OctopusBuilder addProcessor(
+      @NonNull Matcher matcher, @NonNull Class<T> extractorClass) {
+    return this.addProcessor(matcher, extractorClass, null);
+  }
+
+  /**
+   * 添加响应处理器
+   *
+   * @param matcher 匹配器
    * @param extractorClass 响应提取器
    * @param callback 回调
    * @param <T> 提取内容
    * @return OctopusBuilder
    */
-  public <T> OctopusBuilder addProcessor(@NonNull Class<T> extractorClass, Collector<T> callback) {
-    this.processors.add(new ExtractorProcessor<T>(extractorClass, callback));
-    return this;
+  public <T> OctopusBuilder addProcessor(
+      @NonNull Matcher matcher, @NonNull Class<T> extractorClass, Collector<T> callback) {
+    return this.addProcessor(matcher, new ExtractorProcessor<>(extractorClass, callback));
   }
 
   /**
@@ -545,7 +551,7 @@ public class OctopusBuilder {
     return listeners;
   }
 
-  public List<Processor> getProcessors() {
+  public List<MatchableProcessor> getProcessors() {
     return processors;
   }
 
@@ -567,10 +573,6 @@ public class OctopusBuilder {
 
   public List<Request> getSeeds() {
     return seeds;
-  }
-
-  public boolean isDebug() {
-    return debug;
   }
 
   public String getName() {
@@ -599,7 +601,7 @@ public class OctopusBuilder {
 
   public Octopus build() {
     if (this.processors.isEmpty()) {
-      processors.add(new LoggerProcessor());
+      processors.add(new LoggerProcessor(Matchers.ALL));
     }
 
     return new OctopusImpl(this);

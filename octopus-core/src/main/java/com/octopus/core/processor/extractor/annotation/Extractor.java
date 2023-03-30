@@ -1,6 +1,5 @@
 package com.octopus.core.processor.extractor.annotation;
 
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -17,11 +16,5 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Extractor {
-
-  /**
-   * 匹配的网页URL正则表达式
-   *
-   * @return 正则表达式
-   */
-  ExtractorMatcher matcher() default @ExtractorMatcher(type = Type.ALL);
+  Link[] links() default {};
 }

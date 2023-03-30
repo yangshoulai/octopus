@@ -1,4 +1,4 @@
-package com.octopus.sample.proxy;
+package com.octopus.sample.kxdaili;
 
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
@@ -9,6 +9,7 @@ import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.matcher.Matchers;
 import java.util.List;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -20,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Data
 @Extractor
-public class KxDaiLiOctopus {
+public class KxDaiLi {
 
   @Selector(value = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
@@ -67,7 +68,8 @@ public class KxDaiLiOctopus {
   public static void main(String[] args) {
     Octopus.builder()
         .addProcessor(
-            KxDaiLiOctopus.class,
+            Matchers.ALL,
+            KxDaiLi.class,
             kxDaiLi -> {
               kxDaiLi
                   .getProxies()

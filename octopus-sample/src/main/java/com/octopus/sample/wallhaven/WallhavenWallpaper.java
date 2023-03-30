@@ -1,26 +1,29 @@
 package com.octopus.sample.wallhaven;
 
+import com.octopus.core.Octopus;
+import com.octopus.core.WebSite;
+import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher;
-import com.octopus.core.processor.extractor.annotation.ExtractorMatcher.Type;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.sample.Constants;
 import java.util.List;
 import lombok.Data;
-import lombok.extern.slf4j.Slf4j;
 
 /**
- * 下载壁纸天堂壁纸 https://wallhaven.cc
- *
  * @author shoulai.yang@gmail.com
- * @date 2021/11/23
+ * @date 2021/12/1
  */
-@Slf4j
 @Data
-@Extractor(matcher = @ExtractorMatcher(type = Type.HTML))
-@Link(selectors = @Selector(value = "img#wallpaper", attr = "src"))
-@Link(selectors = @Selector(value = "#thumbs .thumb-listing-page ul li a.preview", attr = "href"))
-@Link(selectors = @Selector(value = "ul.pagination li a.next", attr = "href"))
+@Extractor(
+    links = {
+      @Link(selectors = @Selector(value = "img#wallpaper", attr = "src")),
+      @Link(
+          selectors =
+              @Selector(value = "#thumbs .thumb-listing-page ul li a.preview", attr = "href")),
+      @Link(selectors = @Selector(value = "ul.pagination li a.next", attr = "href"))
+    })
 public class WallhavenWallpaper {
 
   /** 壁纸列表 */
@@ -43,5 +46,20 @@ public class WallhavenWallpaper {
     /** 壁纸分辨率 */
     @Selector(value = ".wall-res")
     private String resolution;
+  }
+
+  public static void main(String[] args) {
+    Octopus.builder()
+        .setName("wallhaven-spider")
+        .setThreads(2)
+        .useOkHttpDownloader()
+        .addSite(WebSite.of("wallhaven.cc").setRateLimiter(1, 2))
+        .addProcessor(Matchers.HTML, WallhavenWallpaper.class)
+        .addProcessor(
+            new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/wallpapers/wallhaven/"))
+        .addSeeds(
+            "https://wallhaven.cc/search?categories=010&purity=110&ratios=16x9%2C16x10&topRange=6M&sorting=toplist&order=desc&page=1")
+        .build()
+        .start();
   }
 }
