@@ -81,7 +81,7 @@ public class OctopusBuilder {
 
   private String name = "Octopus";
 
-  private Logger logger = LoggerFactory.getLogger("Octopus");
+  private Logger logger = LoggerFactory.getLogger(Octopus.class.getName());
 
   /**
    * 设置爬虫日志

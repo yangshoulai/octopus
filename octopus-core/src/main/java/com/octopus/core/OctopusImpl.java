@@ -73,7 +73,7 @@ class OctopusImpl implements Octopus {
 
   private final List<WebSite> webSites;
 
-  private final List<OctopusListener> listeners;
+  private final OctopusListenerNotifier listenerNotifier;
 
   private final List<MatchableProcessor> processors;
 
@@ -97,6 +97,8 @@ class OctopusImpl implements Octopus {
 
   private final int maxReplays;
 
+  private Long lastSummaryTime;
+
   public OctopusImpl(OctopusBuilder builder) {
     this.logger = builder.getLogger();
     this.name = builder.getName();
@@ -107,7 +109,8 @@ class OctopusImpl implements Octopus {
     this.autoStop = builder.isAutoStop();
     this.globalDownloadConfig = builder.getGlobalDownloadConfig();
     this.processors = builder.getProcessors();
-    this.listeners = builder.getListeners();
+    this.listenerNotifier =
+        new OctopusListenerNotifier(builder.getListeners(), builder.getLogger());
     this.webSites = builder.getSites();
     this.store = builder.getStore();
     this.downloader = builder.getDownloader();
@@ -193,7 +196,7 @@ class OctopusImpl implements Octopus {
     }
     logger.info(
         String.format(
-            "Total = [%s], completed = [%s], waiting = [%s], failed = [%s]",
+            "Total = [%s], Completed = [%s], Waiting = [%s], Failed = [%s]",
             total, completed, waiting, failed));
     logger.info(
         String.format(
@@ -213,7 +216,7 @@ class OctopusImpl implements Octopus {
       this.seeds.add(request);
     } else {
       if (request.isRepeatable() || !this.store.exists(request)) {
-        this.listeners.forEach(listener -> listener.beforeStore(request));
+        this.listenerNotifier.beforeStore(request);
         request.setStatus(Status.of(Request.State.Waiting));
         if (this.store.put(request)) {
           if (this.translateState(State.IDLE, State.STARTED)) {
@@ -235,21 +238,41 @@ class OctopusImpl implements Octopus {
     }
   }
 
+  private void logSummaryInfoIfNeed() {
+    if (this.lastSummaryTime == null) {
+      this.lastSummaryTime = System.currentTimeMillis();
+    }
+    long current = System.currentTimeMillis();
+    if (current - this.lastSummaryTime > 10000) {
+      this.lastSummaryTime = current;
+      long total = this.store.getTotalSize();
+      long completed = this.store.getCompletedSize();
+      long waiting = this.store.getWaitingSize();
+      long executing = this.threads - this.workerSemaphore.availablePermits();
+      long failed = total - completed - waiting - executing;
+      logger.info(
+          String.format(
+              "Total = [%s], Completed = [%s], Waiting = [%s], Executing = [%s], Failed = [%s]",
+              total, completed, waiting, executing, failed));
+    }
+  }
+
   private void dispatch() {
     State state;
     while (!Thread.currentThread().isInterrupted()
         && ((state = this.state.get()) == State.STARTED || state == State.IDLE)) {
       try {
+        logSummaryInfoIfNeed();
         Request request = this.store.get();
         if (request != null) {
           if (this.logger.isDebugEnabled()) {
-            logger.debug(String.format("Take request [%s] from store", request));
+            logger.debug(String.format("Take request [%s]", request));
           }
           this.workerSemaphore.acquire();
           this.workers.execute(
               () -> {
                 try {
-                  this.listeners.forEach(listener -> listener.beforeDownload(request));
+                  this.listenerNotifier.beforeDownload(request);
                   WebSite webSite = this.getTargetWebSite(request);
                   DownloadConfig downloadConfig = this.globalDownloadConfig;
                   if (webSite != null && webSite.getRateLimiter() != null) {
@@ -260,7 +283,7 @@ class OctopusImpl implements Octopus {
                   }
                   Response response = this.download(request, downloadConfig);
                   if (response != null) {
-                    this.listeners.forEach(listener -> listener.beforeProcess(response));
+                    this.listenerNotifier.beforeProcess(response);
                     if (!response.isSuccessful()) {
                       throw new BadStatusException(response);
                     }
@@ -270,7 +293,7 @@ class OctopusImpl implements Octopus {
                 } catch (Throwable e) {
                   logger.error("", e);
                   this.store.markAsFailed(request, e.getMessage());
-                  this.listeners.forEach(listener -> listener.onError(request, e));
+                  this.listenerNotifier.onError(request, e);
                 } finally {
                   this.workerSemaphore.release();
                   this.idleSignal();
@@ -347,7 +370,7 @@ class OctopusImpl implements Octopus {
       failed.forEach(this::addRequest);
     } else {
       if (this.logger.isDebugEnabled()) {
-        logger.debug("No failed request found");
+        logger.debug("No failed requests found");
       }
     }
     return failed != null && !failed.isEmpty();
@@ -372,6 +395,12 @@ class OctopusImpl implements Octopus {
     if (matchedProcessors.isEmpty()) {
       throw new ProcessorNotFoundException(response.getRequest());
     }
+    if (this.logger.isTraceEnabled()) {
+      this.logger.trace(
+          String.format(
+              "Found [%s] matched processors for request [%s]",
+              matchedProcessors.size(), response.getRequest()));
+    }
     for (Processor processor : matchedProcessors) {
       processor.process(
           response,
@@ -393,10 +422,13 @@ class OctopusImpl implements Octopus {
 
             @Override
             public void addRequest(Request request) throws OctopusException {
+              if (OctopusImpl.this.logger.isTraceEnabled()) {
+                OctopusImpl.this.logger.trace("Found new request [" + request + "]");
+              }
               OctopusImpl.this.addNewRequests(response.getRequest(), request);
             }
           });
-      this.listeners.forEach(listener -> listener.afterProcess(response));
+      this.listenerNotifier.afterProcess(response);
     }
   }
 
@@ -458,7 +490,7 @@ class OctopusImpl implements Octopus {
 
   private ExecutorService createBossExecutor() {
     if (this.logger.isDebugEnabled()) {
-      logger.debug(String.format("Create boss executor [%s]", this.name + "-boss"));
+      logger.debug(String.format("Create boss executor [%s]", this.name + "/boss"));
     }
     return new ThreadPoolExecutor(
         1,
@@ -468,7 +500,7 @@ class OctopusImpl implements Octopus {
         new LinkedBlockingQueue<>(),
         r -> {
           Thread t = new Thread(r);
-          t.setName(this.name + "-boss");
+          t.setName(this.name + "/boss");
           return t;
         });
   }
@@ -483,6 +515,6 @@ class OctopusImpl implements Octopus {
         0,
         TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>(),
-        new NamedThreadFactory(this.name + "-worker-", false));
+        new NamedThreadFactory(this.name + "/worker-", false));
   }
 }

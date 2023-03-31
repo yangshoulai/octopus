@@ -3,15 +3,13 @@
 <configuration>
   <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
-      <pattern>[%d] [%-9thread] %-5level %-10logger{0} - %msg %n</pattern>
+      <pattern>[%d] [%-20thread] %-5level %-15logger{0} - %msg %n</pattern>
     </encoder>
   </appender>
 
-  <logger name="Octopus" level="INFO"/>
   <logger name="com.octopus" level="DEBUG"/>
   <logger name="org.apache" level="INFO"/>
-  <logger name="org.apache.http" level="WARN"/>
-  <logger name="org.mongodb" level="WARN"/>
+
   <root level="INFO">
     <appender-ref ref="STDOUT"/>
   </root>

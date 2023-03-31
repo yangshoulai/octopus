@@ -50,7 +50,7 @@ public class WallhavenWallpaper {
 
   public static void main(String[] args) {
     Octopus.builder()
-        .setName("wallhaven-spider")
+        .setName("Wallhaven")
         .setThreads(2)
         .useOkHttpDownloader()
         .addSite(WebSite.of("wallhaven.cc").setRateLimiter(1, 2))
@@ -58,7 +58,7 @@ public class WallhavenWallpaper {
         .addProcessor(
             new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/wallpapers/wallhaven/"))
         .addSeeds(
-            "https://wallhaven.cc/search?categories=010&purity=110&ratios=16x9%2C16x10&topRange=6M&sorting=toplist&order=desc&page=1")
+            "https://wallhaven.cc/search?categories=001&purity=010&atleast=3360x2100&ratios=16x9%2C16x10&sorting=views&order=desc&ai_art_filter=1&page=1")
         .build()
         .start();
   }
