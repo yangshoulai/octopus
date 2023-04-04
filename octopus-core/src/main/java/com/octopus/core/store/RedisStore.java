@@ -125,7 +125,7 @@ public class RedisStore implements Store {
     try (Jedis jedis = this.pool.getResource()) {
       jedis.hset(this.failedKey, request.getId(), error);
       jedis.srem(this.executingKey, request.getId());
-      this.setStatus(jedis, request.getId(), State.Completed, error);
+      this.setStatus(jedis, request.getId(), State.Failed, error);
     }
   }
 
