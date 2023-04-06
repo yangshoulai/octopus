@@ -1,5 +1,6 @@
 package com.octopus.core.processor.extractor.type;
 
+import com.octopus.core.utils.AliasFor;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
@@ -15,5 +16,9 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface BooleanType {
 
-  String[] falseValues() default {"0", "非", "否", "off", "no", "f"};
+  @AliasFor("falseValues")
+  String[] value() default {};
+
+  @AliasFor("value")
+  String[] falseValues() default {};
 }

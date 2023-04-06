@@ -17,64 +17,54 @@
 
 ```java
 @Data
-// 提取页面下一页链接
 @Extractor(
-    links =
     @Link(
-        selectors =
-        @Selector(
-            type = Selector.Type.Xpath,
-            value = "//a[@rel='next'][position()=2]/@href"),
+        selector =
+        @Selector(type = Selector.Type.Xpath, value = "//a[@rel='next'][position()=2]/@href"),
         repeatable = false,
         priority = 1))
 public class GiteeProject {
 
-  // 提取页面所有项目
-  @Selector(type = Selector.Type.Css, value = ".items .item", self = true)
+  @Css(value = ".items .item", self = true)
   private Collection<Project> projects;
 
   @Data
   @Extractor
   public static class Project {
 
-    // 提取项目名称
-    @Selector(type = Selector.Type.Css, value = ".project-title a.title")
+    @Css(".project-title a.title")
     private String name;
 
-    // 提取项目地址
-    @Selector(
-        type = Selector.Type.Css,
+    @Css(
         value = ".project-title a.title",
         attr = "href",
-        formatters = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
+        formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
     private String address;
 
-    // 提取项目说明
-    @Selector(type = Selector.Type.Css, value = ".project-desc")
+    @Css(".project-desc")
     private String description;
 
-    // 提取项目标签
-    @Selector(type = Selector.Type.Css, value = ".project-label-item")
+    @Css(".project-desc")
+    private String description2;
+
+    @Css(".project-label-item")
     private List<String> tags;
 
-    // 提取项目星数
-    @Selector(type = Selector.Type.Css, value = ".stars-count")
+    @Css(".stars-count")
     private int stars;
+
+    @Url private String url;
   }
 
   public static void main(String[] args) {
     Octopus.builder()
-        // 站点配置，一秒钟最多访问一次
         .addSite(WebSite.of("gitee.com").setRateLimiter(1))
-        // 种子页面
         .addSeeds("https://gitee.com/explore/all?order=starred")
-        // 处理器
         .addProcessor(
             Matchers.HTML,
             GiteeProject.class,
             gitee -> {
               if (gitee.getProjects() != null) {
-                // 打印项目信息
                 gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
               }
             })

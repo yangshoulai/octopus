@@ -1,6 +1,5 @@
 package com.octopus.core.processor;
 
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
 import cn.hutool.core.util.ArrayUtil;
@@ -29,6 +28,7 @@ import com.octopus.core.processor.extractor.selector.SelectorHandler;
 import com.octopus.core.processor.extractor.selector.SelectorHandlerRegistry;
 import com.octopus.core.processor.extractor.type.TypeHandler;
 import com.octopus.core.processor.extractor.type.TypeHandlerRegistry;
+import com.octopus.core.utils.AnnotationUtil;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
@@ -87,12 +87,14 @@ public class ExtractorProcessor<T> implements Processor {
     R instance = ReflectUtil.newInstance(extractorClass);
     List<Request> requests = new ArrayList<>();
     Result<R> result = new Result<>(instance, requests);
-    Field[] fields =
-        ReflectUtil.getFields(extractorClass, f -> f.isAnnotationPresent(Selector.class));
+    Field[] fields = ReflectUtil.getFields(extractorClass);
     for (Field field : fields) {
-      this.extractField(result, source, field, response);
+      Selector selector = AnnotationUtil.getMergedAnnotation(field, Selector.class);
+      if (selector != null) {
+        this.extractField(result, source, field, selector, response);
+      }
     }
-    Link[] links = extractorClass.getAnnotation(Extractor.class).links();
+    Link[] links = AnnotationUtil.getMergedAnnotation(extractorClass, Extractor.class).links();
     for (Link link : links) {
       this.extractLink(result, link, source, response);
     }
@@ -142,16 +144,15 @@ public class ExtractorProcessor<T> implements Processor {
   }
 
   private void extractLink(Result<?> result, Link link, String source, Response response) {
-    Set<String> urls = new HashSet<>(ListUtil.toList(link.url()));
-    if (link.selectors().length > 0) {
-      for (Selector selector : link.selectors()) {
-        SelectorHandler selectorHandler =
-            SelectorHandlerRegistry.getInstance().getSelectorHandler(selector.type());
-        List<String> selected = selectorHandler.select(source, selector, true, response);
-        if (selected != null) {
-          urls.addAll(selected);
-        }
-      }
+    Set<String> urls = new HashSet<>();
+    if (StrUtil.isNotBlank(link.url())) {
+      urls.add(link.url());
+    }
+    SelectorHandler selectorHandler =
+        SelectorHandlerRegistry.getInstance().getSelectorHandler(link.selector().type());
+    List<String> selected = selectorHandler.select(source, link.selector(), true, response);
+    if (selected != null) {
+      urls.addAll(selected);
     }
     for (String url : urls) {
       if (StrUtil.isNotBlank(url)) {
@@ -193,8 +194,8 @@ public class ExtractorProcessor<T> implements Processor {
   }
 
   @SuppressWarnings("unchecked")
-  private void extractField(Result<?> result, String source, Field field, Response response) {
-    Selector selector = field.getAnnotation(Selector.class);
+  private void extractField(
+      Result<?> result, String source, Field field, Selector selector, Response response) {
     SelectorHandler selectorHandler =
         SelectorHandlerRegistry.getInstance().getSelectorHandler(selector.type());
     FieldType fieldType = ExtractorHelper.getFieldType(field);
@@ -210,7 +211,8 @@ public class ExtractorProcessor<T> implements Processor {
                 TypeHandlerRegistry.getInstance().getTypeHandler(componentClass);
             Annotation annotation = null;
             if (typeHandler.getSupportAnnotationType() != null) {
-              annotation = field.getAnnotation(typeHandler.getSupportAnnotationType());
+              annotation =
+                  AnnotationUtil.getMergedAnnotation(field, typeHandler.getSupportAnnotationType());
             }
             Object obj = typeHandler.handle(item, annotation);
             list.add(obj);
@@ -246,7 +248,8 @@ public class ExtractorProcessor<T> implements Processor {
             TypeHandlerRegistry.getInstance().getTypeHandler(fieldType.getComponentClass());
         Annotation annotation = null;
         if (typeHandler.getSupportAnnotationType() != null) {
-          annotation = field.getAnnotation(typeHandler.getSupportAnnotationType());
+          annotation =
+              AnnotationUtil.getMergedAnnotation(field, typeHandler.getSupportAnnotationType());
         }
         Object obj = typeHandler.handle(selected.get(0), annotation);
         ReflectUtil.setFieldValue(result.getObj(), field, obj);

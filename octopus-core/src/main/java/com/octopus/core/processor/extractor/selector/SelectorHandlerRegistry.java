@@ -21,6 +21,7 @@ public class SelectorHandlerRegistry {
     registerHandler(Type.Css, new CssSelectorHandler());
     registerHandler(Type.Xpath, new XpathSelectorHandler());
     registerHandler(Type.Regex, new RegexSelectorHandler());
+    registerHandler(Type.None, new NoneSelectorHandler());
   }
 
   public static SelectorHandlerRegistry getInstance() {

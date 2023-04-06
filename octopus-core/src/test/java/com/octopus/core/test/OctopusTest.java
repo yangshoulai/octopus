@@ -20,10 +20,10 @@ public class OctopusTest {
   @Selector(type = Type.Url)
   private String url;
 
-  @Selector(type = Type.Url, formatters = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
+  @Selector(type = Type.Url, formatter = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
   private String a;
 
-  @Selector(type = Type.Url, formatters = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
+  @Selector(type = Type.Url, formatter = @Formatter(regex = "^.*?\\?a=(\\d+)$", groups = 1))
   private Integer a1;
 
   @Selector(type = Type.Param, value = "a")

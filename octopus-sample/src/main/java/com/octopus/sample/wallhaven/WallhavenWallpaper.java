@@ -5,6 +5,7 @@ import com.octopus.core.WebSite;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Css;
 import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
@@ -16,18 +17,15 @@ import lombok.Data;
  * @date 2021/12/1
  */
 @Data
-@Extractor(
-    links = {
-      @Link(selectors = @Selector(value = "img#wallpaper", attr = "src")),
-      @Link(
-          selectors =
-              @Selector(value = "#thumbs .thumb-listing-page ul li a.preview", attr = "href")),
-      @Link(selectors = @Selector(value = "ul.pagination li a.next", attr = "href"))
-    })
+@Extractor({
+  @Link(selector = @Selector(value = "img#wallpaper", attr = "src")),
+  @Link(selector = @Selector(value = "#thumbs .thumb-listing-page ul li a.preview", attr = "href")),
+  @Link(selector = @Selector(value = "ul.pagination li a.next", attr = "href"))
+})
 public class WallhavenWallpaper {
 
   /** 壁纸列表 */
-  @Selector(value = "#thumbs .thumb-listing-page ul li")
+  @Css("#thumbs .thumb-listing-page ul li")
   private List<Wallpaper> wallpapers;
 
   /** 壁纸数据 */
@@ -36,15 +34,15 @@ public class WallhavenWallpaper {
   public static class Wallpaper {
 
     /** 壁纸图片链接 */
-    @Selector(value = "img", attr = "data-src")
+    @Css(expression = "img", attr = "data-src")
     private String src;
 
     /** 壁纸预览图链接 */
-    @Selector(value = "a.preview", attr = "href")
+    @Css(expression = "a.preview", attr = "href")
     private String previewSrc;
 
     /** 壁纸分辨率 */
-    @Selector(value = ".wall-res")
+    @Css(expression = ".wall-res")
     private String resolution;
   }
 

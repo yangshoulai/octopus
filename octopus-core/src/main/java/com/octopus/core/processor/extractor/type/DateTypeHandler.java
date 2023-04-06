@@ -2,6 +2,7 @@ package com.octopus.core.processor.extractor.type;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import java.lang.annotation.Annotation;
 import java.util.Date;
 
@@ -14,7 +15,10 @@ public class DateTypeHandler implements TypeHandler<Date> {
   @Override
   public Date handle(String source, Annotation annotation) {
     DateType dateType = (DateType) annotation;
-    String format = dateType == null ? DatePattern.NORM_DATETIME_PATTERN : dateType.pattern();
+    String format =
+        dateType == null || StrUtil.isBlank(dateType.pattern())
+            ? DatePattern.NORM_DATETIME_PATTERN
+            : dateType.pattern();
     return DateUtil.parse(source, format);
   }
 

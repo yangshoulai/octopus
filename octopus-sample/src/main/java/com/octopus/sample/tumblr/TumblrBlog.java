@@ -12,7 +12,10 @@ import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Json;
+import com.octopus.core.processor.extractor.selector.Regex;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Url;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import java.util.HashMap;
@@ -29,12 +32,10 @@ import lombok.Data;
 @Extractor
 public class TumblrBlog {
 
-  @Selector(type = Selector.Type.Regex, value = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
+  @Regex(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
   private String apiToken;
 
-  @Selector(
-      type = Selector.Type.Url,
-      formatters = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
+  @Url(formatter = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
   private String username;
 
   @LinkMethod
@@ -51,31 +52,30 @@ public class TumblrBlog {
   }
 
   @Data
-  @Extractor(
-      links = {
-        @Link(
-            selectors =
-                @Selector(
-                    type = Selector.Type.Json,
-                    value = "$.response.posts[*].content[*].media.url")),
-        @Link(
-            selectors =
-                @Selector(
-                    type = Selector.Type.Json,
-                    value = "$.response.posts[*].content[*].media[0].url"))
-      })
+  @Extractor({
+    @Link(
+        selector =
+            @Selector(
+                type = Selector.Type.Json,
+                value = "$.response.posts[*].content[*].media.url")),
+    @Link(
+        selector =
+            @Selector(
+                type = Selector.Type.Json,
+                value = "$.response.posts[*].content[*].media[0].url"))
+  })
   public static class PostResponse {
 
-    @Selector(type = Selector.Type.Json, value = "$.meta.status")
+    @Json("$.meta.status")
     private int status;
 
-    @Selector(type = Selector.Type.Json, value = "$.response.total_posts")
+    @Json("$.response.total_posts")
     private int totalPosts;
 
-    @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media.url")
+    @Json("$.response.posts[*].content[*].media.url")
     private String[] videos;
 
-    @Selector(type = Selector.Type.Json, value = "$.response.posts[*].content[*].media[*].url")
+    @Json("$.response.posts[*].content[*].media[*].url")
     private String[] photos;
 
     @LinkMethod

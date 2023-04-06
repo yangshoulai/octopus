@@ -1,5 +1,6 @@
 package com.octopus.core.processor.extractor.annotation;
 
+import com.octopus.core.utils.AliasFor;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -16,5 +17,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
 public @interface Extractor {
+
+  @AliasFor("links")
+  Link[] value() default {};
+
+  @AliasFor("value")
   Link[] links() default {};
 }

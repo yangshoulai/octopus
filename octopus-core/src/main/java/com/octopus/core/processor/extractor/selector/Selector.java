@@ -2,7 +2,6 @@ package com.octopus.core.processor.extractor.selector;
 
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -12,9 +11,8 @@ import java.lang.annotation.Target;
  * @date 2023/3/27
  */
 @Documented
-@Target({ElementType.FIELD})
+@Target({ElementType.FIELD, ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 public @interface Selector {
 
   /**
@@ -37,7 +35,6 @@ public @interface Selector {
    * @return 默认值
    */
   String def() default "";
-
 
   /**
    * @return CSS选择器 元素属性名称
@@ -67,7 +64,7 @@ public @interface Selector {
   /**
    * @return 格式化
    */
-  Formatter[] formatters() default {};
+  Formatter formatter() default @Formatter();
 
   enum Type {
     /** Attr */
@@ -83,6 +80,8 @@ public @interface Selector {
     /** Url */
     Url,
     /** Xpath */
-    Xpath
+    Xpath,
+    /** None */
+    None
   }
 }

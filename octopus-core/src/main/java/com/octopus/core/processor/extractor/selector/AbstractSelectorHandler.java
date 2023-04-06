@@ -30,19 +30,12 @@ public abstract class AbstractSelectorHandler implements SelectorHandler {
       selected = ListUtil.of(selector.def());
     }
     selected = selected.stream().filter(Objects::nonNull).collect(Collectors.toList());
-    if (selector.formatters() != null) {
-      selected = this.applyFormatters(selector.formatters(), selected);
+    if (selector.formatter() != null) {
+      selected = this.applyFormatter(selector.formatter(), selected);
     }
     return multi || selected.isEmpty()
         ? ListUtil.unmodifiable(selected)
         : ListUtil.of(selected.get(0));
-  }
-
-  private List<String> applyFormatters(Formatter[] formatters, List<String> selected) {
-    for (Formatter formatter : formatters) {
-      selected = applyFormatter(formatter, selected);
-    }
-    return selected;
   }
 
   private List<String> applyFormatter(Formatter formatter, List<String> selected) {

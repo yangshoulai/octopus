@@ -2,6 +2,7 @@ package com.octopus.core.processor.extractor.annotation;
 
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Selector.Type;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;
@@ -19,10 +20,9 @@ import java.lang.annotation.Target;
 @Inherited
 public @interface Link {
 
-  String[] url() default {};
+  String url() default "";
 
-  Selector[] selectors() default {};
-
+  Selector selector() default @Selector(type = Type.None);
 
   int priority() default 0;
 

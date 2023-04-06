@@ -12,9 +12,12 @@ import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
+import com.octopus.core.processor.extractor.selector.Css;
 import com.octopus.core.processor.extractor.selector.Formatter;
+import com.octopus.core.processor.extractor.selector.Json;
 import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.extractor.selector.Xpath;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import java.util.HashMap;
@@ -27,10 +30,10 @@ import lombok.Data;
  * @date 2021/11/27
  */
 @Data
-@Extractor(links = @Link(selectors = @Selector(value = ".hub-photomodal > a", attr = "href")))
+@Extractor(@Link(selector = @Selector(value = ".hub-photomodal > a", attr = "href")))
 public class WallhereWallPaper {
 
-  @Selector(type = Type.Json, value = "$.data")
+  @Json("$.data")
   private Wallpapers wallpapers;
 
   @LinkMethod
@@ -52,23 +55,21 @@ public class WallhereWallPaper {
   @Extractor
   public static class Wallpapers {
 
-    @Selector(value = ".item")
+    @Css(".item")
     private Wallpaper[] wallpapers;
   }
 
   @Data
-  @Extractor(
-      links = {
-        @Link(
-            selectors =
-                @Selector(type = Type.Xpath, value = "//div[@class='item-container']/a[1]/@href"))
-      })
+  @Extractor({
+    @Link(
+        selector =
+            @Selector(type = Type.Xpath, value = "//div[@class='item-container']/a[1]/@href"))
+  })
   public static class Wallpaper {
 
-    @Selector(
-        type = Type.Xpath,
-        value = "//div[@class='item-container']/a[1]/@href",
-        formatters = @Formatter(format = "https://wallhere.com%s"))
+    @Xpath(
+        expression = "//div[@class='item-container']/a[1]/@href",
+        formatter = @Formatter(format = "https://wallhere.com%s"))
     private String href;
   }
 

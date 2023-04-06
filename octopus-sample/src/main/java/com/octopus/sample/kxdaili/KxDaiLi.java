@@ -6,9 +6,9 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
+import com.octopus.core.processor.extractor.selector.Css;
 import com.octopus.core.processor.extractor.selector.Formatter;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.extractor.selector.Xpath;
 import com.octopus.core.processor.matcher.Matchers;
 import java.util.List;
 import lombok.Data;
@@ -23,7 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 @Extractor
 public class KxDaiLi {
 
-  @Selector(value = "table.active tbody tr", self = true)
+  @Css(expression = "table.active tbody tr", self = true)
   private List<KxDaiLiProxy> proxies;
 
   @LinkMethod
@@ -40,28 +40,25 @@ public class KxDaiLi {
   @Extractor
   public static class KxDaiLiProxy {
 
-    @Selector(value = "//td[1]/text()")
+    @Css("//td[1]/text()")
     private String host;
 
-    @Selector(value = "//td[2]/text()")
+    @Css("//td[2]/text()")
     private int port;
 
-    @Selector(value = "//td[3]/text()")
+    @Css("//td[3]/text()")
     private String level;
 
-    @Selector(value = "//td[4]/text()", formatters = @Formatter(split = true))
+    @Css(expression = "//td[4]/text()", formatter = @Formatter(split = true))
     private String[] types;
 
-    @Selector(
-        type = Type.Xpath,
-        value = "//td[5]/text()",
-        formatters = @Formatter(regex = "^(.*) 秒$", groups = 1))
+    @Xpath(expression = "//td[5]/text()", formatter = @Formatter(regex = "^(.*) 秒$", groups = 1))
     private double responseSeconds;
 
-    @Selector(type = Type.Xpath, value = "//td[6]/text()")
+    @Xpath(expression = "//td[6]/text()")
     private String location;
 
-    @Selector(type = Type.Xpath, value = "//td[7]/text()")
+    @Xpath(expression = "//td[7]/text()")
     private String lastVerifyTime;
   }
 

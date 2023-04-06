@@ -17,17 +17,15 @@ import com.octopus.sample.Constants;
  * @author shoulai.yang@gmail.com
  * @date 2021/1/15
  */
-@Extractor(
-    links = {
-      @Link(
-          selectors = @Selector(type = Selector.Type.Xpath, value = "//a[text()='下一页']/@href"),
-          repeatable = false),
-      @Link(
-          selectors =
-              @Selector(type = Selector.Type.Xpath, value = "//a[@class='ctrl download']/@href"),
-          repeatable = false,
-          priority = 2)
-    })
+@Extractor({
+  @Link(
+      selector = @Selector(type = Selector.Type.Xpath, value = "//a[text()='下一页']/@href"),
+      repeatable = false),
+  @Link(
+      selector = @Selector(type = Selector.Type.Xpath, value = "//a[@class='ctrl download']/@href"),
+      repeatable = false,
+      priority = 2)
+})
 public class BingWallpaper {
 
   public static void main(String[] args) {

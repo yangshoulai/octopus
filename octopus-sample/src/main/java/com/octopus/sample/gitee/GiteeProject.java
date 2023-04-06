@@ -5,8 +5,10 @@ import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
+import com.octopus.core.processor.extractor.selector.Css;
 import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.selector.Url;
 import com.octopus.core.processor.matcher.Matchers;
 import java.util.Collection;
 import java.util.List;
@@ -20,41 +22,42 @@ import lombok.Data;
  */
 @Data
 @Extractor(
-    links =
-        @Link(
-            selectors =
-                @Selector(
-                    type = Selector.Type.Xpath,
-                    value = "//a[@rel='next'][position()=2]/@href"),
-            repeatable = false,
-            priority = 1))
+    @Link(
+        selector =
+            @Selector(type = Selector.Type.Xpath, value = "//a[@rel='next'][position()=2]/@href"),
+        repeatable = false,
+        priority = 1))
 public class GiteeProject {
 
-  @Selector(type = Selector.Type.Css, value = ".items .item", self = true)
+  @Css(value = ".items .item", self = true)
   private Collection<Project> projects;
 
   @Data
   @Extractor
   public static class Project {
 
-    @Selector(type = Selector.Type.Css, value = ".project-title a.title")
+    @Css(".project-title a.title")
     private String name;
 
-    @Selector(
-        type = Selector.Type.Css,
+    @Css(
         value = ".project-title a.title",
         attr = "href",
-        formatters = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
+        formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
     private String address;
 
-    @Selector(type = Selector.Type.Css, value = ".project-desc")
+    @Css(".project-desc")
     private String description;
 
-    @Selector(type = Selector.Type.Css, value = ".project-label-item")
+    @Css(".project-desc")
+    private String description2;
+
+    @Css(".project-label-item")
     private List<String> tags;
 
-    @Selector(type = Selector.Type.Css, value = ".stars-count")
+    @Css(".stars-count")
     private int stars;
+
+    @Url private String url;
   }
 
   public static void main(String[] args) {

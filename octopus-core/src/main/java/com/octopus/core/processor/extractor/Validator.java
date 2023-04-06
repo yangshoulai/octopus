@@ -68,7 +68,7 @@ public class Validator {
   }
 
   public void validate(Class<?> extractorClass, Link link) {
-    if (link.url().length <= 0 && link.selectors().length <= 0) {
+    if (StrUtil.isBlank(link.url()) && link.selector() == null) {
       throw new ValidateException("Invalid @Link annotation, url or selectors must be specified");
     }
     Prop[] props = ArrayUtil.addAll(link.attrs(), link.headers(), link.params());

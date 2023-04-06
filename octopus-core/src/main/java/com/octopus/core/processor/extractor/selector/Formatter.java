@@ -40,7 +40,7 @@ public @interface Formatter {
   /**
    * @return 正则提取
    */
-  String regex() default "^[\\w\\W]*$";
+  String regex() default ""; // ^[\w\W]*$
 
   /**
    * @return 正则提取格式化
