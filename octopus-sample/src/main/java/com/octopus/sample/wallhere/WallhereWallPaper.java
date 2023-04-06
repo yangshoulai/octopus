@@ -8,6 +8,8 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
+import com.octopus.core.downloader.DownloadConfig;
+import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
@@ -55,7 +57,7 @@ public class WallhereWallPaper {
   @Extractor
   public static class Wallpapers {
 
-    @Css(".item")
+    @Css(expression = ".item", self = true)
     private Wallpaper[] wallpapers;
   }
 
@@ -74,15 +76,19 @@ public class WallhereWallPaper {
   }
 
   public static void main(String[] args) {
+    DownloadConfig downloadConfig = new DownloadConfig();
+    downloadConfig.setProxyProvider(new PollingProxyProvider(Constants.PROXY));
     Octopus.builder()
-        .setName("wallhere-spider")
+        .setName("Wallhere")
         .setThreads(3)
-        .addSite(WebSite.of("wallhere.com").setRateLimiter(1, 3))
-        .addProcessor(Matchers.JSON, WallhereWallPaper.class)
+        .setGlobalDownloadConfig(downloadConfig)
+        .addSite(WebSite.of("wallhere.com").setRateLimiter(1, 2))
+        .addSite(WebSite.of("get.wallhere.com").setRateLimiter(1, 2))
+        .addProcessor(Matchers.or(Matchers.JSON, Matchers.HTML), WallhereWallPaper.class)
         .addProcessor(
             new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/wallpapers/wallhere"))
         .addSeeds(
-            "https://wallhere.com/zh/wallpapers?page=1&direction=horizontal&order=popular&format=json")
+            "https://wallhere.com/zh/wallpapers?page=1&direction=horizontal&NSFW=on&order=latest&format=json")
         .build()
         .start();
   }
