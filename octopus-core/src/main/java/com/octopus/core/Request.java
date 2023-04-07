@@ -1,6 +1,7 @@
 package com.octopus.core;
 
 import cn.hutool.core.net.url.UrlBuilder;
+import cn.hutool.core.util.URLUtil;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class Request implements Serializable, Comparable<Request> {
   public Request() {}
 
   public Request(@NonNull String url, @NonNull RequestMethod method) {
-    this.url = url;
+    this.url = URLUtil.encode(URLUtil.decode(url));
     this.method = method;
   }
 
@@ -53,7 +54,7 @@ public class Request implements Serializable, Comparable<Request> {
   }
 
   public Request setUrl(@NonNull String url) {
-    this.url = url;
+    this.url = URLUtil.encode(URLUtil.decode(url));
     return this;
   }
 
