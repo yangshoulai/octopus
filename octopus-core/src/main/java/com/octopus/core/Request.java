@@ -45,7 +45,7 @@ public class Request implements Serializable, Comparable<Request> {
   public Request() {}
 
   public Request(@NonNull String url, @NonNull RequestMethod method) {
-    this.url = URLUtil.encode(URLUtil.decode(url));
+    this.url = URLUtil.normalize(url);
     this.method = method;
   }
 
@@ -54,7 +54,7 @@ public class Request implements Serializable, Comparable<Request> {
   }
 
   public Request setUrl(@NonNull String url) {
-    this.url = URLUtil.encode(URLUtil.decode(url));
+    this.url = URLUtil.normalize(url);
     return this;
   }
 
