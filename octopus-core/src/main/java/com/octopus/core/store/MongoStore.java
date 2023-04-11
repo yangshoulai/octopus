@@ -6,7 +6,9 @@ import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
 import com.mongodb.client.ClientSession;
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.MongoIterable;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -17,8 +19,12 @@ import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
+import com.octopus.core.replay.ReplayFilter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
@@ -134,6 +140,11 @@ public class MongoStore implements Store {
   }
 
   @Override
+  public long getFailedSize() {
+    return this.requests.countDocuments(Filters.eq("status.state", State.Failed.name()));
+  }
+
+  @Override
   public List<Request> getFailed() {
     List<Request> failed = new ArrayList<>();
     for (Document doc : this.requests.find(Filters.eq("status.state", State.Failed.name()))) {
@@ -145,6 +156,52 @@ public class MongoStore implements Store {
   @Override
   public void delete(String id) {
     this.requests.deleteOne(Filters.eq("_id", id));
+  }
+
+  @Override
+  public int replayFailed(ReplayFilter filter) {
+    Map<String, Integer> idMap = new HashMap<>();
+    int skipSize = 0;
+    int batchSize = 1000;
+    boolean hasMore;
+    do {
+      int batchFailedSize = 0;
+      MongoIterable<Request> iterable =
+          this.requests
+              .find()
+              .filter(Filters.eq("status.state", State.Failed.name()))
+              .skip(skipSize)
+              .limit(batchSize)
+              .map(d -> JSONUtil.toBean(d.toJson(), Request.class));
+      try (MongoCursor<Request> cursor = iterable.cursor()) {
+        while (cursor.hasNext()) {
+          batchFailedSize++;
+          Request request = cursor.next();
+          if (filter.filter(request)) {
+            idMap.put(request.getId(), request.getFailTimes());
+          }
+        }
+      }
+      hasMore = batchFailedSize >= batchSize;
+      if (hasMore) {
+        skipSize += batchSize;
+      }
+    } while (hasMore);
+
+    for (Entry<String, Integer> e : idMap.entrySet()) {
+      this.updateStatusById(
+          e.getKey(),
+          ListUtil.toList(
+              Updates.set("status.state", State.Waiting.name()),
+              Updates.set("status.message", null),
+              Updates.set("failTimes", e.getValue() + 1)));
+    }
+    return idMap.size();
+  }
+
+  private void updateStatusById(Object id, List<Bson> updates) {
+    Bson filter = Filters.eq("_id", id);
+    this.requests.updateOne(filter, updates);
   }
 
   private void updateStatusById(Object id, Status status) {

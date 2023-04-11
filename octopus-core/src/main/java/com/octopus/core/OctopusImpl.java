@@ -353,27 +353,11 @@ class OctopusImpl implements Octopus {
   }
 
   private boolean replyFailedRequests() {
-    List<Request> failed = this.store.getFailed();
-    if (failed != null) {
-      failed = failed.stream().filter(this.replayFilter::filter).collect(Collectors.toList());
+    int replaySize = this.store.replayFailed(this.replayFilter);
+    if (this.logger.isDebugEnabled()) {
+      logger.debug(String.format("Found [%s] failed requests to replay", replaySize));
     }
-    if (failed != null && !failed.isEmpty()) {
-      failed =
-          failed.stream()
-              .filter(f -> f.getFailTimes() < this.maxReplays)
-              .collect(Collectors.toList());
-      failed.forEach(f -> f.setFailTimes(f.getFailTimes() + 1));
-      if (this.logger.isDebugEnabled()) {
-        logger.debug(String.format("Found [%s] failed requests to replay", failed.size()));
-      }
-      failed.forEach(r -> this.store.delete(r.getId()));
-      failed.forEach(this::addRequest);
-    } else {
-      if (this.logger.isDebugEnabled()) {
-        logger.debug("No failed requests found");
-      }
-    }
-    return failed != null && !failed.isEmpty();
+    return replaySize > 0;
   }
 
   private Response download(Request request, DownloadConfig config) throws DownloadException {

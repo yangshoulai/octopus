@@ -41,7 +41,7 @@ public class TypeHandlerRegistry {
     registerHandler(Character.class, new CharacterTypeHandler());
     registerHandler(String.class, new CharSequenceTypeHandler());
     registerHandler(CharSequence.class, new CharSequenceTypeHandler());
-    registerHandler(Date.class, new IntegerTypeHandler());
+    registerHandler(Date.class, new DateTypeHandler());
     registerHandler(Object.class, new CharSequenceTypeHandler());
   }
 

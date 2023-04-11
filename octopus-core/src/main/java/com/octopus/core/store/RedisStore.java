@@ -1,17 +1,22 @@
 package com.octopus.core.store;
 
+import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
+import com.octopus.core.replay.ReplayFilter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import lombok.NonNull;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.ScanParams;
+import redis.clients.jedis.ScanResult;
 import redis.clients.jedis.Transaction;
 
 /**
@@ -151,6 +156,13 @@ public class RedisStore implements Store {
   }
 
   @Override
+  public long getFailedSize() {
+    try (Jedis jedis = this.pool.getResource()) {
+      return jedis.hlen(this.failedKey);
+    }
+  }
+
+  @Override
   public List<Request> getFailed() {
     List<Request> failed = new ArrayList<>();
     try (Jedis jedis = this.pool.getResource()) {
@@ -173,6 +185,36 @@ public class RedisStore implements Store {
       jedis.hdel(this.failedKey, id);
       jedis.zrem(this.waitingKey, id);
       jedis.srem(this.completedKey, id);
+    }
+  }
+
+  @Override
+  public int replayFailed(ReplayFilter filter) {
+    try (Jedis jedis = this.pool.getResource()) {
+      int cursor = 0;
+      List<String> keys = new ArrayList<>();
+      ScanParams scanParams = new ScanParams().match("*").count(1000);
+      do {
+        ScanResult<Map.Entry<String, String>> result =
+            jedis.hscan(this.failedKey, String.valueOf(cursor), scanParams);
+        cursor = Integer.parseInt(result.getCursor());
+        for (Entry<String, String> entry : result.getResult()) {
+          String json = jedis.hget(this.allKey, entry.getKey());
+          if (StrUtil.isNotBlank(json)) {
+            Request r = JSONUtil.toBean(json, Request.class);
+            if (filter.filter(r)) {
+              r.setFailTimes(r.getFailTimes() + 1);
+              r.setStatus(Status.of(State.Waiting));
+              keys.add(entry.getKey());
+              this.put(r);
+            }
+          }
+        }
+      } while (cursor > 0);
+      for (List<String> list : ListUtil.split(keys, 100)) {
+        jedis.hdel(this.failedKey, list.toArray(new String[0]));
+      }
+      return keys.size();
     }
   }
 

@@ -1,6 +1,7 @@
 package com.octopus.core.store;
 
 import com.octopus.core.Request;
+import com.octopus.core.replay.ReplayFilter;
 import java.util.List;
 
 /**
@@ -74,6 +75,13 @@ public interface Store {
   long getWaitingSize();
 
   /**
+   * 获取所有失败的请求数量
+   *
+   * @return 失败的请求数量
+   */
+  long getFailedSize();
+
+  /**
    * 获取所有失败的下载请求
    *
    * @return 失败的下载请求
@@ -86,4 +94,12 @@ public interface Store {
    * @param id 请求唯一编号
    */
   void delete(String id);
+
+  /**
+   * 重新将失败的请求放入待执行队列
+   *
+   * @param filter 请求过滤器
+   * @return 重放的数量
+   */
+  int replayFailed(ReplayFilter filter);
 }
