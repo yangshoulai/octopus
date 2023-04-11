@@ -3,6 +3,8 @@ package com.octopus.core.processor.extractor.type;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.exception.OctopusException;
+
 import java.lang.annotation.Annotation;
 import java.util.Date;
 
@@ -19,7 +21,15 @@ public class DateTypeHandler implements TypeHandler<Date> {
         dateType == null || StrUtil.isBlank(dateType.pattern())
             ? DatePattern.NORM_DATETIME_PATTERN
             : dateType.pattern();
-    return DateUtil.parse(source, format);
+    try{
+      return DateUtil.parse(source, format);
+    }catch (Throwable e){
+      if(dateType==null || !dateType.ignorable()){
+        throw new OctopusException("Can not parse date[" + source + "] with pattern [" + format + "]", e);
+      }
+      return null;
+    }
+
   }
 
   @Override

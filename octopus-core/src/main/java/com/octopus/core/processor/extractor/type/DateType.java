@@ -15,7 +15,6 @@ import java.lang.annotation.Target;
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
 public @interface DateType {
 
   @AliasFor("pattern")
@@ -23,4 +22,7 @@ public @interface DateType {
 
   @AliasFor("value")
   String pattern() default "";
+
+  // 是否忽略异常
+  boolean ignorable() default true;
 }
