@@ -21,15 +21,15 @@ public class DateTypeHandler implements TypeHandler<Date> {
         dateType == null || StrUtil.isBlank(dateType.pattern())
             ? DatePattern.NORM_DATETIME_PATTERN
             : dateType.pattern();
-    try{
+    try {
       return DateUtil.parse(source, format);
-    }catch (Throwable e){
-      if(dateType==null || !dateType.ignorable()){
-        throw new OctopusException("Can not parse date[" + source + "] with pattern [" + format + "]", e);
+    } catch (Throwable e) {
+      if (dateType != null && !dateType.ignorable()) {
+        throw new OctopusException(
+            "Can not parse [" + source + "] to date with pattern [" + format + "]", e);
       }
       return null;
     }
-
   }
 
   @Override

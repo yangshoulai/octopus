@@ -1,6 +1,8 @@
 package com.octopus.core.processor.extractor.type;
 
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
+import com.octopus.core.exception.OctopusException;
 import java.lang.annotation.Annotation;
 
 /**
@@ -11,12 +13,22 @@ public class LongTypeHandler implements TypeHandler<Long> {
 
   @Override
   public Long handle(String source, Annotation annotation) {
-
-    return NumberUtil.parseLong(source);
+    LongType longType = (LongType) annotation;
+    try {
+      if (StrUtil.isBlank(source)) {
+        return null;
+      }
+      return NumberUtil.parseLong(source);
+    } catch (Throwable e) {
+      if (longType != null && !longType.ignorable()) {
+        throw new OctopusException("Can not parse [" + source + "] to long", e);
+      }
+      return null;
+    }
   }
 
   @Override
   public Class<? extends Annotation> getSupportAnnotationType() {
-    return null;
+    return LongType.class;
   }
 }

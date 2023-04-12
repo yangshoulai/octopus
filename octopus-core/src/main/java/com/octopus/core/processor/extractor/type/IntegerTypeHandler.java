@@ -1,6 +1,8 @@
 package com.octopus.core.processor.extractor.type;
 
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
+import com.octopus.core.exception.OctopusException;
 import java.lang.annotation.Annotation;
 
 /**
@@ -11,12 +13,22 @@ public class IntegerTypeHandler implements TypeHandler<Integer> {
 
   @Override
   public Integer handle(String source, Annotation annotation) {
-
-    return NumberUtil.parseInt(source);
+    IntegerType integerType = (IntegerType) annotation;
+    try {
+      if (StrUtil.isBlank(source)) {
+        return null;
+      }
+      return NumberUtil.parseInt(source);
+    } catch (Throwable e) {
+      if (integerType != null && !integerType.ignorable()) {
+        throw new OctopusException("Can not parse [" + source + "] to integer", e);
+      }
+      return null;
+    }
   }
 
   @Override
   public Class<? extends Annotation> getSupportAnnotationType() {
-    return null;
+    return IntegerType.class;
   }
 }

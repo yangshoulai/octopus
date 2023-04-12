@@ -13,7 +13,7 @@ import java.util.List;
 public class BooleanTypeHandler implements TypeHandler<Boolean> {
 
   private static final List<String> FALSE_VALUES =
-      ListUtil.toList("", "0", "非", "否", "off", "no", "f","false");
+      ListUtil.toList("", "0", "非", "否", "off", "no", "f", "false");
 
   @Override
   public Boolean handle(String source, Annotation annotation) {
@@ -24,7 +24,7 @@ public class BooleanTypeHandler implements TypeHandler<Boolean> {
     if (booleanType != null && booleanType.falseValues().length > 0) {
       return !Arrays.asList(booleanType.falseValues()).contains(source.toLowerCase());
     }
-    return !FALSE_VALUES.contains(source);
+    return !FALSE_VALUES.contains(source.toLowerCase());
   }
 
   @Override

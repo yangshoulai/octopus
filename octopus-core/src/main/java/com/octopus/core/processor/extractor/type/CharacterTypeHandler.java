@@ -11,12 +11,12 @@ public class CharacterTypeHandler implements TypeHandler<Character> {
 
   @Override
   public Character handle(String source, Annotation annotation) {
-
+    CharacterType characterType = (CharacterType) annotation;
     return StrUtil.isBlank(source) ? null : source.charAt(0);
   }
 
   @Override
   public Class<? extends Annotation> getSupportAnnotationType() {
-    return null;
+    return CharacterType.class;
   }
 }

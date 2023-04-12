@@ -10,12 +10,12 @@ public class CharSequenceTypeHandler implements TypeHandler<CharSequence> {
 
   @Override
   public CharSequence handle(String source, Annotation annotation) {
-
+    CharSequenceType charSequenceType = (CharSequenceType) annotation;
     return source;
   }
 
   @Override
   public Class<? extends Annotation> getSupportAnnotationType() {
-    return null;
+    return CharSequenceType.class;
   }
 }
