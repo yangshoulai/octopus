@@ -49,6 +49,14 @@ public class Request implements Serializable, Comparable<Request> {
     this.method = method;
   }
 
+  public static Request get(String url) {
+    return new Request(url, RequestMethod.GET);
+  }
+
+  public static Request post(String url) {
+    return new Request(url, RequestMethod.POST);
+  }
+
   public String getUrl() {
     return url;
   }
@@ -85,11 +93,6 @@ public class Request implements Serializable, Comparable<Request> {
     return this;
   }
 
-  public Request setHeaders(@NonNull Map<String, String> headers) {
-    this.headers = headers;
-    return this;
-  }
-
   public Request addHeaders(@NonNull Map<String, String> headers) {
     this.headers.putAll(headers);
     return this;
@@ -102,6 +105,11 @@ public class Request implements Serializable, Comparable<Request> {
 
   public Map<String, String> getHeaders() {
     return headers;
+  }
+
+  public Request setHeaders(@NonNull Map<String, String> headers) {
+    this.headers = headers;
+    return this;
   }
 
   public Map<String, String> getParams() {
@@ -169,17 +177,12 @@ public class Request implements Serializable, Comparable<Request> {
     return value == null ? defaultValue : value;
   }
 
-  public Request setParent(@NonNull String parent) {
-    this.parent = parent;
-    return this;
-  }
-
   public String getParent() {
     return parent;
   }
 
-  public Request setInherit(boolean inherit) {
-    this.inherit = inherit;
+  public Request setParent(@NonNull String parent) {
+    this.parent = parent;
     return this;
   }
 
@@ -187,13 +190,18 @@ public class Request implements Serializable, Comparable<Request> {
     return inherit;
   }
 
-  public Request setStatus(Status status) {
-    this.status = status;
+  public Request setInherit(boolean inherit) {
+    this.inherit = inherit;
     return this;
   }
 
   public Status getStatus() {
     return status;
+  }
+
+  public Request setStatus(Status status) {
+    this.status = status;
+    return this;
   }
 
   public int getFailTimes() {
@@ -235,14 +243,6 @@ public class Request implements Serializable, Comparable<Request> {
     return String.format("%s", builder.build());
   }
 
-  public static Request get(String url) {
-    return new Request(url, RequestMethod.GET);
-  }
-
-  public static Request post(String url) {
-    return new Request(url, RequestMethod.POST);
-  }
-
   public enum RequestMethod {
     /** GET */
     GET("GET"),
@@ -260,12 +260,25 @@ public class Request implements Serializable, Comparable<Request> {
     }
   }
 
+  public enum State {
+    /** 等待处理 */
+    Waiting,
+    /** 正在处理 */
+    Executing,
+    /** 失败 */
+    Failed,
+    /** 完成 */
+    Completed
+  }
+
   @Data
   public static class Status {
 
     private State state;
 
     private String message;
+
+    public Status() {}
 
     public Status(@NonNull State state, String message) {
       this.state = state;
@@ -276,14 +289,6 @@ public class Request implements Serializable, Comparable<Request> {
       this.state = state;
     }
 
-    public State getState() {
-      return state;
-    }
-
-    public String getMessage() {
-      return message;
-    }
-
     public static Status of(@NonNull State state, String message) {
       return new Status(state, message);
     }
@@ -291,16 +296,13 @@ public class Request implements Serializable, Comparable<Request> {
     public static Status of(@NonNull State state) {
       return new Status(state);
     }
-  }
 
-  public enum State {
-    /** 等待处理 */
-    Waiting,
-    /** 正在处理 */
-    Executing,
-    /** 失败 */
-    Failed,
-    /** 完成 */
-    Completed
+    public State getState() {
+      return state;
+    }
+
+    public String getMessage() {
+      return message;
+    }
   }
 }

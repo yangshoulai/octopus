@@ -31,6 +31,8 @@
     <mongodb.driver.version>3.12.7</mongodb.driver.version>
     <htmlcleaner.version>2.21</htmlcleaner.version>
     <jsonpath.version>2.6.0</jsonpath.version>
+    <es.version>8.7.0</es.version>
+    <jackson.version>2.12.3</jackson.version>
   </properties>
 
   <dependencyManagement>
@@ -98,6 +100,19 @@
         <groupId>com.jayway.jsonpath</groupId>
         <artifactId>json-path</artifactId>
         <version>${jsonpath.version}</version>
+      </dependency>
+
+
+      <dependency>
+        <groupId>co.elastic.clients</groupId>
+        <artifactId>elasticsearch-java</artifactId>
+        <version>${es.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+        <version>${jackson.version}</version>
       </dependency>
 
     </dependencies>

@@ -1,6 +1,7 @@
 package com.octopus.core;
 
 import cn.hutool.core.util.StrUtil;
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.mongodb.MongoClient;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -18,6 +19,7 @@ import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
+import com.octopus.core.store.ElasticsearchStore;
 import com.octopus.core.store.MemoryStore;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.store.RedisStore;
@@ -34,97 +36,39 @@ import redis.clients.jedis.JedisPool;
  */
 public class OctopusBuilder {
 
-  private Downloader downloader = new HttpClientDownloader();
-
-  private Store store = new MemoryStore();
-
-  private int threads = Runtime.getRuntime().availableProcessors() * 2;
-
   private final List<WebSite> sites = new ArrayList<>();
-
   private final List<OctopusListener> listeners = new ArrayList<>();
-
   private final List<MatchableProcessor> processors = new ArrayList<>();
-
+  private final List<Request> seeds = new ArrayList<>();
+  private Downloader downloader = new HttpClientDownloader();
+  private Store store = new MemoryStore();
+  private int threads = Runtime.getRuntime().availableProcessors() * 2;
   /** 全局下载配置 */
   private DownloadConfig globalDownloadConfig = new DownloadConfig();
-
   /** 请求处理完毕后是否关闭爬虫 */
   private boolean autoStop = true;
-
   /** 开始时是否清空请求存储器 */
   private boolean clearStoreOnStartup = true;
-
   /** 结束时是否清空请求存储器 */
   private boolean clearStoreOnStop = true;
-
   /**
    * 当存在未完成的下载请求时是否忽略种子请求
    *
    * <p>用于继续前一次未完成的爬虫任务
    */
   private boolean ignoreSeedsWhenStoreHasRequests = true;
-
   /** 当所有请求处理完毕以后是否重放失败的请求 */
   private boolean replayFailedRequest = true;
-
   private ReplayFilter replayFilter = ReplayFilters.all();
-
   /**
    * 重放失败请求的次数，默认 1
    *
    * <p>超过该值则爬虫会停止或者进入等待状态
    */
   private int maxReplays = 1;
-
-  private final List<Request> seeds = new ArrayList<>();
-
   private String name = "Octopus";
 
   private Logger logger = LoggerFactory.getLogger(Octopus.class.getName());
-
-  /**
-   * 设置爬虫日志
-   *
-   * @param logger 日志
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setLogger(@NonNull Logger logger) {
-    this.logger = logger;
-    return this;
-  }
-
-  /**
-   * 设置爬虫日志
-   *
-   * @param cls 日志
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setLogger(@NonNull Class<?> cls) {
-    return this.setLogger(LoggerFactory.getLogger(cls));
-  }
-
-  /**
-   * 设置爬虫日志
-   *
-   * @param logger 日志
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setLogger(@NonNull String logger) {
-    return this.setLogger(LoggerFactory.getLogger(logger));
-  }
-
-  /**
-   * 设置请求下载器
-   *
-   * @param downloader 请求下载器
-   * @return OctopusBuilder
-   * @see com.octopus.core.downloader.Downloader
-   */
-  public OctopusBuilder setDownloader(@NonNull Downloader downloader) {
-    this.downloader = downloader;
-    return this;
-  }
 
   /**
    * 使用 HttpClientDownloader
@@ -145,18 +89,6 @@ public class OctopusBuilder {
    */
   public OctopusBuilder useOkHttpDownloader() {
     this.downloader = new OkHttpDownloader();
-    return this;
-  }
-
-  /**
-   * 设置请求存储器
-   *
-   * @param store 请求存储器
-   * @return OctopusBuilder
-   * @see com.octopus.core.store.Store
-   */
-  public OctopusBuilder setStore(@NonNull Store store) {
-    this.store = store;
     return this;
   }
 
@@ -271,18 +203,14 @@ public class OctopusBuilder {
   }
 
   /**
-   * 设置引擎工作线程数
+   * 使用 ES 存储请求
    *
-   * <p>默认 cpu核心数 x 2
-   *
-   * @param threads 工作线程数
+   * @param client 客户端
+   * @param indexName 索引名
    * @return OctopusBuilder
    */
-  public OctopusBuilder setThreads(int threads) {
-    if (threads <= 0) {
-      throw new IllegalArgumentException("threads must > 0");
-    }
-    this.threads = threads;
+  public OctopusBuilder useEsStore(ElasticsearchClient client, String indexName) {
+    this.store = new ElasticsearchStore(client, indexName);
     return this;
   }
 
@@ -374,17 +302,6 @@ public class OctopusBuilder {
   }
 
   /**
-   * 设置全局下载配置
-   *
-   * @param globalDownloadConfig 全局下载配置
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setGlobalDownloadConfig(@NonNull DownloadConfig globalDownloadConfig) {
-    this.globalDownloadConfig = globalDownloadConfig;
-    return this;
-  }
-
-  /**
    * 结束后自动关闭
    *
    * @return OctopusBuilder
@@ -465,38 +382,6 @@ public class OctopusBuilder {
   }
 
   /**
-   * 请求处理完成后是否重放失败的请求继续处理
-   *
-   * @param replayFailedRequest 是否重放失败的请求继续处理
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setReplayFailedRequest(boolean replayFailedRequest) {
-    this.replayFailedRequest = replayFailedRequest;
-    return this;
-  }
-
-  /**
-   * 设置请求重放过滤器
-   *
-   * @param replayFilter 重放过滤器
-   */
-  public OctopusBuilder setReplayFilter(@NonNull ReplayFilter replayFilter) {
-    this.replayFilter = replayFilter;
-    return this;
-  }
-
-  /**
-   * 设置最大失败请求重放次数
-   *
-   * @param maxReplays 最大重放次数
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setMaxReplays(int maxReplays) {
-    this.maxReplays = maxReplays;
-    return this;
-  }
-
-  /**
    * 添加种子请求
    *
    * @param seeds 种子请求
@@ -518,29 +403,56 @@ public class OctopusBuilder {
     return this;
   }
 
-  /**
-   * 设置爬虫名称
-   *
-   * <p>主要区分系统存在多个爬虫
-   *
-   * @param name 爬虫名称
-   * @return OctopusBuilder
-   */
-  public OctopusBuilder setName(@NonNull String name) {
-    this.name = name;
-    return this;
-  }
-
   public Downloader getDownloader() {
     return downloader;
+  }
+
+  /**
+   * 设置请求下载器
+   *
+   * @param downloader 请求下载器
+   * @return OctopusBuilder
+   * @see com.octopus.core.downloader.Downloader
+   */
+  public OctopusBuilder setDownloader(@NonNull Downloader downloader) {
+    this.downloader = downloader;
+    return this;
   }
 
   public Store getStore() {
     return store;
   }
 
+  /**
+   * 设置请求存储器
+   *
+   * @param store 请求存储器
+   * @return OctopusBuilder
+   * @see com.octopus.core.store.Store
+   */
+  public OctopusBuilder setStore(@NonNull Store store) {
+    this.store = store;
+    return this;
+  }
+
   public int getThreads() {
     return threads;
+  }
+
+  /**
+   * 设置引擎工作线程数
+   *
+   * <p>默认 cpu核心数 x 2
+   *
+   * @param threads 工作线程数
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setThreads(int threads) {
+    if (threads <= 0) {
+      throw new IllegalArgumentException("threads must > 0");
+    }
+    this.threads = threads;
+    return this;
   }
 
   public List<WebSite> getSites() {
@@ -557,6 +469,17 @@ public class OctopusBuilder {
 
   public DownloadConfig getGlobalDownloadConfig() {
     return globalDownloadConfig;
+  }
+
+  /**
+   * 设置全局下载配置
+   *
+   * @param globalDownloadConfig 全局下载配置
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setGlobalDownloadConfig(@NonNull DownloadConfig globalDownloadConfig) {
+    this.globalDownloadConfig = globalDownloadConfig;
+    return this;
   }
 
   public boolean isAutoStop() {
@@ -579,8 +502,52 @@ public class OctopusBuilder {
     return name;
   }
 
+  /**
+   * 设置爬虫名称
+   *
+   * <p>主要区分系统存在多个爬虫
+   *
+   * @param name 爬虫名称
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setName(@NonNull String name) {
+    this.name = name;
+    return this;
+  }
+
   public Logger getLogger() {
     return logger;
+  }
+
+  /**
+   * 设置爬虫日志
+   *
+   * @param logger 日志
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setLogger(@NonNull Logger logger) {
+    this.logger = logger;
+    return this;
+  }
+
+  /**
+   * 设置爬虫日志
+   *
+   * @param cls 日志
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setLogger(@NonNull Class<?> cls) {
+    return this.setLogger(LoggerFactory.getLogger(cls));
+  }
+
+  /**
+   * 设置爬虫日志
+   *
+   * @param logger 日志
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setLogger(@NonNull String logger) {
+    return this.setLogger(LoggerFactory.getLogger(logger));
   }
 
   public boolean isIgnoreSeedsWhenStoreHasRequests() {
@@ -591,12 +558,44 @@ public class OctopusBuilder {
     return replayFailedRequest;
   }
 
+  /**
+   * 请求处理完成后是否重放失败的请求继续处理
+   *
+   * @param replayFailedRequest 是否重放失败的请求继续处理
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setReplayFailedRequest(boolean replayFailedRequest) {
+    this.replayFailedRequest = replayFailedRequest;
+    return this;
+  }
+
   public ReplayFilter getReplayFilter() {
     return replayFilter;
   }
 
+  /**
+   * 设置请求重放过滤器
+   *
+   * @param replayFilter 重放过滤器
+   */
+  public OctopusBuilder setReplayFilter(@NonNull ReplayFilter replayFilter) {
+    this.replayFilter = replayFilter;
+    return this;
+  }
+
   public int getMaxReplays() {
     return maxReplays;
+  }
+
+  /**
+   * 设置最大失败请求重放次数
+   *
+   * @param maxReplays 最大重放次数
+   * @return OctopusBuilder
+   */
+  public OctopusBuilder setMaxReplays(int maxReplays) {
+    this.maxReplays = maxReplays;
+    return this;
   }
 
   public Octopus build() {

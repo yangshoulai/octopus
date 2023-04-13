@@ -18,6 +18,7 @@ import com.octopus.core.logging.Logger;
 import com.octopus.core.processor.MatchableProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.replay.ReplayFilter;
+import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
@@ -52,51 +53,27 @@ class OctopusImpl implements Octopus {
   private final Logger logger;
 
   private final AtomicReference<State> state = new AtomicReference<>(State.NEW);
-
-  private TimeInterval interval;
-
-  private ExecutorService boss;
-
-  private ExecutorService workers;
-
-  private Semaphore workerSemaphore;
-
   private final Lock lock = new ReentrantLock();
-
   private final Condition idleCondition = lock.newCondition();
-
   private final int threads;
-
   private final Downloader downloader;
-
   private final Store store;
-
   private final List<WebSite> webSites;
-
   private final OctopusListenerNotifier listenerNotifier;
-
   private final List<MatchableProcessor> processors;
-
   private final DownloadConfig globalDownloadConfig;
-
   private final boolean autoStop;
-
   private final boolean clearStoreOnStartup;
-
   private final boolean clearStoreOnStop;
-
   private final boolean ignoreSeedsWhenStoreHasRequests;
-
   private final List<Request> seeds;
-
   private final String name;
-
   private final boolean replayFailedRequest;
-
   private final ReplayFilter replayFilter;
-
-  private final int maxReplays;
-
+  private TimeInterval interval;
+  private ExecutorService boss;
+  private ExecutorService workers;
+  private Semaphore workerSemaphore;
   private Long lastSummaryTime;
 
   public OctopusImpl(OctopusBuilder builder) {
@@ -116,8 +93,9 @@ class OctopusImpl implements Octopus {
     this.downloader = builder.getDownloader();
     this.threads = builder.getThreads();
     this.replayFailedRequest = builder.isReplayFailedRequest();
-    this.replayFilter = builder.getReplayFilter();
-    this.maxReplays = builder.getMaxReplays();
+    this.replayFilter =
+        ReplayFilters.and(
+            builder.getReplayFilter(), r -> r.getFailTimes() < builder.getMaxReplays());
   }
 
   @Override
