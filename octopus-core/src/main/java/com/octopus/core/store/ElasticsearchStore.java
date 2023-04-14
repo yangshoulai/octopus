@@ -176,38 +176,12 @@ public class ElasticsearchStore implements Store {
 
   @Override
   public void markAsCompleted(Request request) {
-    try {
-      request.setStatus(Status.of(State.Completed, null));
-      UpdateRequest<Request, Request> req =
-          UpdateRequest.of(
-              f ->
-                  f.index(this.indexName)
-                      .upsert(request)
-                      .id(request.getId())
-                      .doc(request)
-                      .refresh(Refresh.True));
-      client.update(req, Request.class);
-    } catch (IOException e) {
-      throw new OctopusException("Update index failed", e);
-    }
+    this.updateStatus(request, Status.of(State.Completed));
   }
 
   @Override
   public void markAsFailed(Request request, String error) {
-    try {
-      request.setStatus(Status.of(State.Failed, error));
-      UpdateRequest<Request, Request> req =
-          UpdateRequest.of(
-              f ->
-                  f.index(this.indexName)
-                      .upsert(request)
-                      .id(request.getId())
-                      .doc(request)
-                      .refresh(Refresh.True));
-      client.update(req, Request.class);
-    } catch (IOException e) {
-      throw new OctopusException("Update index failed", e);
-    }
+    this.updateStatus(request, Status.of(State.Failed, error));
   }
 
   @Override
@@ -221,40 +195,17 @@ public class ElasticsearchStore implements Store {
 
   @Override
   public long getCompletedSize() {
-    try {
-      TermQuery termQuery =
-          TermQuery.of(t -> t.field("status.state").value(State.Completed.name()));
-      Query filter = Query.of(q -> q.term(termQuery));
-      Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
-
-      return client.count(f -> f.index(this.indexName).query(query)).count();
-    } catch (IOException e) {
-      throw new OctopusException("Count index failed", e);
-    }
+    return countByState(State.Completed);
   }
 
   @Override
   public long getWaitingSize() {
-    TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(State.Waiting.name()));
-    Query filter = Query.of(q -> q.term(termQuery));
-    Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
-    try {
-      return client.count(f -> f.index(this.indexName).query(query)).count();
-    } catch (IOException e) {
-      throw new OctopusException("Count index failed", e);
-    }
+    return countByState(State.Waiting);
   }
 
   @Override
   public long getFailedSize() {
-    TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(State.Failed.name()));
-    Query filter = Query.of(q -> q.term(termQuery));
-    Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
-    try {
-      return client.count(f -> f.index(this.indexName).query(query)).count();
-    } catch (IOException e) {
-      throw new OctopusException("Count index failed", e);
-    }
+    return countByState(State.Failed);
   }
 
   @Override
@@ -333,6 +284,34 @@ public class ElasticsearchStore implements Store {
       return response.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
     } catch (IOException e) {
       throw new OctopusException("Search index failed", e);
+    }
+  }
+
+  private long countByState(State state) {
+    TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(state.name()));
+    Query filter = Query.of(q -> q.term(termQuery));
+    Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
+    try {
+      return client.count(f -> f.index(this.indexName).query(query)).count();
+    } catch (IOException e) {
+      throw new OctopusException("Count index failed", e);
+    }
+  }
+
+  private void updateStatus(Request request, Status status) {
+    try {
+      request.setStatus(status);
+      UpdateRequest<Request, Request> req =
+          UpdateRequest.of(
+              f ->
+                  f.index(this.indexName)
+                      .upsert(request)
+                      .id(request.getId())
+                      .doc(request)
+                      .refresh(Refresh.True));
+      client.update(req, Request.class);
+    } catch (IOException e) {
+      throw new OctopusException("Update index failed", e);
     }
   }
 }
