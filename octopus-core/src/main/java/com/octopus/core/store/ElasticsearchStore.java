@@ -3,10 +3,15 @@ package com.octopus.core.store;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import co.elastic.clients.elasticsearch._types.Refresh;
 import co.elastic.clients.elasticsearch._types.Script;
+import co.elastic.clients.elasticsearch._types.SortOptions;
 import co.elastic.clients.elasticsearch._types.SortOrder;
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery;
+import co.elastic.clients.elasticsearch.core.SearchRequest;
 import co.elastic.clients.elasticsearch.core.SearchResponse;
 import co.elastic.clients.elasticsearch.core.UpdateRequest;
-import co.elastic.clients.elasticsearch.core.UpdateResponse;
+import co.elastic.clients.elasticsearch.core.bulk.BulkOperation;
+import co.elastic.clients.elasticsearch.core.bulk.IndexOperation;
 import co.elastic.clients.elasticsearch.core.search.Hit;
 import co.elastic.clients.elasticsearch.indices.CreateIndexResponse;
 import com.octopus.core.Request;
@@ -38,6 +43,30 @@ public class ElasticsearchStore implements Store {
     } catch (IOException e) {
       throw new OctopusException("Create index [" + indexName + "] failed", e);
     }
+    try {
+      this.replayExecutingRequests();
+    } catch (IOException e) {
+      throw new OctopusException("Replay executing request failed", e);
+    }
+  }
+
+  private void replayExecutingRequests() throws IOException {
+    int size = 100;
+    boolean hasMore;
+    do {
+      List<Request> requests = this.batchSearchByState(0, size, State.Executing);
+      hasMore = requests.size() >= size;
+      if (!requests.isEmpty()) {
+        List<BulkOperation> operations = new ArrayList<>();
+        for (Request request : requests) {
+          request.setStatus(Status.of(State.Waiting));
+          IndexOperation<Request> operation =
+              IndexOperation.of(f -> f.index(indexName).document(request).id(request.getId()));
+          operations.add(BulkOperation.of(f -> f.index(operation)));
+        }
+        client.bulk(f -> f.refresh(Refresh.True).operations(operations));
+      }
+    } while (hasMore);
   }
 
   private void createIndexIfNeed() throws IOException {
@@ -90,14 +119,14 @@ public class ElasticsearchStore implements Store {
   @Override
   public Request get() {
     try {
-      SearchResponse<Request> response =
-          client.search(
-              f ->
-                  f.index(this.indexName)
-                      .query(q -> q.term(t -> t.field("status.state").value(State.Waiting.name())))
-                      .sort(s -> s.field(fs -> fs.field("priority").order(SortOrder.Desc)))
-                      .size(1),
-              Request.class);
+      TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(State.Waiting.name()));
+      Query filter = Query.of(q -> q.term(termQuery));
+      Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
+      SortOptions sortOptions =
+          SortOptions.of(s -> s.field(fs -> fs.field("priority").order(SortOrder.Desc)));
+      SearchRequest request =
+          SearchRequest.of(f -> f.index(this.indexName).query(query).sort(sortOptions).size(1));
+      SearchResponse<Request> response = client.search(request, Request.class);
       List<Hit<Request>> hits = response.hits().hits();
       if (hits != null && !hits.isEmpty()) {
         Request r = hits.get(0).source();
@@ -106,7 +135,7 @@ public class ElasticsearchStore implements Store {
           UpdateRequest<Request, Request> updateRequest =
               UpdateRequest.of(
                   f -> f.index(indexName).id(r.getId()).doc(r).upsert(r).refresh(Refresh.True));
-          UpdateResponse<Request> rq = client.update(updateRequest, Request.class);
+          client.update(updateRequest, Request.class);
           return r;
         }
       }
@@ -193,15 +222,12 @@ public class ElasticsearchStore implements Store {
   @Override
   public long getCompletedSize() {
     try {
-      return client
-          .count(
-              f ->
-                  f.index(this.indexName)
-                      .query(
-                          cq ->
-                              cq.term(
-                                  tq -> tq.field("status.state").value(State.Completed.name()))))
-          .count();
+      TermQuery termQuery =
+          TermQuery.of(t -> t.field("status.state").value(State.Completed.name()));
+      Query filter = Query.of(q -> q.term(termQuery));
+      Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
+
+      return client.count(f -> f.index(this.indexName).query(query)).count();
     } catch (IOException e) {
       throw new OctopusException("Count index failed", e);
     }
@@ -209,15 +235,11 @@ public class ElasticsearchStore implements Store {
 
   @Override
   public long getWaitingSize() {
+    TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(State.Waiting.name()));
+    Query filter = Query.of(q -> q.term(termQuery));
+    Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
     try {
-      return client
-          .count(
-              f ->
-                  f.index(this.indexName)
-                      .query(
-                          cq ->
-                              cq.term(tq -> tq.field("status.state").value(State.Waiting.name()))))
-          .count();
+      return client.count(f -> f.index(this.indexName).query(query)).count();
     } catch (IOException e) {
       throw new OctopusException("Count index failed", e);
     }
@@ -225,14 +247,11 @@ public class ElasticsearchStore implements Store {
 
   @Override
   public long getFailedSize() {
+    TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(State.Failed.name()));
+    Query filter = Query.of(q -> q.term(termQuery));
+    Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
     try {
-      return client
-          .count(
-              f ->
-                  f.index(this.indexName)
-                      .query(
-                          cq -> cq.term(tq -> tq.field("status.state").value(State.Failed.name()))))
-          .count();
+      return client.count(f -> f.index(this.indexName).query(query)).count();
     } catch (IOException e) {
       throw new OctopusException("Count index failed", e);
     }
@@ -245,7 +264,7 @@ public class ElasticsearchStore implements Store {
     boolean hasMore = false;
     List<Request> results = new ArrayList<>();
     do {
-      List<Request> requests = this.batchSearchFailed(from, size);
+      List<Request> requests = this.batchSearchByState(from, size, State.Failed);
       hasMore = requests.size() >= size;
       from += requests.size();
       results.addAll(requests);
@@ -269,7 +288,7 @@ public class ElasticsearchStore implements Store {
     List<String> toDeleted = new ArrayList<>();
     boolean hasMore = false;
     do {
-      List<Request> requests = this.batchSearchFailed(from, size);
+      List<Request> requests = this.batchSearchByState(from, size, State.Failed);
       hasMore = requests.size() >= size;
       from += requests.size();
       for (Request request : requests) {
@@ -303,17 +322,14 @@ public class ElasticsearchStore implements Store {
     return toDeleted.size();
   }
 
-  public List<Request> batchSearchFailed(int from, int size) {
+  public List<Request> batchSearchByState(int from, int size, State state) {
     try {
-      SearchResponse<Request> response =
-          this.client.search(
-              f ->
-                  f.index(indexName)
-                      .query(
-                          cq -> cq.term(tq -> tq.field("status.state").value(State.Failed.name())))
-                      .from(from)
-                      .size(size),
-              Request.class);
+      TermQuery termQuery = TermQuery.of(t -> t.field("status.state").value(state.name()));
+      Query filter = Query.of(q -> q.term(termQuery));
+      Query query = Query.of(q -> q.bool(b -> b.filter(filter)));
+      SearchRequest request =
+          SearchRequest.of(f -> f.index(indexName).query(query).from(from).size(size));
+      SearchResponse<Request> response = this.client.search(request, Request.class);
       return response.hits().hits().stream().map(Hit::source).collect(Collectors.toList());
     } catch (IOException e) {
       throw new OctopusException("Search index failed", e);
