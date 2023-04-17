@@ -7,6 +7,7 @@ import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
+import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request.Status;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -22,6 +23,8 @@ import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
+
+import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -409,6 +412,14 @@ class OctopusImpl implements Octopus {
       request
           .getHeaders()
           .put(Header.REFERER.getValue(), ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
+    }
+    String url = request.getUrl();
+    if(!url.startsWith("http://") && !url.startsWith("https://")){
+      URI parentUri= URLUtil.toURI(parentRequest.getUrl());
+      String schema = parentUri.getScheme();
+      String host = parentUri.getHost();
+      int port = parentUri.getPort() ;
+      request.setUrl(schema + "://" + host + (port < 0 ? "": ":" + port) + (url.startsWith("/") ? url : "/" + url));
     }
     this.addRequest(request);
   }

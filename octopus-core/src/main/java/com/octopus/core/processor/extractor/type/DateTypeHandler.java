@@ -6,7 +6,9 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.OctopusException;
 
 import java.lang.annotation.Annotation;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -22,7 +24,11 @@ public class DateTypeHandler implements TypeHandler<Date> {
             ? DatePattern.NORM_DATETIME_PATTERN
             : dateType.pattern();
     try {
-      return DateUtil.parse(source, format);
+      SimpleDateFormat simpleDateFormat = new SimpleDateFormat(format);
+      if(dateType != null && StrUtil.isNotEmpty(dateType.timeZone())){
+        simpleDateFormat.setTimeZone(TimeZone.getTimeZone(dateType.timeZone()));
+      }
+      return simpleDateFormat.parse(source);
     } catch (Throwable e) {
       if (dateType != null && !dateType.ignorable()) {
         throw new OctopusException(

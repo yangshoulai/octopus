@@ -23,6 +23,9 @@ public @interface DateType {
   @AliasFor("value")
   String pattern() default "";
 
+
+  String timeZone() default "";
+
   // 是否忽略异常
   boolean ignorable() default true;
 }
