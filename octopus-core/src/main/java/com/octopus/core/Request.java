@@ -45,7 +45,7 @@ public class Request implements Serializable, Comparable<Request> {
   public Request() {}
 
   public Request(@NonNull String url, @NonNull RequestMethod method) {
-    this.url = URLUtil.normalize(url);
+    this.url = url;
     this.method = method;
   }
 
@@ -62,7 +62,7 @@ public class Request implements Serializable, Comparable<Request> {
   }
 
   public Request setUrl(@NonNull String url) {
-    this.url = URLUtil.normalize(url);
+    this.url = url;
     return this;
   }
 

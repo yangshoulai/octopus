@@ -192,6 +192,7 @@ class OctopusImpl implements Octopus {
     if (state.getState() >= State.STOPPING.getState()) {
       throw new OctopusException("Illegal state " + this.state.get());
     }
+    request.setUrl(URLUtil.normalize(request.getUrl()));
     request.setId(RequestHelper.generateId(request));
     if (state.getState() <= State.NEW.getState()) {
       this.seeds.add(request);
