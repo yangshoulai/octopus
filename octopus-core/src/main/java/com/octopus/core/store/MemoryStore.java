@@ -1,6 +1,5 @@
 package com.octopus.core.store;
 
-import cn.hutool.core.collection.ListUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
@@ -9,9 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.PriorityBlockingQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -23,10 +20,6 @@ public class MemoryStore implements Store {
   private final Map<String, Request> all = new ConcurrentHashMap<>();
 
   private final BlockingQueue<Request> waiting = new PriorityBlockingQueue<>();
-
-  private final List<Request> failed = new CopyOnWriteArrayList<>();
-
-  private final AtomicInteger completedCounter = new AtomicInteger();
 
   @Override
   public Request get() {
@@ -51,20 +44,16 @@ public class MemoryStore implements Store {
   public void clear() {
     this.all.clear();
     this.waiting.clear();
-    this.failed.clear();
-    this.completedCounter.set(0);
   }
 
   @Override
   public void markAsCompleted(Request request) {
     this.all.get(request.getId()).setStatus(Status.of(State.Completed));
-    this.completedCounter.incrementAndGet();
   }
 
   @Override
   public void markAsFailed(Request request, String error) {
     this.all.get(request.getId()).setStatus(Status.of(State.Failed, error));
-    this.failed.add(request);
   }
 
   @Override
@@ -74,7 +63,9 @@ public class MemoryStore implements Store {
 
   @Override
   public long getCompletedSize() {
-    return this.completedCounter.get();
+    return this.all.values().stream()
+        .filter(r -> r.getStatus().getState() == State.Completed)
+        .count();
   }
 
   @Override
@@ -84,29 +75,32 @@ public class MemoryStore implements Store {
 
   @Override
   public long getFailedSize() {
-    return this.failed.size();
+    return this.all.values().stream().filter(r -> r.getStatus().getState() == State.Failed).count();
   }
 
   @Override
   public List<Request> getFailed() {
-    return ListUtil.unmodifiable(this.failed);
+    return this.all.values().stream()
+        .filter(r -> r.getStatus().getState() == State.Failed)
+        .collect(Collectors.toList());
   }
 
   @Override
   public void delete(String id) {
     this.all.remove(id);
     this.waiting.removeIf(r -> r.getId().equals(id));
-    this.failed.removeIf(r -> r.getId().equals(id));
   }
 
   @Override
   public int replayFailed(ReplayFilter filter) {
-    List<Request> requests =
-        this.failed.stream().filter(filter::filter).collect(Collectors.toList());
-    this.failed.removeIf(filter::filter);
-    requests.forEach(r -> r.setFailTimes(r.getFailTimes() + 1));
-    requests.forEach(r -> r.setStatus(Status.of(State.Waiting)));
-    requests.forEach(this::put);
-    return requests.size();
+    List<Request> failed =
+        this.all.values().stream()
+            .filter(r -> r.getStatus().getState() == State.Failed)
+            .filter(filter::filter)
+            .collect(Collectors.toList());
+    failed.forEach(r -> r.setFailTimes(r.getFailTimes() + 1));
+    failed.forEach(r -> r.setStatus(Status.of(State.Waiting)));
+    failed.forEach(this::put);
+    return failed.size();
   }
 }

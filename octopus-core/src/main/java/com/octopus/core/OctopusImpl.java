@@ -7,7 +7,6 @@ import cn.hutool.core.thread.NamedThreadFactory;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
-import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request.Status;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -23,7 +22,6 @@ import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
-
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +75,6 @@ class OctopusImpl implements Octopus {
   private ExecutorService boss;
   private ExecutorService workers;
   private Semaphore workerSemaphore;
-  private Long lastSummaryTime;
 
   public OctopusImpl(OctopusBuilder builder) {
     this.logger = builder.getLogger();
@@ -171,7 +168,7 @@ class OctopusImpl implements Octopus {
     long total = this.store.getTotalSize();
     long completed = this.store.getCompletedSize();
     long waiting = this.store.getWaitingSize();
-    long failed = total - completed - waiting;
+    long failed = this.store.getFailedSize();
     if (this.clearStoreOnStop) {
       this.store.clear();
     }
@@ -220,31 +217,11 @@ class OctopusImpl implements Octopus {
     }
   }
 
-  private void logSummaryInfoIfNeed() {
-    if (this.lastSummaryTime == null) {
-      this.lastSummaryTime = System.currentTimeMillis();
-    }
-    long current = System.currentTimeMillis();
-    if (current - this.lastSummaryTime > 10000) {
-      this.lastSummaryTime = current;
-      long total = this.store.getTotalSize();
-      long completed = this.store.getCompletedSize();
-      long waiting = this.store.getWaitingSize();
-      long executing = this.threads - this.workerSemaphore.availablePermits();
-      long failed = total - completed - waiting - executing;
-      logger.info(
-          String.format(
-              "Total = [%s], Completed = [%s], Waiting = [%s], Executing = [%s], Failed = [%s]",
-              total, completed, waiting, executing, failed));
-    }
-  }
-
   private void dispatch() {
     State state;
     while (!Thread.currentThread().isInterrupted()
         && ((state = this.state.get()) == State.STARTED || state == State.IDLE)) {
       try {
-        logSummaryInfoIfNeed();
         Request request = this.store.get();
         if (request != null) {
           if (this.logger.isDebugEnabled()) {
@@ -415,12 +392,17 @@ class OctopusImpl implements Octopus {
           .put(Header.REFERER.getValue(), ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
     }
     String url = request.getUrl();
-    if(!url.startsWith("http://") && !url.startsWith("https://")){
-      URI parentUri= URLUtil.toURI(parentRequest.getUrl());
+    if (!url.startsWith("http://") && !url.startsWith("https://")) {
+      URI parentUri = URLUtil.toURI(parentRequest.getUrl());
       String schema = parentUri.getScheme();
       String host = parentUri.getHost();
-      int port = parentUri.getPort() ;
-      request.setUrl(schema + "://" + host + (port < 0 ? "": ":" + port) + (url.startsWith("/") ? url : "/" + url));
+      int port = parentUri.getPort();
+      request.setUrl(
+          schema
+              + "://"
+              + host
+              + (port < 0 ? "" : ":" + port)
+              + (url.startsWith("/") ? url : "/" + url));
     }
     this.addRequest(request);
   }
