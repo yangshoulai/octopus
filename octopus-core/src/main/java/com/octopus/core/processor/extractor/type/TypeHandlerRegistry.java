@@ -1,10 +1,12 @@
 package com.octopus.core.processor.extractor.type;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -26,6 +28,7 @@ public class TypeHandlerRegistry {
     registerCollection(ArrayList.class, ArrayList.class);
     registerCollection(Set.class, HashSet.class);
     registerCollection(HashSet.class, HashSet.class);
+    registerCollection(LinkedList.class, LinkedList.class);
 
     registerHandler(int.class, new IntegerTypeHandler());
     registerHandler(Integer.class, new IntegerTypeHandler());
@@ -37,6 +40,7 @@ public class TypeHandlerRegistry {
     registerHandler(Double.class, new DoubleTypeHandler());
     registerHandler(float.class, new FloatTypeHandler());
     registerHandler(Float.class, new FloatTypeHandler());
+    registerHandler(BigDecimal.class, new BigDecimalTypeHandler());
     registerHandler(char.class, new CharacterTypeHandler());
     registerHandler(Character.class, new CharacterTypeHandler());
     registerHandler(String.class, new CharSequenceTypeHandler());
@@ -47,10 +51,6 @@ public class TypeHandlerRegistry {
 
   public static TypeHandlerRegistry getInstance() {
     return Holder.INSTANCE;
-  }
-
-  private static class Holder {
-    public static final TypeHandlerRegistry INSTANCE = new TypeHandlerRegistry();
   }
 
   public boolean isValidCollectionType(@NonNull Class<?> cls) {
@@ -94,5 +94,9 @@ public class TypeHandlerRegistry {
 
   public void registerHandler(@NonNull Class<?> typeClass, @NonNull TypeHandler<?> handler) {
     handlers.put(typeClass, handler);
+  }
+
+  private static class Holder {
+    public static final TypeHandlerRegistry INSTANCE = new TypeHandlerRegistry();
   }
 }
