@@ -10,8 +10,10 @@ import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.extractor.selector.Url;
 import com.octopus.core.processor.matcher.Matchers;
+
 import java.util.Collection;
 import java.util.List;
+
 import lombok.Data;
 
 /**
@@ -22,57 +24,59 @@ import lombok.Data;
  */
 @Data
 @Extractor(
-    @Link(
-        selector =
-            @Selector(type = Selector.Type.Xpath, value = "//a[@rel='next'][position()=2]/@href"),
-        repeatable = false,
-        priority = 1))
+        @Link(
+                selector =
+                @Selector(type = Selector.Type.Xpath, value = "//a[@rel='next'][position()=2]/@href"),
+                repeatable = false,
+                priority = 1))
 public class GiteeProject {
 
-  @Css(value = ".items .item", self = true)
-  private Collection<Project> projects;
+    @Css(value = ".items .item", self = true)
+    private Collection<Project> projects;
 
-  @Data
-  @Extractor
-  public static class Project {
+    @Data
+    @Extractor
+    public static class Project {
 
-    @Css(".project-title a.title")
-    private String name;
+        @Css(".project-title a.title")
+        private String name;
 
-    @Css(
-        value = ".project-title a.title",
-        attr = "href",
-        formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
-    private String address;
+        @Css(
+                value = ".project-title a.title",
+                attr = "href",
+                formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
+        private String address;
 
-    @Css(".project-desc")
-    private String description;
+        @Css(".project-desc")
+        private String description;
 
-    @Css(".project-desc")
-    private String description2;
+        @Css(".project-desc")
+        private String description2;
 
-    @Css(".project-label-item")
-    private List<String> tags;
+        @Css(".project-label-item")
+        private List<String> tags;
 
-    @Css(".stars-count")
-    private int stars;
+        @Css(".stars-count")
+        private int stars;
 
-    @Url private String url;
-  }
+        @Url
+        private String url;
+    }
 
-  public static void main(String[] args) {
-    Octopus.builder()
-        .addSite(WebSite.of("gitee.com").setRateLimiter(1))
-        .addSeeds("https://gitee.com/explore/all?order=starred")
-        .addProcessor(
-            Matchers.HTML,
-            GiteeProject.class,
-            gitee -> {
-              if (gitee.getProjects() != null) {
-                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
-              }
-            })
-        .build()
-        .start();
-  }
+    public static void main(String[] args) {
+        Octopus.builder()
+                .useFsStore("/Users/yangshoulai/Downloads/gitee")
+                .addSite(WebSite.of("gitee.com").setRateLimiter(1))
+                .addSeeds("https://gitee.com/explore/all?order=starred")
+                .addProcessor(
+                        Matchers.HTML,
+                        GiteeProject.class,
+                        gitee -> {
+                            if (gitee.getProjects() != null) {
+                                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
+                            }
+                        })
+                .build()
+                .start();
+    }
 }
