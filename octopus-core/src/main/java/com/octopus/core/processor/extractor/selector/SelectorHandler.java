@@ -1,6 +1,7 @@
 package com.octopus.core.processor.extractor.selector;
 
 import com.octopus.core.Response;
+
 import java.util.List;
 
 /**
@@ -9,15 +10,16 @@ import java.util.List;
  */
 public interface SelectorHandler {
 
-  /**
-   * 提取内容
-   *
-   * @param source 原文
-   * @param selector 选择器
-   * @param multi 是否多选
-   * @param response 原始响应
-   * @return 提取的内容
-   */
-  List<String> select(String source, Selector selector, boolean multi, Response response)
-      throws SelectException;
+    /**
+     * 提取内容
+     *
+     * @param source   原文
+     * @param selector 选择器
+     * @param multi    是否多选
+     * @param response 原始响应
+     * @return 提取的内容
+     * @throws SelectException 提取异常
+     */
+    List<String> select(String source, Selector selector, boolean multi, Response response)
+            throws SelectException;
 }
