@@ -18,8 +18,10 @@ import com.octopus.core.processor.extractor.selector.Selector;
 import com.octopus.core.processor.extractor.selector.Url;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
+
 import java.util.HashMap;
 import java.util.Map;
+
 import lombok.Data;
 
 /**
@@ -32,87 +34,87 @@ import lombok.Data;
 @Extractor
 public class TumblrBlog {
 
-  @Regex(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
-  private String apiToken;
+    @Regex(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
+    private String apiToken;
 
-  @Url(formatter = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
-  private String username;
-
-  @LinkMethod
-  public Request getFirstPagePost(Response response) {
-    Map<String, String> params = new HashMap<>();
-    params.put("npf", "true");
-    params.put("reblog_info", "true");
-    params.put("offset", "0");
-    params.put("page_number", "1");
-
-    return Request.get("https://api.tumblr.com/v2/blog/" + username + "/posts")
-        .setParams(params)
-        .addHeader("Authorization", "Bearer " + this.apiToken);
-  }
-
-  @Data
-  @Extractor({
-    @Link(
-        selector =
-            @Selector(
-                type = Selector.Type.Json,
-                value = "$.response.posts[*].content[*].media.url")),
-    @Link(
-        selector =
-            @Selector(
-                type = Selector.Type.Json,
-                value = "$.response.posts[*].content[*].media[0].url"))
-  })
-  public static class PostResponse {
-
-    @Json("$.meta.status")
-    private int status;
-
-    @Json("$.response.total_posts")
-    private int totalPosts;
-
-    @Json("$.response.posts[*].content[*].media.url")
-    private String[] videos;
-
-    @Json("$.response.posts[*].content[*].media[*].url")
-    private String[] photos;
+    @Url(formatter = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
+    private String username;
 
     @LinkMethod
-    public Request getNextPagePosts(Response response) {
-      int pageNumber = Integer.parseInt(response.getRequest().getParams().get("page_number"));
-      int offset = Integer.parseInt(response.getRequest().getParams().get("offset"));
-      if (offset < this.totalPosts) {
-        Map<String, String> params = new HashMap<>(response.getRequest().getParams());
-        params.put("offset", String.valueOf(offset += 20));
-        params.put("page_number", String.valueOf(++pageNumber));
-        return Request.get(response.getRequest().getUrl())
-            .setParams(params)
-            .addHeaders(response.getRequest().getHeaders());
-      }
-      return null;
+    public Request getFirstPagePost(Response response) {
+        Map<String, String> params = new HashMap<>();
+        params.put("npf", "true");
+        params.put("reblog_info", "true");
+        params.put("offset", "0");
+        params.put("page_number", "1");
+
+        return Request.get("https://api.tumblr.com/v2/blog/" + username + "/posts")
+                .setParams(params)
+                .addHeader("Authorization", "Bearer " + this.apiToken);
     }
-  }
 
-  public static void main(String[] args) {
-    ProxyProvider proxyProvider = new PollingProxyProvider(Constants.PROXY);
-    DownloadConfig downloadConfig = new DownloadConfig();
-    downloadConfig.setProxyProvider(proxyProvider);
-    downloadConfig.setSocketTimeout(120000);
-    downloadConfig.setConnectTimeout(12000);
+    @Data
+    @Extractor({
+            @Link(
+                    selector =
+                    @Selector(
+                            type = Selector.Type.Json,
+                            value = "$.response.posts[*].content[*].media.url")),
+            @Link(
+                    selector =
+                    @Selector(
+                            type = Selector.Type.Json,
+                            value = "$.response.posts[*].content[*].media[0].url"))
+    })
+    public static class PostResponse {
 
-    Octopus.builder()
-        .addSeeds("https://2djp.tumblr.com/archive")
-        .addProcessor(Matchers.HTML, TumblrBlog.class)
-        .addProcessor(Matchers.JSON, PostResponse.class)
-        .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/2djp"))
-        .setGlobalDownloadConfig(downloadConfig)
-        .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
-        .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))
-        .addSite(WebSite.of("ve.media.tumblr.com").setRateLimiter(1))
-        .addSite(WebSite.of("vt.media.tumblr.com").setRateLimiter(1))
-        .addSite(WebSite.of("va.media.tumblr.com").setRateLimiter(1))
-        .build()
-        .start();
-  }
+        @Json("$.meta.status")
+        private int status;
+
+        @Json("$.response.total_posts")
+        private int totalPosts;
+
+        @Json("$.response.posts[*].content[*].media.url")
+        private String[] videos;
+
+        @Json("$.response.posts[*].content[*].media[*].url")
+        private String[] photos;
+
+        @LinkMethod
+        public Request getNextPagePosts(Response response) {
+            int pageNumber = Integer.parseInt(response.getRequest().getParams().get("page_number"));
+            int offset = Integer.parseInt(response.getRequest().getParams().get("offset"));
+            if (offset < this.totalPosts) {
+                Map<String, String> params = new HashMap<>(response.getRequest().getParams());
+                params.put("offset", String.valueOf(offset += 20));
+                params.put("page_number", String.valueOf(++pageNumber));
+                return Request.get(response.getRequest().getUrl())
+                        .setParams(params)
+                        .addHeaders(response.getRequest().getHeaders());
+            }
+            return null;
+        }
+    }
+
+    public static void main(String[] args) {
+        ProxyProvider proxyProvider = new PollingProxyProvider(Constants.PROXY);
+        DownloadConfig downloadConfig = new DownloadConfig();
+        downloadConfig.setProxyProvider(proxyProvider);
+        downloadConfig.setSocketTimeout(120000);
+        downloadConfig.setConnectTimeout(12000);
+
+        Octopus.builder()
+                .addSeeds("https://sm-sniper2nd.tumblr.com/archive")
+                .addProcessor(Matchers.HTML, TumblrBlog.class)
+                .addProcessor(Matchers.JSON, PostResponse.class)
+                .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/sm-sniper2nd"))
+                .setGlobalDownloadConfig(downloadConfig)
+                .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
+                .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))
+                .addSite(WebSite.of("ve.media.tumblr.com").setRateLimiter(1))
+                .addSite(WebSite.of("vt.media.tumblr.com").setRateLimiter(1))
+                .addSite(WebSite.of("va.media.tumblr.com").setRateLimiter(1))
+                .build()
+                .start();
+    }
 }

@@ -65,7 +65,6 @@ public class GiteeProject {
 
     public static void main(String[] args) {
         Octopus.builder()
-                .useFsStore("/Users/yangshoulai/Downloads/gitee")
                 .addSite(WebSite.of("gitee.com").setRateLimiter(1))
                 .addSeeds("https://gitee.com/explore/all?order=starred")
                 .addProcessor(
