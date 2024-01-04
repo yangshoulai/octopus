@@ -40,6 +40,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <dependency>
@@ -69,7 +70,6 @@
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
-            <optional>true</optional>
         </dependency>
 
         <dependency>

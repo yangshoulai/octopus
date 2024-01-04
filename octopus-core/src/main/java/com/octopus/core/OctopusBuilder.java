@@ -39,7 +39,7 @@ public class OctopusBuilder {
     private final List<OctopusListener> listeners = new ArrayList<>();
     private final List<MatchableProcessor> processors = new ArrayList<>();
     private final List<Request> seeds = new ArrayList<>();
-    private Downloader downloader = new HttpClientDownloader();
+    private Downloader downloader = new OkHttpDownloader();
     private Store store = new MemoryStore();
     private int threads = Runtime.getRuntime().availableProcessors() * 2;
     /**
