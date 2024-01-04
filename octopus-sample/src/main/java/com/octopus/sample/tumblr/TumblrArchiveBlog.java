@@ -32,7 +32,7 @@ import lombok.Data;
  */
 @Data
 @Extractor
-public class TumblrBlog {
+public class TumblrArchiveBlog {
 
     @Regex(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
     private String apiToken;
@@ -102,12 +102,12 @@ public class TumblrBlog {
         downloadConfig.setProxyProvider(proxyProvider);
         downloadConfig.setSocketTimeout(120000);
         downloadConfig.setConnectTimeout(12000);
-
+        String author = "raynhoro";
         Octopus.builder()
-                .addSeeds("https://sm-sniper2nd.tumblr.com/archive")
-                .addProcessor(Matchers.HTML, TumblrBlog.class)
+                .addSeeds("https://" + author + ".tumblr.com/archive")
+                .addProcessor(Matchers.HTML, TumblrArchiveBlog.class)
                 .addProcessor(Matchers.JSON, PostResponse.class)
-                .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/sm-sniper2nd"))
+                .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/" + author))
                 .setGlobalDownloadConfig(downloadConfig)
                 .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
                 .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))

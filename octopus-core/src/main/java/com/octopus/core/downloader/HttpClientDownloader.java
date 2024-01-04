@@ -8,6 +8,7 @@ import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
 import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -18,6 +19,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import javax.net.ssl.SSLContext;
+
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -50,118 +52,118 @@ import org.apache.http.util.EntityUtils;
  */
 public class HttpClientDownloader extends AbstractDownloader {
 
-  private HttpClient httpClient;
+    private HttpClient httpClient;
 
-  public HttpClientDownloader() {
-    this.init();
-  }
-
-  private void init() {
-    SSLContext sslContext;
-    try {
-      sslContext = new SSLContextBuilder().loadTrustMaterial((chain, authType) -> true).build();
-    } catch (Exception e) {
-      throw new OctopusException(e);
+    public HttpClientDownloader() {
+        this.init();
     }
-    Registry<ConnectionSocketFactory> socketFactoryRegistry =
-        RegistryBuilder.<ConnectionSocketFactory>create()
-            .register("http", PlainConnectionSocketFactory.INSTANCE)
-            .register(
-                "https", new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier()))
-            .build();
-    PoolingHttpClientConnectionManager connectionManager =
-        new PoolingHttpClientConnectionManager(socketFactoryRegistry);
-    connectionManager.setMaxTotal(200);
-    connectionManager.setDefaultMaxPerRoute(25);
-    connectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(60000).build());
-    this.httpClient =
-        HttpClients.custom()
-            .setSSLHostnameVerifier(new NoopHostnameVerifier())
-            .setConnectionManager(connectionManager)
-            .build();
-  }
 
-  @Override
-  public Response download(Request request, DownloadConfig config) throws DownloadException {
-    Proxy proxy = this.resolveProxy(config.getProxyProvider(), request);
-    HttpResponse httpResponse;
-    try {
-      HttpUriRequest http = createHttpUriRequest(request, proxy, config);
-      httpResponse = this.httpClient.execute(http);
-      int statusCode = httpResponse.getStatusLine().getStatusCode();
-      Response response = new Response(request);
-      response.setStatus(statusCode);
-      Header[] allHeaders = httpResponse.getAllHeaders();
-      Map<String, String> headers = new HashMap<>();
-      Arrays.stream(allHeaders).forEach(header -> headers.put(header.getName(), header.getValue()));
-      response.setHeaders(headers);
-      HttpEntity entity = httpResponse.getEntity();
-
-      if (entity != null) {
-        response.setBody(EntityUtils.toByteArray(entity));
-        Header header = entity.getContentType();
-        Charset charset = null;
-        String mimeType = null;
-        if (header != null && header.getValue() != null) {
-          ContentType contentType = ContentType.parse(header.getValue());
-          charset = contentType.getCharset();
-          mimeType = contentType.getMimeType();
+    private void init() {
+        SSLContext sslContext;
+        try {
+            sslContext = new SSLContextBuilder().loadTrustMaterial((chain, authType) -> true).build();
+        } catch (Exception e) {
+            throw new OctopusException(e);
         }
-        charset =
-            Stream.of(charset, config.getCharset())
-                .filter(Objects::nonNull)
-                .findFirst()
-                .orElse(null);
-        response.setCharset(charset);
-        response.setMimeType(mimeType);
-      }
-      return response;
-    } catch (IOException e) {
-      throw new DownloadException(
-          String.format(
-              "Fetch [%s] via proxy [%s] failed, caused by %s", request, proxy, e.getMessage()),
-          e);
-    }
-  }
-
-  private HttpUriRequest createHttpUriRequest(Request request, Proxy proxy, DownloadConfig config) {
-    HttpRequestBase http;
-    UrlBuilder urlBuilder = UrlBuilder.ofHttpWithoutEncode(request.getUrl());
-    if (request.getParams() != null) {
-      request.getParams().forEach(urlBuilder::addQuery);
-    }
-    String url = urlBuilder.build();
-    if (request.getMethod() == RequestMethod.POST) {
-      HttpPost post = new HttpPost(url);
-      if (request.getBody() != null) {
-        post.setEntity(new ByteArrayEntity(request.getBody()));
-      }
-      http = post;
-    } else {
-      http = new HttpGet(url);
+        Registry<ConnectionSocketFactory> socketFactoryRegistry =
+                RegistryBuilder.<ConnectionSocketFactory>create()
+                        .register("http", PlainConnectionSocketFactory.INSTANCE)
+                        .register(
+                                "https", new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier()))
+                        .build();
+        PoolingHttpClientConnectionManager connectionManager =
+                new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        connectionManager.setMaxTotal(200);
+        connectionManager.setDefaultMaxPerRoute(25);
+        connectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(60000).build());
+        this.httpClient =
+                HttpClients.custom()
+                        .setSSLHostnameVerifier(new NoopHostnameVerifier())
+                        .setConnectionManager(connectionManager)
+                        .build();
     }
 
-    Map<String, String> allHeaders =
-        MapUtil.builder("Host", URLUtil.url(request.getUrl()).getHost())
-            .putAll(config.getHeaders())
-            .putAll(request.getHeaders())
-            .build();
-    allHeaders.entrySet().stream()
-        .map(pair -> new BasicHeader(pair.getKey(), pair.getValue()))
-        .forEach(http::setHeader);
-    RequestConfig.Builder builder =
-        RequestConfig.custom()
-            .setConnectionRequestTimeout(config.getConnectTimeout())
-            .setConnectTimeout(config.getConnectTimeout())
-            .setSocketTimeout(config.getSocketTimeout())
-            .setCookieSpec(CookieSpecs.STANDARD);
+    @Override
+    public Response download(Request request, DownloadConfig config) throws DownloadException {
+        Proxy proxy = this.resolveProxy(config.getProxyProvider(), request);
+        HttpResponse httpResponse;
+        try {
+            HttpUriRequest http = createHttpUriRequest(request, proxy, config);
+            httpResponse = this.httpClient.execute(http);
+            int statusCode = httpResponse.getStatusLine().getStatusCode();
+            Response response = new Response(request);
+            response.setStatus(statusCode);
+            Header[] allHeaders = httpResponse.getAllHeaders();
+            Map<String, String> headers = new HashMap<>();
+            Arrays.stream(allHeaders).forEach(header -> headers.put(header.getName(), header.getValue()));
+            response.setHeaders(headers);
+            HttpEntity entity = httpResponse.getEntity();
 
-    if (proxy != null && proxy != Proxy.NO_PROXY) {
-      InetSocketAddress address = (InetSocketAddress) proxy.address();
-      builder.setProxy(
-          new HttpHost(address.getHostName(), address.getPort(), proxy.type().toString()));
+            if (entity != null) {
+                response.setBody(EntityUtils.toByteArray(entity));
+                Header header = entity.getContentType();
+                Charset charset = null;
+                String mimeType = null;
+                if (header != null && header.getValue() != null) {
+                    ContentType contentType = ContentType.parse(header.getValue());
+                    charset = contentType.getCharset();
+                    mimeType = contentType.getMimeType();
+                }
+                charset =
+                        Stream.of(charset, config.getCharset())
+                                .filter(Objects::nonNull)
+                                .findFirst()
+                                .orElse(null);
+                response.setCharset(charset);
+                response.setMimeType(mimeType);
+            }
+            return response;
+        } catch (IOException e) {
+            throw new DownloadException(
+                    String.format(
+                            "Fetch [%s] via proxy [%s] failed, caused by %s", request, proxy, e.getMessage()),
+                    e);
+        }
     }
-    http.setConfig(builder.build());
-    return http;
-  }
+
+    private HttpUriRequest createHttpUriRequest(Request request, Proxy proxy, DownloadConfig config) {
+        HttpRequestBase http;
+        UrlBuilder urlBuilder = UrlBuilder.ofHttpWithoutEncode(request.getUrl());
+        if (request.getParams() != null) {
+            request.getParams().forEach(urlBuilder::addQuery);
+        }
+        String url = urlBuilder.build();
+        if (request.getMethod() == RequestMethod.POST) {
+            HttpPost post = new HttpPost(url);
+            if (request.getBody() != null) {
+                post.setEntity(new ByteArrayEntity(request.getBody()));
+            }
+            http = post;
+        } else {
+            http = new HttpGet(url);
+        }
+
+        Map<String, String> allHeaders =
+                MapUtil.builder("Host", URLUtil.url(request.getUrl()).getHost())
+                        .putAll(config.getHeaders())
+                        .putAll(request.getHeaders())
+                        .build();
+        allHeaders.entrySet().stream()
+                .map(pair -> new BasicHeader(pair.getKey(), pair.getValue()))
+                .forEach(http::setHeader);
+        RequestConfig.Builder builder =
+                RequestConfig.custom()
+                        .setConnectionRequestTimeout(config.getConnectTimeout())
+                        .setConnectTimeout(config.getConnectTimeout())
+                        .setSocketTimeout(config.getSocketTimeout())
+                        .setCookieSpec(CookieSpecs.STANDARD);
+
+        if (proxy != null && proxy != Proxy.NO_PROXY) {
+            InetSocketAddress address = (InetSocketAddress) proxy.address();
+            builder.setProxy(
+                    new HttpHost(address.getHostName(), address.getPort(), proxy.type().toString()));
+        }
+        http.setConfig(builder.build());
+        return http;
+    }
 }
