@@ -246,6 +246,25 @@ public class OctopusBuilder {
     }
 
     /**
+     * @param databaseFilePath sqlite数据库文件
+     * @return OctopusBuilder
+     */
+    public OctopusBuilder useSQLiteStore(String databaseFilePath) {
+        this.store = new SQLiteStore(databaseFilePath);
+        return this;
+    }
+
+    /**
+     * @param databaseFilePath sqlite数据库文件
+     * @param tableName        表名
+     * @return OctopusBuilder
+     */
+    public OctopusBuilder useSQLiteStore(String databaseFilePath, String tableName) {
+        this.store = new SQLiteStore(databaseFilePath, tableName);
+        return this;
+    }
+
+    /**
      * 添加爬虫站点配置
      *
      * @param site 站点配置

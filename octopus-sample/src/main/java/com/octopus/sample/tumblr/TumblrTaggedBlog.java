@@ -13,12 +13,12 @@ import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
 import com.octopus.core.processor.extractor.selector.*;
+import com.octopus.core.processor.extractor.selector.Formatter;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import lombok.Data;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 下载汤不热博主发布的图片与视频
@@ -39,17 +39,39 @@ public class TumblrTaggedBlog {
         DownloadConfig downloadConfig = new DownloadConfig();
         downloadConfig.setProxyProvider(proxyProvider);
         downloadConfig.setSocketTimeout(120000);
-        downloadConfig.setConnectTimeout(12000);
+        downloadConfig.setConnectTimeout(120000);
         downloadConfig.addHeader("Authorization", "Bearer aIcXSOoTtqrzR8L8YEIOmBeW94c3FmbSNSWAUbxsny9KKx5VFh");
-        String tag = "dota";
-        Request seed = Request.get("https://www.tumblr.com/api/v2/hubs/" + URLUtil.encode(tag) + "/timeline")
-                .addParam("fields[blogs]", "name,avatar,title,url,blog_view_url,is_adult,?is_member,description_npf,uuid,can_be_followed,?followed,?advertiser_name,theme,?primary,?is_paywall_on,?paywall_access,?subscription_plan,tumblrmart_accessories,?live_now,can_show_badges,share_likes,share_following,can_subscribe,subscribed,ask,?can_submit,?is_blocked_from_primary,?is_blogless_advertiser,is_password_protected")
-                .addParam("sort", "top")
-                .addParam("limit", "14");
+        String[] tags = new String[]{
+                "dota2",
+                "dota"
+        };
+        List<Request> seeds = new ArrayList<>();
+        for (String tag : tags) {
+            Request seed1 = Request.get("https://www.tumblr.com/api/v2/hubs/" + URLUtil.encode(tag) + "/timeline")
+                    .addParam("fields[blogs]", "name,avatar,title,url,blog_view_url,is_adult,?is_member,description_npf,uuid,can_be_followed,?followed,?advertiser_name,theme,?primary,?is_paywall_on,?paywall_access,?subscription_plan,tumblrmart_accessories,?live_now,can_show_badges,share_likes,share_following,can_subscribe,subscribed,ask,?can_submit,?is_blocked_from_primary,?is_blogless_advertiser,is_password_protected")
+                    .addParam("sort", "top")
+                    .addParam("limit", "14");
+            Request seed2 = Request.get("https://www.tumblr.com/api/v2/timeline/search")
+                    .addParam("fields[blogs]", "name,avatar,title,url,blog_view_url,is_adult,?is_member,description_npf,uuid,can_be_followed,?followed,?advertiser_name,theme,?primary,?is_paywall_on,?paywall_access,?subscription_plan,tumblrmart_accessories,?live_now,can_show_badges,share_following,share_likes,ask")
+                    .addParam("sort", "top")
+                    .addParam("limit", "20")
+                    .addParam("days", "0")
+                    .addParam("query", URLUtil.encode(tag))
+                    .addParam("mode", "top")
+                    .addParam("timeline_type", "post")
+                    .addParam("skip_component", "related_tags,blog_search")
+                    .addParam("reblog_info", "true");
+            seeds.add(seed1);
+            seeds.add(seed2);
+        }
         Octopus.builder()
-                .addSeeds(seed)
+                .useSQLiteStore(Constants.DOWNLOAD_DIR + "/octopus.db", "tumblr_dota")
+                .clearStoreOnStop(false)
+                .clearStoreOnStartup(true)
+                .ignoreSeedsWhenStoreHasRequests()
+                .addSeeds(seeds.toArray(new Request[0]))
                 .addProcessor(Matchers.JSON, TumblrTaggedBlog.class)
-                .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/" + tag))
+                .addProcessor(new MediaFileDownloadProcessor(Constants.DOWNLOAD_DIR + "/tumblr/dota"))
                 .setGlobalDownloadConfig(downloadConfig)
                 .addSite(WebSite.of("api.tumblr.com").setRateLimiter(1))
                 .addSite(WebSite.of("64.media.tumblr.com").setRateLimiter(1))

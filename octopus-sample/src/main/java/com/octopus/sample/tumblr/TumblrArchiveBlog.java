@@ -101,7 +101,7 @@ public class TumblrArchiveBlog {
         DownloadConfig downloadConfig = new DownloadConfig();
         downloadConfig.setProxyProvider(proxyProvider);
         downloadConfig.setSocketTimeout(120000);
-        downloadConfig.setConnectTimeout(12000);
+        downloadConfig.setConnectTimeout(120000);
         String author = "raynhoro";
         Octopus.builder()
                 .addSeeds("https://" + author + ".tumblr.com/archive")
