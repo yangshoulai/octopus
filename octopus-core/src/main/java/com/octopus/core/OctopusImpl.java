@@ -97,7 +97,7 @@ class OctopusImpl implements Octopus {
         this.replayFailedRequest = builder.isReplayFailedRequest();
         this.replayFilter =
                 ReplayFilters.and(
-                        builder.getReplayFilter(), r -> r.getFailTimes() < builder.getMaxReplays());
+                        builder.getReplayFilter(), r -> r.getFailTimes() - 1 < builder.getMaxReplays());
     }
 
     @Override

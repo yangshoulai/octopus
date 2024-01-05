@@ -101,27 +101,6 @@ public class OctopusBuilder {
         return this;
     }
 
-    /**
-     * 使用本地文件存储请求
-     *
-     * @param dir 文件夹
-     * @return OctopusBuilder
-     */
-    public OctopusBuilder useFsStore(@NonNull File dir) {
-        this.store = new FileSystemStore(dir);
-        return this;
-    }
-
-    /**
-     * 使用本地文件存储请求
-     *
-     * @param dir 文件夹
-     * @return OctopusBuilder
-     */
-    public OctopusBuilder useFsStore(@NonNull String dir) {
-        this.store = new FileSystemStore(dir);
-        return this;
-    }
 
     /**
      * 设置 Redis 请求存储器

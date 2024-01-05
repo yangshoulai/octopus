@@ -64,6 +64,7 @@ public class SQLiteStore implements Store {
                     "attrs TEXT" +
                     ")");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_priority on " + tableName + " (priority)");
+            statement.execute("update " + tableName + " set state = '" + Request.State.Waiting + "', err = NULL where state = '" + Request.State.Executing + "'");
         } catch (SQLException e) {
             throw new RuntimeException(e);
         } finally {
