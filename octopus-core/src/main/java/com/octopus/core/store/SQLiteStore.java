@@ -5,12 +5,15 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
 import com.octopus.core.replay.ReplayFilter;
+import lombok.SneakyThrows;
 
 import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -23,6 +26,8 @@ public class SQLiteStore implements Store {
 
     private final Connection connection;
 
+    private final Lock writeLock = new ReentrantLock();
+
     public SQLiteStore(String databaseFilePath) {
         this(databaseFilePath, DEFAULT_TABLE_NAME);
     }
@@ -31,7 +36,7 @@ public class SQLiteStore implements Store {
         this.tableName = tableName;
         try {
             Class.forName("org.sqlite.JDBC");
-            connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFilePath);
+            this.connection = DriverManager.getConnection("jdbc:sqlite:" + databaseFilePath);
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
@@ -39,7 +44,9 @@ public class SQLiteStore implements Store {
     }
 
     private void initTables() {
-        try (Statement statement = this.connection.createStatement()) {
+        Statement statement = null;
+        try {
+            statement = this.connection.createStatement();
             statement.executeUpdate("CREATE TABLE IF NOT EXISTS " + tableName + " (" +
                     "id TEXT PRIMARY KEY, " +
                     "url TEXT, " +
@@ -59,12 +66,22 @@ public class SQLiteStore implements Store {
             statement.execute("CREATE INDEX IF NOT EXISTS idx_priority on " + tableName + " (priority)");
         } catch (SQLException e) {
             throw new RuntimeException(e);
+        } finally {
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException e) {
+                    // ignore
+                }
+            }
         }
+
     }
 
     @Override
     public Request get() {
         Statement statement = null;
+        writeLock.lock();
         try {
             connection.setAutoCommit(false);
             statement = this.connection.createStatement();
@@ -85,6 +102,13 @@ public class SQLiteStore implements Store {
             } catch (SQLException ex) {
                 // ignore
             }
+            if (statement != null) {
+                try {
+                    statement.close();
+                } catch (SQLException ex) {
+                    // ignore
+                }
+            }
             throw new RuntimeException(e);
         } finally {
             try {
@@ -92,6 +116,7 @@ public class SQLiteStore implements Store {
             } catch (SQLException e) {
                 // ignore
             }
+            writeLock.unlock();
         }
     }
 
@@ -149,6 +174,7 @@ public class SQLiteStore implements Store {
         String sql = "insert into " + tableName + " (id, url, method, priority, repeatable, parent, inherit, fails, state, err, body, params, headers, attrs) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         String updateSql = "update " + tableName + " set url =?, method =?, priority =?, repeatable =?, parent =?, inherit =?, fails =?, state =?, err =?, body =?, params =?, headers =?, attrs =? where id =?";
         PreparedStatement statement = null;
+        writeLock.lock();
         try {
             connection.setAutoCommit(false);
             if (exists(request)) {
@@ -226,6 +252,7 @@ public class SQLiteStore implements Store {
                     // ignore
                 }
             }
+            writeLock.unlock();
         }
     }
 
@@ -265,6 +292,7 @@ public class SQLiteStore implements Store {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     @Override
