@@ -30,7 +30,7 @@ public class DownloadConfig {
               .put(Header.USER_AGENT.getValue(), DEFAULT_UA)
               .build());
 
-  public static final int DEFAULT_CONNECT_Timeout = 60000;
+  public static final int DEFAULT_CONNECT_TIMEOUT = 60000;
 
   public static final int DEFAULT_SOCKET_TIME = 60000;
 
@@ -40,7 +40,7 @@ public class DownloadConfig {
 
   private Map<String, String> headers = new HashMap<>(DEFAULT_HEADERS);
 
-  private int connectTimeout = DEFAULT_CONNECT_Timeout;
+  private int connectTimeout = DEFAULT_CONNECT_TIMEOUT;
 
   private int socketTimeout = DEFAULT_SOCKET_TIME;
 

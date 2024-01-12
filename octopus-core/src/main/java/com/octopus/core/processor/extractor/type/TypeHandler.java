@@ -1,6 +1,6 @@
 package com.octopus.core.processor.extractor.type;
 
-import java.lang.annotation.Annotation;
+import com.octopus.core.processor.extractor.FieldExt;
 
 /**
  * 类型转换器
@@ -12,19 +12,13 @@ import java.lang.annotation.Annotation;
  */
 public interface TypeHandler<T> {
 
-  /**
-   * 转换
-   *
-   * @param source 元字符
-   * @param annotation 转换器额外注解
-   * @return 转换后的对象
-   */
-  T handle(String source, Annotation annotation);
+    /**
+     * 转换
+     *
+     * @param source 元字符
+     * @param ext    转换器额外注解
+     * @return 转换后的对象
+     */
+    T handle(String source, FieldExt ext);
 
-  /**
-   * 获取支持的注解
-   *
-   * @return 转换器支持注解
-   */
-  Class<? extends Annotation> getSupportAnnotationType();
 }

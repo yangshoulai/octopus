@@ -1,29 +1,28 @@
-package com.octopus.core.processor.extractor.type;
+package com.octopus.core.processor.configurable.convert;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.processor.configurable.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
-import com.octopus.core.processor.extractor.FieldExt;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2023/3/28
  */
-public class DoubleTypeHandler implements TypeHandler<Double> {
+public class DoubleTypeConverter implements TypeConverter<Double> {
 
     @Override
-    public Double handle(String source, FieldExt ext) {
+    public Double convert(String source, FieldExtProperties ext) {
         try {
             if (StrUtil.isBlank(source)) {
                 return null;
             }
             return NumberUtil.parseDouble(source);
         } catch (Throwable e) {
-            if (ext != null && !ext.ignoreError()) {
+            if (!ext.isIgnoreError()) {
                 throw new OctopusException("Can not parse [" + source + "] to double", e);
             }
             return null;
         }
     }
-
 }

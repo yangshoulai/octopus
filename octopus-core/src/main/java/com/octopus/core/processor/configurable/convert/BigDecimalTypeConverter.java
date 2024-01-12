@@ -1,8 +1,8 @@
-package com.octopus.core.processor.extractor.type;
+package com.octopus.core.processor.configurable.convert;
 
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.processor.configurable.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
-import com.octopus.core.processor.extractor.FieldExt;
 
 import java.math.BigDecimal;
 
@@ -10,20 +10,20 @@ import java.math.BigDecimal;
  * @author shoulai.yang@gmail.com
  * @date 2023/4/27
  */
-public class BigDecimalTypeHandler implements TypeHandler<BigDecimal> {
+public class BigDecimalTypeConverter implements TypeConverter<BigDecimal> {
+
 
     @Override
-    public BigDecimal handle(String source, FieldExt ext) {
+    public BigDecimal convert(String source, FieldExtProperties ext) {
         if (StrUtil.isNotEmpty(source)) {
             try {
                 return new BigDecimal(source);
             } catch (Exception e) {
-                if (ext != null && !ext.ignoreError()) {
+                if (ext != null && !ext.isIgnoreError()) {
                     throw new OctopusException("Can not parse [" + source + "] to big decimal", e);
                 }
             }
         }
         return null;
     }
-
 }

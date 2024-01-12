@@ -1,7 +1,7 @@
 package com.octopus.core.processor.extractor.type;
 
 import cn.hutool.core.util.StrUtil;
-import java.lang.annotation.Annotation;
+import com.octopus.core.processor.extractor.FieldExt;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -9,14 +9,9 @@ import java.lang.annotation.Annotation;
  */
 public class CharacterTypeHandler implements TypeHandler<Character> {
 
-  @Override
-  public Character handle(String source, Annotation annotation) {
-    CharacterType characterType = (CharacterType) annotation;
-    return StrUtil.isBlank(source) ? null : source.charAt(0);
-  }
+    @Override
+    public Character handle(String source, FieldExt ext) {
+        return StrUtil.isBlank(source) ? null : source.charAt(0);
+    }
 
-  @Override
-  public Class<? extends Annotation> getSupportAnnotationType() {
-    return CharacterType.class;
-  }
 }

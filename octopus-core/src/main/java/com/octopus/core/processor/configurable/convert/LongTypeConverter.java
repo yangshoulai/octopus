@@ -1,29 +1,27 @@
-package com.octopus.core.processor.extractor.type;
+package com.octopus.core.processor.configurable.convert;
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
+import com.octopus.core.processor.configurable.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
-import com.octopus.core.processor.extractor.FieldExt;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2023/3/28
  */
-public class LongTypeHandler implements TypeHandler<Long> {
-
+public class LongTypeConverter implements TypeConverter<Long> {
     @Override
-    public Long handle(String source, FieldExt ext) {
+    public Long convert(String source, FieldExtProperties ext) {
         try {
             if (StrUtil.isBlank(source)) {
                 return null;
             }
             return NumberUtil.parseLong(source);
         } catch (Throwable e) {
-            if (ext != null && !ext.ignoreError()) {
+            if (!ext.isIgnoreError()) {
                 throw new OctopusException("Can not parse [" + source + "] to long", e);
             }
             return null;
         }
     }
-
 }

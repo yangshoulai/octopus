@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @date 2024/01/04
  */
 public class SQLiteStore implements Store {
-    private static final String DEFAULT_TABLE_NAME = "requests";
+    public static final String DEFAULT_TABLE_NAME = "requests";
     private final String tableName;
 
     private final Connection connection;

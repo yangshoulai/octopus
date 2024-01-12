@@ -1,6 +1,6 @@
 package com.octopus.core.processor.extractor.type;
 
-import java.lang.annotation.Annotation;
+import com.octopus.core.processor.extractor.FieldExt;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -8,14 +8,9 @@ import java.lang.annotation.Annotation;
  */
 public class CharSequenceTypeHandler implements TypeHandler<CharSequence> {
 
-  @Override
-  public CharSequence handle(String source, Annotation annotation) {
-    CharSequenceType charSequenceType = (CharSequenceType) annotation;
-    return source;
-  }
+    @Override
+    public CharSequence handle(String source, FieldExt ext) {
+        return source;
+    }
 
-  @Override
-  public Class<? extends Annotation> getSupportAnnotationType() {
-    return CharSequenceType.class;
-  }
 }
