@@ -25,7 +25,10 @@ public class DownloadProperties implements Validator {
 
     private String charset = CharsetUtil.CHARSET_UTF_8.name();
 
-    private Map<String, String> headers = new HashMap<>();
+    private Map<String, String> headers = new HashMap<String, String>() {{
+        put("User-Agent", DownloadConfig.DEFAULT_UA);
+        put("Accept", DownloadConfig.DEFAULT_ACCEPT);
+    }};
 
     private List<ProxyProperties> proxies = new ArrayList<>();
 

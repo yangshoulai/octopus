@@ -41,20 +41,20 @@ public class ExtractorHelper {
     return null;
   }
 
-  public static FieldType getFieldType(Field field) {
-    FieldType fieldType = new FieldType();
+  public static FieldInfo getFieldType(Field field) {
+    FieldInfo fieldInfo = new FieldInfo();
     if (field.getType().isArray()) {
-      fieldType.setArray(true);
-      fieldType.setCollection(false);
-      fieldType.setComponentClass(field.getType().getComponentType());
+      fieldInfo.setArray(true);
+      fieldInfo.setCollection(false);
+      fieldInfo.setComponentClass(field.getType().getComponentType());
     } else if (Collection.class.isAssignableFrom(field.getType())) {
-      fieldType.setArray(false);
-      fieldType.setCollection(true);
-      fieldType.setComponentClass(getCollectionComponentType(field.getGenericType()));
-      fieldType.setCollectionClass(field.getType());
+      fieldInfo.setArray(false);
+      fieldInfo.setCollection(true);
+      fieldInfo.setComponentClass(getCollectionComponentType(field.getGenericType()));
+      fieldInfo.setCollectionClass(field.getType());
     } else {
-      fieldType.setComponentClass(field.getType());
+      fieldInfo.setComponentClass(field.getType());
     }
-    return fieldType;
+    return fieldInfo;
   }
 }

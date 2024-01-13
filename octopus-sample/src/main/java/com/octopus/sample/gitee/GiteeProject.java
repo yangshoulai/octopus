@@ -5,10 +5,10 @@ import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.selector.Css;
-import com.octopus.core.processor.extractor.selector.Formatter;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.Url;
+import com.octopus.core.processor.extractor.annotation.Css;
+import com.octopus.core.processor.extractor.annotation.Formatter;
+import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.extractor.annotation.Url;
 import com.octopus.core.processor.matcher.Matchers;
 
 import java.util.Collection;

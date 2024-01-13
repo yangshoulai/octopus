@@ -1,0 +1,48 @@
+matcher:
+  type: Html
+extractor:
+  fields:
+    - extractor:
+        fields:
+          - name: name
+            selector:
+              type: Css
+              value: .project-title a.title
+          - name: address
+            selector:
+              attr: href
+              formatter:
+                format: https://gitee.com%s
+                regex: ^.*$
+              type: Css
+              value: .project-title a.title
+          - name: tags
+            selector:
+              type: Css
+              value: .project-label-item
+          - name: description
+            selector:
+              type: Css
+              value: .project-desc
+          - name: stars
+            selector:
+              type: Css
+              value: .stars-count
+            type: Integer
+          - name: url
+            selector:
+              type: Url
+            type: String
+        links: [ ]
+      multi: true
+      name: projects
+      selector:
+        self: true
+        type: Css
+        value: .items .item
+  links:
+    - priority: 1
+      repeatable: false
+      selector:
+        type: Xpath
+        value: //a[@rel='next'][position()=2]/@href

@@ -2,39 +2,25 @@ package com.octopus.core.processor;
 
 import cn.hutool.core.net.url.UrlBuilder;
 import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.ArrayUtil;
-import cn.hutool.core.util.CharsetUtil;
-import cn.hutool.core.util.ReflectUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
+import cn.hutool.core.util.*;
 import cn.hutool.http.HttpUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
+import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ProcessException;
+import com.octopus.core.exception.ValidateException;
+import com.octopus.core.processor.extractor.annotation.*;
+import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
+import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
 import com.octopus.core.processor.extractor.*;
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.annotation.LinkMethod;
-import com.octopus.core.processor.extractor.annotation.Prop;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.SelectorHandler;
-import com.octopus.core.processor.extractor.selector.SelectorHandlerRegistry;
-import com.octopus.core.processor.extractor.type.TypeHandler;
-import com.octopus.core.processor.extractor.type.TypeHandlerRegistry;
 import com.octopus.core.utils.AnnotationUtil;
+import lombok.NonNull;
 
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-
-import lombok.NonNull;
+import java.util.*;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -53,7 +39,7 @@ public class ExtractorProcessor<T> implements Processor {
     public ExtractorProcessor(@NonNull Class<T> extractorClass, Collector<T> collector) {
         this.extractorClass = extractorClass;
         try {
-            Validator.getInstance().validate(extractorClass);
+            ExtractorValidator.getInstance().validate(extractorClass);
         } catch (ValidateException e) {
             throw new InvalidExtractorException(e);
         }
@@ -143,9 +129,7 @@ public class ExtractorProcessor<T> implements Processor {
         if (StrUtil.isNotBlank(link.url())) {
             urls.add(link.url());
         }
-        SelectorHandler selectorHandler =
-                SelectorHandlerRegistry.getInstance().getSelectorHandler(link.selector().type());
-        List<String> selected = selectorHandler.select(source, link.selector(), true, response);
+        List<String> selected = FieldSelectorRegistry.getInstance().select(link.selector(), source, true, response);
         if (selected != null) {
             urls.addAll(selected);
         }
@@ -191,21 +175,17 @@ public class ExtractorProcessor<T> implements Processor {
     @SuppressWarnings("unchecked")
     private void extractField(
             Result<?> result, String source, Field field, Selector selector, Response response) {
-        SelectorHandler selectorHandler =
-                SelectorHandlerRegistry.getInstance().getSelectorHandler(selector.type());
-        FieldType fieldType = ExtractorHelper.getFieldType(field);
-        boolean multi = fieldType.isArray() || fieldType.isCollection();
-        List<String> selected = selectorHandler.select(source, selector, multi, response);
+        FieldInfo fieldInfo = ExtractorHelper.getFieldType(field);
+        boolean multi = fieldInfo.isArray() || fieldInfo.isCollection();
+        List<String> selected = FieldSelectorRegistry.getInstance().select(selector, source, multi, response);
         if (selected != null && !selected.isEmpty()) {
-            if (fieldType.isArray() || fieldType.isCollection()) {
+            if (fieldInfo.isArray() || fieldInfo.isCollection()) {
                 List<Object> list = new ArrayList<>();
-                Class<?> componentClass = fieldType.getComponentClass();
+                Class<?> componentClass = fieldInfo.getComponentClass();
                 for (String item : selected) {
                     if (!(componentClass.isAnnotationPresent(Extractor.class))) {
-                        TypeHandler<?> typeHandler =
-                                TypeHandlerRegistry.getInstance().getTypeHandler(componentClass);
                         FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
-                        Object obj = typeHandler.handle(item, annotation);
+                        Object obj = TypeConverterRegistry.getInstance().convert(item, componentClass, annotation);
                         list.add(obj);
                     } else {
                         Result<?> r = extract(item, response, componentClass);
@@ -216,29 +196,25 @@ public class ExtractorProcessor<T> implements Processor {
                     }
                 }
 
-                if (fieldType.isArray()) {
+                if (fieldInfo.isArray()) {
                     ReflectUtil.setFieldValue(result.getObj(), field, list.toArray());
                 } else {
-                    Class<?> collectionClass =
-                            TypeHandlerRegistry.getInstance()
-                                    .getCollectionImplClass(fieldType.getCollectionClass());
+                    Class<?> collectionClass = TypeConverterRegistry.getInstance().getCollectionImplClass(fieldInfo.getCollectionClass());
                     Collection<Object> collection =
                             (Collection<Object>) ReflectUtil.newInstance(collectionClass);
                     collection.addAll(list);
                     ReflectUtil.setFieldValue(result.getObj(), field, collection);
                 }
 
-            } else if (fieldType.getComponentClass().isAnnotationPresent(Extractor.class)) {
-                Result<?> r = extract(selected.get(0), response, fieldType.getComponentClass());
+            } else if (fieldInfo.getComponentClass().isAnnotationPresent(Extractor.class)) {
+                Result<?> r = extract(selected.get(0), response, fieldInfo.getComponentClass());
                 if (r.getRequests() != null) {
                     result.getRequests().addAll(r.getRequests());
                 }
                 ReflectUtil.setFieldValue(result.getObj(), field, r.getObj());
             } else {
-                TypeHandler<?> typeHandler =
-                        TypeHandlerRegistry.getInstance().getTypeHandler(fieldType.getComponentClass());
                 FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
-                Object obj = typeHandler.handle(selected.get(0), annotation);
+                Object obj = TypeConverterRegistry.getInstance().convert(selected.get(0), fieldInfo.getComponentClass(), annotation);
                 ReflectUtil.setFieldValue(result.getObj(), field, obj);
             }
         }

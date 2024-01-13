@@ -11,11 +11,11 @@ import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
-import com.octopus.core.processor.extractor.selector.Formatter;
-import com.octopus.core.processor.extractor.selector.Json;
-import com.octopus.core.processor.extractor.selector.Regex;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.Url;
+import com.octopus.core.processor.extractor.annotation.Formatter;
+import com.octopus.core.processor.extractor.annotation.Json;
+import com.octopus.core.processor.extractor.annotation.Regex;
+import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.extractor.annotation.Url;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 

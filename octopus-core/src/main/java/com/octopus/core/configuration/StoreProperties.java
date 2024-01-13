@@ -1,12 +1,10 @@
 package com.octopus.core.configuration;
 
 import cn.hutool.core.util.StrUtil;
-import com.mongodb.MongoClient;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.store.*;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
-import redis.clients.jedis.JedisPool;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -27,7 +25,7 @@ public class StoreProperties implements Validator {
     // sqlite
     private String sqliteDatabaseFilePath;
 
-    private String sqliteTableName = SQLiteStore.DEFAULT_TABLE_NAME;
+    private String sqliteTableName = "requests";
 
 
     // mongo
@@ -35,20 +33,20 @@ public class StoreProperties implements Validator {
 
     private int mongoPort = 27017;
 
-    private String mongoDatabase = MongoStore.DEFAULT_DATABASE;
+    private String mongoDatabase = "octopus";
 
-    private String mongoCollection = MongoStore.DEFAULT_COLLECTION;
+    private String mongoCollection = "request";
 
     public Store toStore() {
         switch (type) {
             case Redis:
-                return new RedisStore(redisKeyPrefix, new JedisPool(redisHost, redisPort));
+                return new RedisStore(redisKeyPrefix, redisHost, redisPort);
             case SQLite:
                 return new SQLiteStore(sqliteDatabaseFilePath, sqliteTableName);
             case Memory:
                 return new MemoryStore();
             case Mongo:
-                return new MongoStore(mongoDatabase, mongoCollection, new MongoClient(mongoHost, mongoPort));
+                return new MongoStore(mongoDatabase, mongoCollection, mongoHost, mongoPort);
             default:
                 return null;
         }

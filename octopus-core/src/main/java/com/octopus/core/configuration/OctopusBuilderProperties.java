@@ -1,13 +1,17 @@
 package com.octopus.core.configuration;
 
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.ConfigurableProcessor;
-import com.octopus.core.processor.configurable.ProcessorProperties;
+import com.octopus.core.processor.extractor.configurable.TextProcessorProperties;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -44,7 +48,7 @@ public class OctopusBuilderProperties implements Validator {
 
     private StoreProperties store = new StoreProperties();
 
-    private List<ProcessorProperties> processors = new ArrayList<>();
+    private List<TextProcessorProperties> processors = new ArrayList<>();
 
     public OctopusBuilderProperties() {
     }
@@ -58,7 +62,8 @@ public class OctopusBuilderProperties implements Validator {
         this.threads = threads;
     }
 
-    public OctopusBuilder toBuilder() {
+    public OctopusBuilder toBuilder() throws ValidateException {
+        this.validate();
         OctopusBuilder builder = new OctopusBuilder();
         builder.setName(name);
         builder.setThreads(threads);
@@ -86,12 +91,13 @@ public class OctopusBuilderProperties implements Validator {
         }
         builder.setStore(store.toStore());
         if (processors != null) {
-            for (ProcessorProperties processor : processors) {
+            for (TextProcessorProperties processor : processors) {
                 builder.addProcessor(new ConfigurableProcessor(processor));
             }
         }
         return builder;
     }
+
 
     @Override
     public void validate() throws ValidateException {
@@ -120,11 +126,24 @@ public class OctopusBuilderProperties implements Validator {
         if (downloader == null) {
             throw new ValidateException("octopus downloader is required");
         }
-        if (processors == null || processors.isEmpty()) {
-            throw new ValidateException("octopus processors is required");
+        if (processors != null) {
+            for (TextProcessorProperties processor : processors) {
+                processor.validate();
+            }
         }
-        for (ProcessorProperties processor : processors) {
-            processor.validate();
+
+    }
+
+    public static OctopusBuilderProperties fromYaml(InputStream inputStream) {
+        return YamlUtil.load(inputStream, OctopusBuilderProperties.class);
+    }
+
+    public static OctopusBuilderProperties fromYaml(String filePath) {
+        try (FileInputStream inputStream = new FileInputStream(filePath)) {
+            return fromYaml(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
+
 }

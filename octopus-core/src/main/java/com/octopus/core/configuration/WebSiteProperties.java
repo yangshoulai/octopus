@@ -1,30 +1,22 @@
 package com.octopus.core.configuration;
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.WebSite;
-import com.octopus.core.downloader.DownloadConfig;
-import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
-@EqualsAndHashCode(callSuper = true)
 @Data
-public class WebSiteProperties extends DownloadProperties {
+public class WebSiteProperties implements Validator {
 
     private String host;
 
-    private Integer limitInSeconds;
+    private Double limitInSecond;
+
+    private DownloadProperties downloadConfig;
 
     public WebSiteProperties() {
     }
@@ -35,20 +27,26 @@ public class WebSiteProperties extends DownloadProperties {
 
     public WebSite toWebSite() {
         WebSite s = WebSite.of(host);
-        if (limitInSeconds != null) {
-            s.setRateLimiter(limitInSeconds, 1);
+        if (limitInSecond != null) {
+            if (limitInSecond > 1) {
+                s.setRateLimiter(limitInSecond.intValue(), 1);
+            } else {
+                s.setRateLimiter(1, (int) (1 / limitInSecond));
+            }
         }
-        s.setDownloadConfig(toDownloadConfig());
+        if (this.downloadConfig != null) {
+            s.setDownloadConfig(downloadConfig.toDownloadConfig());
+        }
+
         return s;
     }
 
     @Override
     public void validate() throws ValidateException {
-        super.validate();
-        if (StrUtil.isBlank(host)) {
-            throw new ValidateException("site host is required");
+        if (downloadConfig != null) {
+            downloadConfig.validate();
         }
-        if (limitInSeconds != null && limitInSeconds <= 0) {
+        if (limitInSecond != null && limitInSecond <= 0) {
             throw new ValidateException("site limitInSeconds must be greater than 0");
         }
     }

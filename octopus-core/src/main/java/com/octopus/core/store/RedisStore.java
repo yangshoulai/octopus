@@ -7,19 +7,14 @@ import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
 import com.octopus.core.replay.ReplayFilter;
+import lombok.NonNull;
+import redis.clients.jedis.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import lombok.NonNull;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
-import redis.clients.jedis.Transaction;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -38,6 +33,10 @@ public class RedisStore implements Store {
     private final String failedKey;
 
     private final String executingKey;
+
+    public RedisStore(@NonNull String keyPrefix, @NonNull String host, int port) {
+        this(keyPrefix, new JedisPool(host, port));
+    }
 
     public RedisStore(@NonNull String keyPrefix, @NonNull JedisPool pool) {
         this.pool = pool;

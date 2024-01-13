@@ -7,7 +7,7 @@ import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.processor.MediaFileDownloadProcessor;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.selector.Selector;
+import com.octopus.core.processor.extractor.annotation.Selector;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 

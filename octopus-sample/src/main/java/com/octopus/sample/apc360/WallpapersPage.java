@@ -9,7 +9,7 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
-import com.octopus.core.processor.extractor.selector.Json;
+import com.octopus.core.processor.extractor.annotation.Json;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

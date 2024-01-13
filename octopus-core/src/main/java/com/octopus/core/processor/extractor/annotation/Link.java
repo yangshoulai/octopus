@@ -1,8 +1,7 @@
 package com.octopus.core.processor.extractor.annotation;
 
 import com.octopus.core.Request.RequestMethod;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.extractor.annotation.Selector.Type;
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Inherited;

@@ -4,31 +4,18 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.json.JSONUtil;
 import com.mongodb.MongoClient;
 import com.mongodb.ServerAddress;
-import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
-import com.mongodb.client.MongoIterable;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Indexes;
-import com.mongodb.client.model.ReplaceOptions;
-import com.mongodb.client.model.Sorts;
-import com.mongodb.client.model.Updates;
+import com.mongodb.client.*;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
 import com.octopus.core.replay.ReplayFilter;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.bson.Document;
 import org.bson.conversions.Bson;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -50,6 +37,10 @@ public class MongoStore implements Store {
         this.requests = mongoDatabase.getCollection(collection, Document.class);
         this.createIndexesIfNecessary();
         this.updateStatus(Status.of(State.Executing), Status.of(State.Waiting));
+    }
+
+    public MongoStore(String database, String collection, String host, int port) {
+        this(database, collection, new MongoClient(host, port));
     }
 
     public MongoStore(MongoClient mongoClient) {

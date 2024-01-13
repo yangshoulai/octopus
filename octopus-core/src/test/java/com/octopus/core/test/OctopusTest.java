@@ -3,9 +3,9 @@ package com.octopus.core.test;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.selector.Formatter;
-import com.octopus.core.processor.extractor.selector.Selector;
-import com.octopus.core.processor.extractor.selector.Selector.Type;
+import com.octopus.core.processor.extractor.annotation.Formatter;
+import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.extractor.annotation.Selector.Type;
 import com.octopus.core.processor.matcher.Matchers;
 import lombok.Data;
 

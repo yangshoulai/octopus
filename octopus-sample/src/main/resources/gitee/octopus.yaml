@@ -1,0 +1,19 @@
+name: Gitee
+autoStop: true
+clearStoreOnStartup: true
+clearStoreOnStop: true
+downloader: OKHttp
+globalDownloadConfig:
+  charset: UTF-8
+  timeoutInSeconds: 60
+ignoreSeedsWhenStoreHasRequests: true
+maxReplays: 1
+replayFailedRequest: true
+seeds:
+  - url: https://gitee.com/explore/all?order=starred
+sites:
+  - host: gitee.com
+    limitInSecond: 1
+store:
+  type: Memory
+threads: 20
