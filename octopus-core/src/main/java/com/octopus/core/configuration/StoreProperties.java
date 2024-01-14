@@ -7,41 +7,89 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
+ * 请求存储器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class StoreProperties implements Validator {
 
+    /**
+     * 类型
+     * <p>
+     * 默认 Memory
+     */
     private StoreType type = StoreType.Memory;
 
-    // redis
+    /**
+     * Redis 存储器 主机
+     * <p>
+     * 默认 127.0.0.1
+     */
     private String redisHost = "127.0.0.1";
 
+    /**
+     * Redis 存储器 端口
+     * <p>
+     * 默认 6379
+     */
     private int redisPort = 6379;
-
+    /**
+     * Redis 存储器 存储健前缀
+     * <p>
+     * 默认 octopus
+     */
     private String redisKeyPrefix = "octopus";
 
-    // sqlite
+    /**
+     * Sqlite 存储器 数据库文件
+     * <p>
+     * 默认 空
+     */
     private String sqliteDatabaseFilePath;
 
+    /**
+     * Sqlite 存储器 数据库表名
+     * <p>
+     * 默认 requests
+     */
     private String sqliteTableName = "requests";
 
 
-    // mongo
+    /**
+     * Mongo 存储器 主机
+     * <p>
+     * 默认 127.0.0.1
+     */
     private String mongoHost = "127.0.0.1";
 
+    /**
+     * Mongo 存储器 端口
+     * <p>
+     * 默认 27017
+     */
     private int mongoPort = 27017;
 
+    /**
+     * Mongo 存储器 数据库名称
+     * <p>
+     * 默认 octopus
+     */
     private String mongoDatabase = "octopus";
 
+    /**
+     * Mongo 存储器 数据库集合名称
+     * <p>
+     * 默认 request
+     */
     private String mongoCollection = "request";
 
     public Store toStore() {
         switch (type) {
             case Redis:
                 return new RedisStore(redisKeyPrefix, redisHost, redisPort);
-            case SQLite:
+            case Sqlite:
                 return new SQLiteStore(sqliteDatabaseFilePath, sqliteTableName);
             case Memory:
                 return new MemoryStore();
@@ -70,7 +118,7 @@ public class StoreProperties implements Validator {
             }
         }
 
-        if (type == StoreType.SQLite) {
+        if (type == StoreType.Sqlite) {
             if (StrUtil.isBlank(sqliteDatabaseFilePath)) {
                 throw new ValidateException("sqlite database file path is required");
             }

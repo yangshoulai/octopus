@@ -10,28 +10,75 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 链接配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class LinkProperties implements Validator {
 
-    private String url = "";
+    /**
+     * 固定链接
+     * <p>
+     * 默认 空
+     */
+    private String url = null;
 
-    private SelectorProperties selector = new SelectorProperties();
+    /**
+     * 选择器
+     * <p>
+     * 默认 空
+     */
+    private SelectorProperties selector;
 
+    /**
+     * 优先级
+     * <p>
+     * 默认 0
+     */
     private int priority = 0;
 
+    /**
+     * 是否重复
+     * <p>
+     * 默认 true
+     */
     private boolean repeatable = true;
 
+    /**
+     * 是否继承父类配置
+     * <p>
+     * 默认 false
+     */
     private boolean inherit = false;
 
+    /**
+     * 请求方法
+     * <p>
+     * 默认 GET
+     */
     private Request.RequestMethod method = Request.RequestMethod.GET;
 
+    /**
+     * 请求参数配置
+     * <p>
+     * 默认 空
+     */
     private List<PropProperties> params = new ArrayList<>();
 
+    /**
+     * 请求头配置
+     * <p>
+     * 默认 空
+     */
     private List<PropProperties> headers = new ArrayList<>();
 
+    /**
+     * 请求属性配置
+     * <p>
+     * 默认 空
+     */
     private List<PropProperties> attrs = new ArrayList<>();
 
     public LinkProperties() {

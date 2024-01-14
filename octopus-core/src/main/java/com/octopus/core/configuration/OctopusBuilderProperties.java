@@ -15,38 +15,106 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Octopus 爬虫配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class OctopusBuilderProperties implements Validator {
 
+    /**
+     * 爬虫名称
+     * <p>
+     * 默认 Octopus
+     */
     private String name = "Octopus";
 
+    /**
+     * 使用线程数
+     * <p>
+     * 默认 处理器数量 * 2
+     */
     private int threads = Runtime.getRuntime().availableProcessors() * 2;
 
+    /**
+     * 是否自动关闭
+     * <p>
+     * 默认 true
+     */
     private boolean autoStop = true;
 
+    /**
+     * 启动时是否清空请求存储器
+     * <p>
+     * 默认 true
+     */
     private boolean clearStoreOnStartup = true;
 
+    /**
+     * 停止时是否清空请求存储器
+     * <p>
+     * 默认 true
+     */
     private boolean clearStoreOnStop = true;
 
+    /**
+     * 当请求存储器中还有未处理完的请求时是否忽略种子
+     * <p>
+     * 默认 true
+     */
     private boolean ignoreSeedsWhenStoreHasRequests = true;
 
+    /**
+     * 是否重试失败请求
+     * <p>
+     * 默认 true
+     */
     private boolean replayFailedRequest = true;
 
+    /**
+     * 最大重试次数
+     * <p>
+     * 默认 1
+     */
     private int maxReplays = 1;
 
+    /**
+     * 站点配置列表
+     */
     private List<WebSiteProperties> sites = new ArrayList<>();
 
+    /**
+     * 种子配置列表
+     */
     private List<RequestProperties> seeds = new ArrayList<>();
 
+    /**
+     * 下载器类型
+     * <p>
+     * 默认 OKHttp
+     */
     private DownloaderType downloader = DownloaderType.OKHttp;
 
+    /**
+     * 全局下载配置
+     * <p>
+     * 默认 下载配置默认参数
+     */
     private DownloadProperties globalDownloadConfig = new DownloadProperties();
 
+    /**
+     * 请求存储器配置
+     * <p>
+     * 默认 Memory
+     */
     private StoreProperties store = new StoreProperties();
 
+    /**
+     * 处理器配置列表
+     * <p>
+     * 默认 空
+     */
     private List<ProcessorProperties> processors = new ArrayList<>();
 
     public OctopusBuilderProperties() {

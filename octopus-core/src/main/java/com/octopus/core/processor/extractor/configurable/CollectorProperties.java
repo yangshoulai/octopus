@@ -11,6 +11,8 @@ import lombok.Data;
 import java.util.Map;
 
 /**
+ * 收集器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/14
  */
@@ -21,23 +23,49 @@ public class CollectorProperties implements Validator {
 
     public static final String DEFAULT_FILE_NAME_PROP = "_file_name";
 
+    /**
+     * 收集器类型
+     * <p>
+     * 默认 Logging
+     */
     private CollectorType type = CollectorType.Logging;
 
-    private boolean processResult = true;
+    /**
+     * 是否搜集结果（
+     * true 为收集结果 false 为收集响应体
+     * <p>
+     * 默认 true
+     */
+    private boolean collectResult = true;
 
+    /**
+     * 下载搜集器 下载目录
+     * <p>
+     * 默认 空
+     */
     private String downloadDir;
 
+    /**
+     * 下载搜集器 下载分类目录属性名
+     * <p>
+     * 默认 _file_dir
+     */
     private String downloadFileDirProp = DEFAULT_FILE_DIR_PROP;
 
+    /**
+     * 下载搜集器 下载文件属性名
+     * <p>
+     * 默认 _file_name
+     */
     private String downloadFileNameProp = DEFAULT_FILE_NAME_PROP;
 
 
     public Collector<Map<String, Object>> toCollector() {
         switch (type) {
             case Logging:
-                return new LoggingCollector<>(processResult);
+                return new LoggingCollector<>(collectResult);
             case Download:
-                return new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, processResult);
+                return new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
             default:
                 return null;
         }

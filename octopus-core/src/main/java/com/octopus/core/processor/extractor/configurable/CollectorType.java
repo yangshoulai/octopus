@@ -7,12 +7,12 @@ package com.octopus.core.processor.extractor.configurable;
 public enum CollectorType {
 
     /**
-     * 文本
+     * 打印日志
      */
     Logging,
 
     /**
-     * 二进制
+     * 下载
      */
     Download
 

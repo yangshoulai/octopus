@@ -5,18 +5,40 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
+ * 字段扩展配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class FieldExtProperties implements Validator {
 
+    /**
+     * 是否忽略转换异常
+     * <p>
+     * 默认 true
+     */
     private boolean ignoreError = true;
 
-    private String[] booleanFalseValues;
+    /**
+     * 布尔类型 定义的false值
+     * <p>
+     * 默认 （"", "0", "非", "否", "off", "no", "f", "false"）
+     */
+    private String[] booleanFalseValues = new String[]{"", "0", "非", "否", "off", "no", "f", "false"};
 
-    private String dateFormatPattern;
+    /**
+     * 日期类型 格式
+     * <p>
+     * 默认 yyyy-MM-dd HH:mm:ss
+     */
+    private String dateFormatPattern = "yyyy-MM-dd HH:mm:ss";
 
+    /**
+     * 日期类型 时区
+     * <p>
+     * 默认 空
+     */
     private String dateFormatTimeZone;
 
     @Override

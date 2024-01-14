@@ -321,6 +321,7 @@ class OctopusImpl implements Octopus {
         return replaySize > 0;
     }
 
+
     private Response download(Request request, DownloadConfig config) throws DownloadException {
         try {
             return this.downloader.download(request, config);

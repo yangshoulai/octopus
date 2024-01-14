@@ -6,22 +6,53 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
+ * 字段配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class FieldProperties implements Validator {
 
+    /**
+     * 字段名
+     * 默认 空
+     */
     private String name;
 
+    /**
+     * 字段类型
+     * <p>
+     * 默认 String
+     */
     private FieldType type = FieldType.String;
 
+    /**
+     * 是否多选
+     * <p>
+     * 默认 false
+     */
     private boolean multi = false;
 
+    /**
+     * 选择器
+     * <p>
+     * 默认 空
+     */
     private SelectorProperties selector;
 
+    /**
+     * 提取器
+     * <p>
+     * 默认 空
+     */
     private ExtractorProperties extractor;
 
+    /**
+     * 扩展配置
+     * <p>
+     * 默认 空
+     */
     private FieldExtProperties ext;
 
     public FieldProperties() {

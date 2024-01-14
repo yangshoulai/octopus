@@ -6,16 +6,34 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
+ * 站点配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class WebSiteProperties implements Validator {
 
+    /**
+     * 站点域名
+     * <p>
+     * 默认 空
+     */
     private String host;
 
+    /**
+     * 站点限速 每秒多少个请求
+     * 可配置为小数
+     * <p>
+     * 默认 空（不限速）
+     */
     private Double limitInSecond;
 
+    /**
+     * 站点下载配置
+     * <p>
+     * 默认 空
+     */
     private DownloadProperties downloadConfig;
 
     public WebSiteProperties() {

@@ -8,14 +8,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 提取器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class ExtractorProperties implements Validator {
 
+    /**
+     * 链接列表
+     * <p>
+     * 默认 空
+     */
     private List<LinkProperties> links = new ArrayList<>();
 
+    /**
+     * 内容字段列表
+     * <p>
+     * 默认 空
+     */
     private List<FieldProperties> fields = new ArrayList<>();
 
     public ExtractorProperties() {

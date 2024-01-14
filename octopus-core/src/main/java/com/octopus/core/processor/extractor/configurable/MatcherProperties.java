@@ -10,18 +10,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 匹配器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class MatcherProperties implements Validator {
 
+    /**
+     * 匹配器类型
+     * <p>
+     * 默认 空
+     */
     private MatcherType type;
 
+    /**
+     * 正则匹配器 - 正则表达式
+     * <p>
+     * 默认 空
+     */
     private String pattern;
 
+    /**
+     * 响应头匹配器 - 头名称
+     * <p>
+     * 默认 空
+     */
     private String header;
 
+    /**
+     * 组合匹配器 子匹配器列表
+     * <p>
+     * 默认 空
+     */
     private List<MatcherProperties> children = new ArrayList<>();
 
     public MatcherProperties() {

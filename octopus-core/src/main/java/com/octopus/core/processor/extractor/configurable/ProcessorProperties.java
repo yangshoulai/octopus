@@ -13,16 +13,33 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
+ * 处理器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class ProcessorProperties implements Validator {
 
+    /**
+     * 匹配器
+     * <p>
+     * 默认 空
+     */
     private MatcherProperties matcher;
 
+    /**
+     * 提取器
+     * <p>
+     * 默认 空
+     */
     private ExtractorProperties extractor;
 
+    /**
+     * 搜集器
+     * <p>
+     * 默认 空
+     */
     private CollectorProperties collector;
 
     public ProcessorProperties() {

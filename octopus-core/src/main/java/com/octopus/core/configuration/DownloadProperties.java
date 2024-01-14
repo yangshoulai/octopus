@@ -1,6 +1,7 @@
 package com.octopus.core.configuration;
 
 import cn.hutool.core.util.CharsetUtil;
+import cn.hutool.http.Header;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.exception.ValidateException;
@@ -15,21 +16,40 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
+ * 下载配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class DownloadProperties implements Validator {
 
+    /**
+     * 下载超时时间（单位秒）
+     * <p>
+     * 默认 60s
+     */
     private int timeoutInSeconds = 60;
 
+    /**
+     * 默认字符集
+     * <p>
+     * 默认 UTF-8
+     */
     private String charset = CharsetUtil.CHARSET_UTF_8.name();
 
-    private Map<String, String> headers = new HashMap<String, String>() {{
-        put("User-Agent", DownloadConfig.DEFAULT_UA);
-        put("Accept", DownloadConfig.DEFAULT_ACCEPT);
-    }};
+    /**
+     * 默认请求头
+     * <p>
+     * 默认 User-Agent,Accept
+     */
+    private Map<String, String> headers = new HashMap<>();
 
+    /**
+     * 代理配置
+     * <p>
+     * 默认 空
+     */
     private List<ProxyProperties> proxies = new ArrayList<>();
 
     public DownloadConfig toDownloadConfig() {
@@ -38,7 +58,15 @@ public class DownloadProperties implements Validator {
         config.setSocketTimeout(getTimeoutInSeconds() * 1000);
 
         config.setCharset(Charset.forName(charset));
-        config.setHeaders(getHeaders());
+
+        Map<String, String> h = getHeaders();
+        if (h.containsKey(Header.USER_AGENT.getValue())) {
+            h.put(Header.USER_AGENT.getValue(), DownloadConfig.DEFAULT_UA);
+        }
+        if (h.containsKey(Header.ACCEPT.getValue())) {
+            h.put(Header.ACCEPT.getValue(), DownloadConfig.DEFAULT_ACCEPT);
+        }
+        config.setHeaders(h);
         if (getProxies() != null) {
             config.setProxyProvider(new PollingProxyProvider(getProxies().stream().map(ProxyProperties::toProxy).collect(Collectors.toList())));
         }

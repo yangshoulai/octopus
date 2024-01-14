@@ -6,28 +6,75 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
+ * 选择器配置
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 @Data
 public class SelectorProperties implements Validator {
 
+    /**
+     * 类型
+     * <p>
+     * 默认 None
+     */
     private Selector.Type type = Selector.Type.None;
 
+    /**
+     * 表达式
+     * <p>
+     * 默认 空
+     */
     private String value;
 
+    /**
+     * 默认值
+     * <p>
+     * 默认 空
+     */
     private String def;
 
+    /**
+     * Css 选择器 节点属性名称
+     * <p>
+     * 默认 空
+     */
     private String attr;
 
+    /**
+     * Css选择器 是否选择节点本身
+     * <p>
+     * 默认 false
+     */
     private boolean self = false;
 
+    /**
+     * 正则选择器 分组
+     * <p>
+     * 默认 0
+     */
     private int[] groups = new int[]{0};
 
+    /**
+     * 正则选择器 格式化
+     * <p>
+     * 默认 %s
+     */
     private String format = "%s";
 
+    /**
+     * Xpath选择器 是否选取节点本身
+     * <p>
+     * 默认 false
+     */
     private boolean node = false;
 
+    /**
+     * 格式化配置
+     * <p>
+     * 默认 空
+     */
     private FormatterProperties formatter = null;
 
     public SelectorProperties() {
