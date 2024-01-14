@@ -60,10 +60,10 @@ public class DownloadProperties implements Validator {
         config.setCharset(Charset.forName(charset));
 
         Map<String, String> h = getHeaders();
-        if (h.containsKey(Header.USER_AGENT.getValue())) {
+        if (!h.containsKey(Header.USER_AGENT.getValue())) {
             h.put(Header.USER_AGENT.getValue(), DownloadConfig.DEFAULT_UA);
         }
-        if (h.containsKey(Header.ACCEPT.getValue())) {
+        if (!h.containsKey(Header.ACCEPT.getValue())) {
             h.put(Header.ACCEPT.getValue(), DownloadConfig.DEFAULT_ACCEPT);
         }
         config.setHeaders(h);
