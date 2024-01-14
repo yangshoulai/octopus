@@ -66,16 +66,16 @@ public class SelectorProperties implements Validator {
     /**
      * Xpath选择器 是否选取节点本身
      * <p>
-     * 默认 false
+     * 默认 true
      */
-    private boolean node = false;
+    private boolean node = true;
 
     /**
      * 格式化配置
      * <p>
-     * 默认 空
+     * 默认 默认格式化配置
      */
-    private FormatterProperties formatter = null;
+    private FormatterProperties formatter = new FormatterProperties();
 
     public SelectorProperties() {
     }
