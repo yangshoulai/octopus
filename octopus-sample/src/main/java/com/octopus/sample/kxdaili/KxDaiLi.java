@@ -69,7 +69,7 @@ public class KxDaiLi {
                 .addProcessor(
                         Matchers.ALL,
                         KxDaiLi.class,
-                        kxDaiLi -> {
+                        (kxDaiLi, r) -> {
                             if (kxDaiLi.getProxies() != null) {
                                 kxDaiLi
                                         .getProxies()

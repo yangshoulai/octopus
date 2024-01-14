@@ -16,6 +16,7 @@ import com.octopus.core.processor.extractor.convert.TypeConverter;
 import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
 import com.octopus.core.processor.extractor.selector.FieldSelector;
 import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
+import com.octopus.core.processor.matcher.Matcher;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
@@ -27,17 +28,16 @@ import java.util.*;
 @Slf4j
 public class ConfigurableProcessor extends MatchableProcessor {
 
-    private final TextProcessorProperties properties;
+    private final ExtractorProperties properties;
 
     private Collector<Map<String, Object>> collector;
 
-    public ConfigurableProcessor(TextProcessorProperties properties) {
-        this(properties, null);
+    public ConfigurableProcessor(Matcher matcher, ExtractorProperties properties) {
+        this(matcher, properties, null);
     }
 
-
-    public ConfigurableProcessor(TextProcessorProperties properties, Collector<Map<String, Object>> collector) {
-        super(properties.getMatcher().toMatcher());
+    public ConfigurableProcessor(Matcher matcher, ExtractorProperties properties, Collector<Map<String, Object>> collector) {
+        super(matcher);
         this.properties = properties;
         this.collector = collector;
     }
@@ -45,10 +45,10 @@ public class ConfigurableProcessor extends MatchableProcessor {
 
     @Override
     public void process(Response response, Octopus octopus) {
-        Result<Map<String, Object>> result = this.processExtractor(response.asText(), response, properties.getExtractor());
+        Result<Map<String, Object>> result = this.processExtractor(response.asText(), response, properties);
         result.getRequests().forEach(octopus::addRequest);
-        if (collector != null && result.getObj() != null) {
-            collector.collect(result.getObj());
+        if (collector != null) {
+            collector.collect(result.getObj(), response);
         }
     }
 
@@ -59,14 +59,16 @@ public class ConfigurableProcessor extends MatchableProcessor {
 
     private Result<Map<String, Object>> processExtractor(String content, Response response, ExtractorProperties extractor) {
         Result<Map<String, Object>> result = new Result<>(new HashMap<>(), new ArrayList<>());
-        if (extractor.getFields() != null) {
-            for (FieldProperties field : extractor.getFields()) {
-                this.processField(result, field, content, response);
+        if (extractor != null) {
+            if (extractor.getFields() != null) {
+                for (FieldProperties field : extractor.getFields()) {
+                    this.processField(result, field, content, response);
+                }
             }
-        }
-        if (extractor.getLinks() != null) {
-            for (LinkProperties link : extractor.getLinks()) {
-                this.processLink(result, link, content, response);
+            if (extractor.getLinks() != null) {
+                for (LinkProperties link : extractor.getLinks()) {
+                    this.processLink(result, link, content, response);
+                }
             }
         }
         return result;

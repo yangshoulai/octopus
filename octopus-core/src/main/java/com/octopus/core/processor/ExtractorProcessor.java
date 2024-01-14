@@ -51,7 +51,7 @@ public class ExtractorProcessor<T> implements Processor {
         try {
             Result<T> result = this.extract(response.asText(), response, this.extractorClass);
             if (collector != null) {
-                collector.collect(result.getObj());
+                collector.collect(result.getObj(), response);
             }
             result.getRequests().forEach(octopus::addRequest);
         } catch (Exception e) {

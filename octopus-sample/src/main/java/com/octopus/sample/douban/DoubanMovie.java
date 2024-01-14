@@ -139,7 +139,7 @@ public class DoubanMovie {
                 .addProcessor(
                         Matchers.HTML,
                         DoubanMovie.class,
-                        movie -> {
+                        (movie, r) -> {
                             // 模拟采集影片数据
                             if (movie != null && StrUtil.isNotBlank(movie.getName())) {
                                 movies.add(movie);

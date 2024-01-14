@@ -70,7 +70,7 @@ public class GiteeProject {
                 .addProcessor(
                         Matchers.HTML,
                         GiteeProject.class,
-                        gitee -> {
+                        (gitee, r) -> {
                             if (gitee.getProjects() != null) {
                                 gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
                             }

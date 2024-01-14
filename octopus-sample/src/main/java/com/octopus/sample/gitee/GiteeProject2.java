@@ -4,8 +4,9 @@ import cn.hutool.json.JSONUtil;
 import com.octopus.core.configuration.OctopusBuilderProperties;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.ConfigurableProcessor;
+import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.extractor.annotation.*;
-import com.octopus.core.processor.extractor.configurable.TextProcessorProperties;
+import com.octopus.core.processor.extractor.configurable.ProcessorProperties;
 import lombok.Data;
 
 import java.io.IOException;
@@ -58,9 +59,6 @@ public class GiteeProject2 {
 
     public static void main(String[] args) throws IOException, ValidateException {
         OctopusBuilderProperties builder = OctopusBuilderProperties.fromYaml(GiteeProject2.class.getResourceAsStream("/gitee/octopus.yaml"));
-        TextProcessorProperties processor = TextProcessorProperties.fromYaml(GiteeProject2.class.getResourceAsStream("/gitee/processor.yaml"));
-        ConfigurableProcessor p = processor.toProcessor();
-        p.setCollector(s -> System.out.println(JSONUtil.toJsonPrettyStr(s)));
-        builder.toBuilder().addProcessor(p).build().start();
+        builder.toBuilder().build().start();
     }
 }

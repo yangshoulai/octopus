@@ -4,8 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.ConfigurableProcessor;
-import com.octopus.core.processor.extractor.configurable.TextProcessorProperties;
+import com.octopus.core.processor.extractor.configurable.ProcessorProperties;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 
@@ -48,7 +47,7 @@ public class OctopusBuilderProperties implements Validator {
 
     private StoreProperties store = new StoreProperties();
 
-    private List<TextProcessorProperties> processors = new ArrayList<>();
+    private List<ProcessorProperties> processors = new ArrayList<>();
 
     public OctopusBuilderProperties() {
     }
@@ -91,8 +90,8 @@ public class OctopusBuilderProperties implements Validator {
         }
         builder.setStore(store.toStore());
         if (processors != null) {
-            for (TextProcessorProperties processor : processors) {
-                builder.addProcessor(new ConfigurableProcessor(processor));
+            for (ProcessorProperties processor : processors) {
+                builder.addProcessor(processor.toProcessor());
             }
         }
         return builder;
@@ -127,7 +126,7 @@ public class OctopusBuilderProperties implements Validator {
             throw new ValidateException("octopus downloader is required");
         }
         if (processors != null) {
-            for (TextProcessorProperties processor : processors) {
+            for (ProcessorProperties processor : processors) {
                 processor.validate();
             }
         }
