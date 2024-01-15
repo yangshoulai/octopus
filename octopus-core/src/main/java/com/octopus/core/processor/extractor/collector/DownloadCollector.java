@@ -28,6 +28,8 @@ public class DownloadCollector<R> implements Collector<R> {
 
     private String fileNameProdName;
 
+    private boolean useRequestIdAsFileName;
+
     public DownloadCollector(String dir) {
         this(dir, null, null);
     }
@@ -57,8 +59,12 @@ public class DownloadCollector<R> implements Collector<R> {
         if (StrUtil.isBlank(fileName)) {
             fileName = getFileNameFromDisposition(response.getHeaders());
         }
-        if (StrUtil.isBlank(fileName)) {
-            fileName = FileUtil.getName(response.getRequest().getUrl());
+        if (this.useRequestIdAsFileName) {
+            fileName = response.getRequest().getId();
+        } else {
+            if (StrUtil.isBlank(fileName)) {
+                fileName = FileUtil.getName(response.getRequest().getUrl());
+            }
         }
         File targetDir = new File(dir);
         if (StrUtil.isNotBlank(fileDir)) {

@@ -61,6 +61,13 @@ public class CollectorProperties implements Validatable, Transformable<Collector
      */
     private String downloadFileNameProp = DEFAULT_FILE_NAME_PROP;
 
+    /**
+     * 下载收集器 使用请求id作为文件名
+     * <p>
+     * 默认 false
+     */
+    private boolean downloadUseRequestIdAsFileName = false;
+
     public CollectorProperties() {
     }
 
@@ -87,7 +94,9 @@ public class CollectorProperties implements Validatable, Transformable<Collector
             case Logging:
                 return new LoggingCollector<>(collectResult);
             case Download:
-                return new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
+                DownloadCollector<Map<String, Object>> collector = new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
+                collector.setUseRequestIdAsFileName(downloadUseRequestIdAsFileName);
+                return collector;
             default:
                 return null;
         }

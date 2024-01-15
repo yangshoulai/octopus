@@ -52,7 +52,6 @@ processors:
                 selector:
                   type: Url
                 type: String
-            links: [ ]
           multi: true
           name: projects
           selector:
