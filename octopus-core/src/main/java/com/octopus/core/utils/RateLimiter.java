@@ -1,10 +1,12 @@
 package com.octopus.core.utils;
 
 import cn.hutool.core.util.StrUtil;
+
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
+
 import lombok.NonNull;
 
 /**
@@ -13,82 +15,92 @@ import lombok.NonNull;
  */
 public class RateLimiter {
 
-  /** 最大数量 */
-  private final int max;
+    /**
+     * 最大数量
+     */
+    private final int max;
 
-  /** 时间间隔 */
-  private final int period;
+    /**
+     * 时间间隔
+     */
+    private final int period;
 
-  /** 时间间隔单位 */
-  private final TimeUnit unit;
+    /**
+     * 时间间隔单位
+     */
+    private final TimeUnit unit;
 
-  private final Semaphore semaphore;
+    private final Semaphore semaphore;
 
-  private ScheduledExecutorService scheduler;
+    private ScheduledExecutorService scheduler;
 
-  private String name;
+    private String name;
 
-  public RateLimiter(int max, int period, TimeUnit unit) {
-    if (max <= 0) {
-      throw new IllegalArgumentException("max must > 0");
+    public RateLimiter(int max, int period, TimeUnit unit) {
+        if (max <= 0) {
+            throw new IllegalArgumentException("max must > 0");
+        }
+        this.max = max;
+        this.period = period;
+        this.unit = unit;
+        this.semaphore = new Semaphore(this.max);
     }
-    this.max = max;
-    this.period = period;
-    this.unit = unit;
-    this.semaphore = new Semaphore(this.max);
-  }
 
-  public void start() {
-    if (this.scheduler == null || this.scheduler.isShutdown()) {
-      if (StrUtil.isBlank(name)) {
-        this.name = "RateLimiter";
-      }
-      this.scheduler =
-          new ScheduledThreadPoolExecutor(
-              1,
-              r -> {
-                Thread thread = new Thread(r);
-                thread.setName(this.name);
-                return thread;
-              });
+    public void start() {
+        if (this.scheduler == null || this.scheduler.isShutdown()) {
+            if (StrUtil.isBlank(name)) {
+                this.name = "RateLimiter";
+            }
+            this.scheduler =
+                    new ScheduledThreadPoolExecutor(
+                            1,
+                            r -> {
+                                Thread thread = new Thread(r);
+                                thread.setName(this.name);
+                                return thread;
+                            });
+        }
+        long periodMills = this.unit.toMillis(this.period) / this.max;
+        this.scheduler.scheduleAtFixedRate(
+                () -> {
+                    if (semaphore.availablePermits() < this.max) {
+                        semaphore.release();
+                    }
+                }, 0, periodMills, TimeUnit.MILLISECONDS);
     }
-    long periodMills = this.unit.toMillis(this.period) / this.max;
-    this.scheduler.scheduleAtFixedRate(
-        this.semaphore::release, 0, periodMills, TimeUnit.MILLISECONDS);
-  }
 
-  public void stop() {
-    if (this.scheduler != null && !this.scheduler.isShutdown()) {
-      this.scheduler.shutdown();
+    public void stop() {
+        if (this.scheduler != null && !this.scheduler.isShutdown()) {
+            this.scheduler.shutdown();
+        }
     }
-  }
 
-  public void acquire() throws InterruptedException {
-    if (this.scheduler != null && !this.scheduler.isShutdown()) {
-      this.semaphore.acquire();
-      return;
+    public void acquire() throws InterruptedException {
+        if (this.scheduler != null && !this.scheduler.isShutdown()) {
+            this.semaphore.acquire();
+            return;
+        }
+        throw new IllegalStateException("Rate limiter must start before acquire a permit");
     }
-    throw new IllegalStateException("Rate limiter must start before acquire a permit");
-  }
 
-  public RateLimiter setName(@NonNull String name) {
-    this.name = name;
-    return this;
-  }
+    public RateLimiter setName(@NonNull String name) {
+        this.name = name;
+        return this;
+    }
 
-  public static RateLimiter of(int max) {
-    return of(max, 1);
-  }
+    public static RateLimiter of(int max) {
+        return of(max, 1);
+    }
 
-  public static RateLimiter of(int max, int periodSeconds) {
-    return of(max, periodSeconds, TimeUnit.SECONDS);
-  }
+    public static RateLimiter of(int max, int periodSeconds) {
+        return of(max, periodSeconds, TimeUnit.SECONDS);
+    }
 
-  public static RateLimiter of(int max, int period, TimeUnit unit) {
-    return new RateLimiter(max, period, unit);
-  }
+    public static RateLimiter of(int max, int period, TimeUnit unit) {
+        return new RateLimiter(max, period, unit);
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 }
