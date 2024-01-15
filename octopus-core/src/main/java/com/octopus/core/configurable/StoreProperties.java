@@ -54,9 +54,16 @@ public class StoreProperties implements Validatable, Transformable<Store> {
     /**
      * Mongo 存储器 主机
      * <p>
-     * 默认 mongodb://127.0.0.1:27017/octopus
+     * 默认 mongodb://127.0.0.1:27017/
      */
-    private String mongoUri = "mongodb://127.0.0.1:27017/octopus";
+    private String mongoUri = "mongodb://127.0.0.1:27017/";
+
+    /**
+     * Mongo 存储器 数据库名称
+     * <p>
+     * 默认 octopus
+     */
+    private String mongoDatabase = "octopus";
 
     /**
      * Mongo 存储器 数据库集合名称
@@ -94,6 +101,9 @@ public class StoreProperties implements Validatable, Transformable<Store> {
             if (StrUtil.isBlank(mongoUri)) {
                 throw new ValidateException("mongo uri is required");
             }
+            if (StrUtil.isBlank(mongoDatabase)) {
+                throw new ValidateException("mongo database is required");
+            }
             if (StrUtil.isBlank(mongoCollection)) {
                 throw new ValidateException("mongo collection is required");
             }
@@ -110,7 +120,7 @@ public class StoreProperties implements Validatable, Transformable<Store> {
             case Memory:
                 return new MemoryStore();
             case Mongo:
-                return new MongoStore(mongoCollection, mongoUri);
+                return new MongoStore(mongoDatabase, mongoCollection, mongoUri);
             default:
                 return null;
         }

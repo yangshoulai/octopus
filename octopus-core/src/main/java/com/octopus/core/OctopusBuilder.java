@@ -158,13 +158,14 @@ public class OctopusBuilder {
     /**
      * 使用 Mongo 请求存储器
      *
+     * @param database 数据库
      * @param collection 集合名称
      * @param uri        链接
      * @return OctopusBuilder
      * @see com.octopus.core.store.MongoStore
      */
-    public OctopusBuilder useMongoStore(@NonNull String collection, @NonNull String uri) {
-        this.store = new MongoStore(collection, uri);
+    public OctopusBuilder useMongoStore(@NonNull String database, @NonNull String collection, @NonNull String uri) {
+        this.store = new MongoStore(database, collection, uri);
         return this;
     }
 

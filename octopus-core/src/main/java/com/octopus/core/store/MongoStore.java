@@ -26,29 +26,27 @@ import java.util.Objects;
  */
 public class MongoStore implements Store {
 
+    private static String DEFAULT_DATABASE = "octopus";
     public static String DEFAULT_COLLECTION = "request";
 
-    public static String DEFAULT_URI = "mongodb://127.0.0.1:27017/octopus";
+    public static String DEFAULT_URI = "mongodb://127.0.0.1:27017/";
 
     private final MongoClient mongoClient;
 
     private final MongoCollection<Document> requests;
 
 
-    public MongoStore(String collection, String uri) {
+    public MongoStore(String database, String collection, String uri) {
         MongoClientURI u = new MongoClientURI(uri);
-        if (StrUtil.isBlank(u.getDatabase())) {
-            throw new RuntimeException("mongo database is required");
-        }
         this.mongoClient = new MongoClient(u);
-        this.requests = mongoClient.getDatabase(u.getDatabase()).getCollection(collection, Document.class);
+        this.requests = mongoClient.getDatabase(database).getCollection(collection, Document.class);
         this.createIndexesIfNecessary();
         this.updateStatus(Status.of(State.Executing), Status.of(State.Waiting));
     }
 
 
     public MongoStore() {
-        this(DEFAULT_COLLECTION, DEFAULT_URI);
+        this(DEFAULT_DATABASE, DEFAULT_COLLECTION, DEFAULT_URI);
     }
 
 

@@ -15,8 +15,7 @@ sites:
   - host: gitee.com
     limitInSecond: 1
 store:
-  type: Redis
-  redisUri: redis://127.0.0.1:6379
+  type: Memory
 threads: 20
 processors:
   - matcher:
