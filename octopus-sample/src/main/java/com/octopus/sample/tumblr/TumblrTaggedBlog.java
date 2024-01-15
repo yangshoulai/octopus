@@ -61,7 +61,7 @@ public class TumblrTaggedBlog {
             seeds.add(seed2);
         }
         Octopus.builder()
-                .useSQLiteStore(Constants.DOWNLOAD_DIR + "/octopus.db", "tumblr_dota")
+                .useSqliteStore(Constants.DOWNLOAD_DIR + "/octopus.db", "tumblr_dota")
                 .clearStoreOnStop(false)
                 .clearStoreOnStartup(true)
                 .ignoreSeedsWhenStoreHasRequests()

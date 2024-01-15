@@ -2,7 +2,6 @@ package com.octopus.core;
 
 import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import com.mongodb.MongoClient;
 import com.octopus.core.configurable.OctopusBuilderProperties;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -30,7 +29,6 @@ import java.util.List;
  * @date 2021/11/22
  */
 public class OctopusBuilder {
-
     private final List<WebSite> sites = new ArrayList<>();
     private final List<OctopusListener> listeners = new ArrayList<>();
     private final List<MatchableProcessor> processors = new ArrayList<>();
@@ -160,40 +158,13 @@ public class OctopusBuilder {
     /**
      * 使用 Mongo 请求存储器
      *
-     * @param database    数据库名称
-     * @param collection  集合名称
-     * @param mongoClient 客户端
-     * @return OctopusBuilder
-     * @see com.octopus.core.store.MongoStore
-     */
-    public OctopusBuilder useMongoStore(
-            @NonNull String database, @NonNull String collection, @NonNull MongoClient mongoClient) {
-        this.store = new MongoStore(database, collection, mongoClient);
-        return this;
-    }
-
-    /**
-     * 使用 Mongo 请求存储器
-     *
-     * @param mongoClient 客户端
-     * @return OctopusBuilder
-     * @see com.octopus.core.store.MongoStore
-     */
-    public OctopusBuilder useMongoStore(@NonNull MongoClient mongoClient) {
-        this.store = new MongoStore(mongoClient);
-        return this;
-    }
-
-    /**
-     * 使用 Mongo 请求存储器
-     *
-     * @param database   数据库名称
      * @param collection 集合名称
+     * @param uri        链接
      * @return OctopusBuilder
      * @see com.octopus.core.store.MongoStore
      */
-    public OctopusBuilder useMongoStore(@NonNull String database, @NonNull String collection) {
-        this.store = new MongoStore(database, collection);
+    public OctopusBuilder useMongoStore(@NonNull String collection, @NonNull String uri) {
+        this.store = new MongoStore(collection, uri);
         return this;
     }
 
@@ -215,7 +186,7 @@ public class OctopusBuilder {
      * @param indexName 索引名
      * @return OctopusBuilder
      */
-    public OctopusBuilder useEsStore(ElasticsearchClient client, String indexName) {
+    public OctopusBuilder useEsStore(@NonNull ElasticsearchClient client, @NonNull String indexName) {
         this.store = new ElasticsearchStore(client, indexName);
         return this;
     }
@@ -224,8 +195,8 @@ public class OctopusBuilder {
      * @param databaseFilePath sqlite数据库文件
      * @return OctopusBuilder
      */
-    public OctopusBuilder useSQLiteStore(String databaseFilePath) {
-        this.store = new SQLiteStore(databaseFilePath);
+    public OctopusBuilder useSqliteStore(@NonNull String databaseFilePath) {
+        this.store = new SqliteStore(databaseFilePath);
         return this;
     }
 
@@ -234,8 +205,8 @@ public class OctopusBuilder {
      * @param tableName        表名
      * @return OctopusBuilder
      */
-    public OctopusBuilder useSQLiteStore(String databaseFilePath, String tableName) {
-        this.store = new SQLiteStore(databaseFilePath, tableName);
+    public OctopusBuilder useSqliteStore(@NonNull String databaseFilePath, @NonNull String tableName) {
+        this.store = new SqliteStore(databaseFilePath, tableName);
         return this;
     }
 

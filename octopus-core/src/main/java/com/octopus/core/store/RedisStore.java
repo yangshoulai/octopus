@@ -10,6 +10,8 @@ import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
 import redis.clients.jedis.*;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -24,22 +26,33 @@ public class RedisStore implements Store {
 
     private final JedisPool pool;
 
-    private final String allKey;
+    private String allKey;
 
-    private final String waitingKey;
+    private String waitingKey;
 
-    private final String completedKey;
+    private String completedKey;
 
-    private final String failedKey;
+    private String failedKey;
 
-    private final String executingKey;
+    private String executingKey;
 
-    public RedisStore(@NonNull String keyPrefix, @NonNull String host, int port) {
-        this(keyPrefix, new JedisPool(host, port));
+
+    public RedisStore(@NonNull String keyPrefix, @NonNull String uri) {
+        try {
+            this.pool = new JedisPool(new URI(uri));
+            this.init(keyPrefix);
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
     }
+
 
     public RedisStore(@NonNull String keyPrefix, @NonNull JedisPool pool) {
         this.pool = pool;
+        this.init(keyPrefix);
+    }
+
+    private void init(String keyPrefix) {
         this.allKey = keyPrefix + ":" + "all";
         this.waitingKey = keyPrefix + ":" + "waiting";
         this.completedKey = keyPrefix + ":" + "completed";

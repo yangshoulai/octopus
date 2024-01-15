@@ -24,20 +24,13 @@ public class StoreProperties implements Validatable, Transformable<Store> {
     private StoreType type = StoreType.Memory;
 
     /**
-     * Redis 存储器 主机
+     * Redis 存储器 链接
      * <p>
-     * 默认 127.0.0.1
+     * 默认 redis://127.0.0.1:6379
      */
-    private String redisHost = "127.0.0.1";
-
+    private String redisUri = "redis://127.0.0.1:6379";
     /**
-     * Redis 存储器 端口
-     * <p>
-     * 默认 6379
-     */
-    private int redisPort = 6379;
-    /**
-     * Redis 存储器 存储健前缀
+     * Redis 存储器 存储键前缀
      * <p>
      * 默认 octopus
      */
@@ -61,23 +54,9 @@ public class StoreProperties implements Validatable, Transformable<Store> {
     /**
      * Mongo 存储器 主机
      * <p>
-     * 默认 127.0.0.1
+     * 默认 mongodb://127.0.0.1:27017/octopus
      */
-    private String mongoHost = "127.0.0.1";
-
-    /**
-     * Mongo 存储器 端口
-     * <p>
-     * 默认 27017
-     */
-    private int mongoPort = 27017;
-
-    /**
-     * Mongo 存储器 数据库名称
-     * <p>
-     * 默认 octopus
-     */
-    private String mongoDatabase = "octopus";
+    private String mongoUri = "mongodb://127.0.0.1:27017/octopus";
 
     /**
      * Mongo 存储器 数据库集合名称
@@ -94,11 +73,8 @@ public class StoreProperties implements Validatable, Transformable<Store> {
         }
 
         if (type == StoreType.Redis) {
-            if (StrUtil.isBlank(redisHost)) {
-                throw new ValidateException("redis host is required");
-            }
-            if (redisPort <= 0) {
-                throw new ValidateException("redis port is invalid");
+            if (StrUtil.isBlank(redisUri)) {
+                throw new ValidateException("redis uri is required");
             }
             if (StrUtil.isBlank(redisKeyPrefix)) {
                 throw new ValidateException("redis key prefix is required");
@@ -115,14 +91,8 @@ public class StoreProperties implements Validatable, Transformable<Store> {
         }
 
         if (type == StoreType.Mongo) {
-            if (StrUtil.isBlank(mongoHost)) {
-                throw new ValidateException("mongo host is required");
-            }
-            if (mongoPort <= 0) {
-                throw new ValidateException("mongo port is invalid");
-            }
-            if (StrUtil.isBlank(mongoDatabase)) {
-                throw new ValidateException("mongo database is required");
+            if (StrUtil.isBlank(mongoUri)) {
+                throw new ValidateException("mongo uri is required");
             }
             if (StrUtil.isBlank(mongoCollection)) {
                 throw new ValidateException("mongo collection is required");
@@ -134,13 +104,13 @@ public class StoreProperties implements Validatable, Transformable<Store> {
     public Store transform() {
         switch (type) {
             case Redis:
-                return new RedisStore(redisKeyPrefix, redisHost, redisPort);
+                return new RedisStore(redisKeyPrefix, redisUri);
             case Sqlite:
-                return new SQLiteStore(sqliteDatabaseFilePath, sqliteTableName);
+                return new SqliteStore(sqliteDatabaseFilePath, sqliteTableName);
             case Memory:
                 return new MemoryStore();
             case Mongo:
-                return new MongoStore(mongoDatabase, mongoCollection, mongoHost, mongoPort);
+                return new MongoStore(mongoCollection, mongoUri);
             default:
                 return null;
         }

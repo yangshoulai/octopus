@@ -1,9 +1,10 @@
 package com.octopus.core.store;
 
 import cn.hutool.core.collection.ListUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.mongodb.MongoClient;
-import com.mongodb.ServerAddress;
+import com.mongodb.MongoClientURI;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.UpdateResult;
@@ -11,11 +12,13 @@ import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
 import com.octopus.core.replay.ReplayFilter;
+import lombok.NonNull;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -23,40 +26,31 @@ import java.util.List;
  */
 public class MongoStore implements Store {
 
-    public static String DEFAULT_DATABASE = "octopus";
-
     public static String DEFAULT_COLLECTION = "request";
+
+    public static String DEFAULT_URI = "mongodb://127.0.0.1:27017/octopus";
 
     private final MongoClient mongoClient;
 
     private final MongoCollection<Document> requests;
 
-    public MongoStore(String database, String collection, MongoClient mongoClient) {
-        this.mongoClient = mongoClient;
-        MongoDatabase mongoDatabase = mongoClient.getDatabase(database);
-        this.requests = mongoDatabase.getCollection(collection, Document.class);
+
+    public MongoStore(String collection, String uri) {
+        MongoClientURI u = new MongoClientURI(uri);
+        if (StrUtil.isBlank(u.getDatabase())) {
+            throw new RuntimeException("mongo database is required");
+        }
+        this.mongoClient = new MongoClient(u);
+        this.requests = mongoClient.getDatabase(u.getDatabase()).getCollection(collection, Document.class);
         this.createIndexesIfNecessary();
         this.updateStatus(Status.of(State.Executing), Status.of(State.Waiting));
     }
 
-    public MongoStore(String database, String collection, String host, int port) {
-        this(database, collection, new MongoClient(host, port));
-    }
-
-    public MongoStore(MongoClient mongoClient) {
-        this(DEFAULT_DATABASE, DEFAULT_COLLECTION, mongoClient);
-    }
-
-    public MongoStore(String database, String collection) {
-        this(
-                database,
-                collection,
-                new MongoClient(ServerAddress.defaultHost(), ServerAddress.defaultPort()));
-    }
 
     public MongoStore() {
-        this(DEFAULT_DATABASE, DEFAULT_COLLECTION);
+        this(DEFAULT_COLLECTION, DEFAULT_URI);
     }
+
 
     @Override
     public Request get() {

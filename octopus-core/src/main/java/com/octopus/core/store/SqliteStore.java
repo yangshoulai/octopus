@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
 import com.octopus.core.replay.ReplayFilter;
-import lombok.SneakyThrows;
 
 import java.lang.reflect.Type;
 import java.sql.*;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
  * @author shoulai.yang@gmail.com
  * @date 2024/01/04
  */
-public class SQLiteStore implements Store {
+public class SqliteStore implements Store {
     public static final String DEFAULT_TABLE_NAME = "requests";
     private final String tableName;
 
@@ -28,11 +27,11 @@ public class SQLiteStore implements Store {
 
     private final Lock writeLock = new ReentrantLock();
 
-    public SQLiteStore(String databaseFilePath) {
+    public SqliteStore(String databaseFilePath) {
         this(databaseFilePath, DEFAULT_TABLE_NAME);
     }
 
-    public SQLiteStore(String databaseFilePath, String tableName) {
+    public SqliteStore(String databaseFilePath, String tableName) {
         this.tableName = tableName;
         try {
             Class.forName("org.sqlite.JDBC");
