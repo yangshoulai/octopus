@@ -629,7 +629,7 @@ public class OctopusBuilder {
      * @param inputStream 配置文件
      * @return OctopusBuilder
      */
-    public OctopusBuilder fromYaml(InputStream inputStream) {
+    public static OctopusBuilder fromYaml(InputStream inputStream) {
         return OctopusBuilderProperties.fromYaml(inputStream).transform();
     }
 
@@ -639,7 +639,7 @@ public class OctopusBuilder {
      * @param yaml 配置文件路径
      * @return OctopusBuilder
      */
-    public OctopusBuilder fromYaml(String yaml) {
+    public static OctopusBuilder fromYaml(String yaml) {
         return OctopusBuilderProperties.fromYaml(yaml).transform();
     }
 
