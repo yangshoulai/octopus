@@ -8,6 +8,7 @@ import com.octopus.core.processor.extractor.collector.LoggingCollector;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;
+import lombok.NonNull;
 
 import java.util.Map;
 
@@ -60,6 +61,12 @@ public class CollectorProperties implements Validatable, Transformable<Collector
      */
     private String downloadFileNameProp = DEFAULT_FILE_NAME_PROP;
 
+    public CollectorProperties() {
+    }
+
+    public CollectorProperties(CollectorType type) {
+        this.type = type;
+    }
 
     @Override
     public void validate() throws ValidateException {

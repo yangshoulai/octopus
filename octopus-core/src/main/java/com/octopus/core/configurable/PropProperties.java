@@ -35,6 +35,13 @@ public class PropProperties implements Validatable {
      */
     private String field;
 
+    public PropProperties() {
+    }
+
+    public PropProperties(String name) {
+        this.name = name;
+    }
+
     @Override
     public void validate() throws ValidateException {
         if (StrUtil.isBlank(name)) {

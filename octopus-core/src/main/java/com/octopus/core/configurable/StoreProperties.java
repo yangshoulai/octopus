@@ -72,6 +72,12 @@ public class StoreProperties implements Validatable, Transformable<Store> {
      */
     private String mongoCollection = "request";
 
+    public StoreProperties() {
+    }
+
+    public StoreProperties(StoreType type) {
+        this.type = type;
+    }
 
     @Override
     public void validate() throws ValidateException {
