@@ -1,4 +1,4 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 /**
  * @author shoulai.yang@gmail.com

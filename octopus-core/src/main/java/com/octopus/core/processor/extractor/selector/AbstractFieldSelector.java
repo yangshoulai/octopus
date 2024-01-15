@@ -4,8 +4,8 @@ import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.FormatterProperties;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.FormatterProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.SelectException;
 
 import java.util.ArrayList;

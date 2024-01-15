@@ -1,36 +1,29 @@
 package com.octopus.core;
 
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.setting.yaml.YamlUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.mongodb.MongoClient;
-import com.octopus.core.configuration.OctopusBuilderProperties;
+import com.octopus.core.configurable.OctopusBuilderProperties;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
-import com.octopus.core.exception.ValidateException;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
-import com.octopus.core.processor.ExtractorProcessor;
-import com.octopus.core.processor.LoggerProcessor;
-import com.octopus.core.processor.MatchableProcessor;
-import com.octopus.core.processor.MatchedProcessor;
-import com.octopus.core.processor.Processor;
+import com.octopus.core.processor.*;
 import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.*;
+import lombok.NonNull;
+import redis.clients.jedis.JedisPool;
 
-import java.io.*;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import lombok.NonNull;
-import redis.clients.jedis.JedisPool;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -628,6 +621,26 @@ public class OctopusBuilder {
     public OctopusBuilder setMaxReplays(int maxReplays) {
         this.maxReplays = maxReplays;
         return this;
+    }
+
+    /**
+     * 从配置文件加载
+     *
+     * @param inputStream 配置文件
+     * @return OctopusBuilder
+     */
+    public OctopusBuilder fromYaml(InputStream inputStream) {
+        return OctopusBuilderProperties.fromYaml(inputStream).transform();
+    }
+
+    /**
+     * 从配置文件加载
+     *
+     * @param yaml 配置文件路径
+     * @return OctopusBuilder
+     */
+    public OctopusBuilder fromYaml(String yaml) {
+        return OctopusBuilderProperties.fromYaml(yaml).transform();
     }
 
     public Octopus build() {

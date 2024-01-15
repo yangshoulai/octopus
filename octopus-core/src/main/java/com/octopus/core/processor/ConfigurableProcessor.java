@@ -9,9 +9,9 @@ import cn.hutool.http.HttpUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
+import com.octopus.core.configurable.*;
 import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.processor.extractor.Result;
-import com.octopus.core.processor.extractor.configurable.*;
 import com.octopus.core.processor.extractor.convert.TypeConverter;
 import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
 import com.octopus.core.processor.extractor.selector.FieldSelector;
@@ -19,6 +19,7 @@ import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
 import com.octopus.core.processor.matcher.Matcher;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.InputStream;
 import java.util.*;
 
 /**
@@ -147,5 +148,13 @@ public class ConfigurableProcessor extends MatchableProcessor {
             }
         }
         return url;
+    }
+
+    public static Processor fromYaml(InputStream inputStream) {
+        return ProcessorProperties.fromYaml(inputStream).transform();
+    }
+
+    public static Processor fromYaml(String yaml) {
+        return ProcessorProperties.fromYaml(yaml).transform();
     }
 }

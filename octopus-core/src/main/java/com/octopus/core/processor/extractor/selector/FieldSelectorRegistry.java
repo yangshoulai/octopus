@@ -1,8 +1,8 @@
 package com.octopus.core.processor.extractor.selector;
 
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.FormatterProperties;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.FormatterProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.processor.extractor.annotation.Selector;
 import com.octopus.core.exception.SelectorNotFoundException;
 import lombok.NonNull;

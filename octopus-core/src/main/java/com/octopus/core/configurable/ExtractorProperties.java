@@ -1,7 +1,7 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -14,7 +14,7 @@ import java.util.List;
  * @date 2024/01/12
  */
 @Data
-public class ExtractorProperties implements Validator {
+public class ExtractorProperties implements Validatable {
 
     /**
      * 链接列表

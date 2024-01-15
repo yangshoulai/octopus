@@ -1,4 +1,4 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 /**
  * 存储器类型

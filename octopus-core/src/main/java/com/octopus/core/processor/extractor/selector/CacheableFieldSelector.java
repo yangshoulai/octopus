@@ -3,7 +3,7 @@ package com.octopus.core.processor.extractor.selector;
 import cn.hutool.cache.impl.LRUCache;
 import cn.hutool.crypto.digest.MD5;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.SelectException;
 
 import java.util.List;

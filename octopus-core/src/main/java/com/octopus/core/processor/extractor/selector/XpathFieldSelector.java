@@ -5,7 +5,7 @@ import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;

@@ -1,8 +1,9 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.net.Proxy;
@@ -14,7 +15,7 @@ import java.net.Proxy;
  * @date 2024/01/12
  */
 @Data
-public class ProxyProperties implements Validator {
+public class ProxyProperties implements Validatable, Transformable<Proxy> {
 
     /**
      * 代理类型
@@ -37,10 +38,6 @@ public class ProxyProperties implements Validator {
      */
     private int port;
 
-    public Proxy toProxy() {
-        return new Proxy(type, new java.net.InetSocketAddress(host, port));
-    }
-
     @Override
     public void validate() throws ValidateException {
         if (type == null) {
@@ -52,5 +49,10 @@ public class ProxyProperties implements Validator {
         if (port <= 0) {
             throw new ValidateException("proxy port is invalid");
         }
+    }
+
+    @Override
+    public Proxy transform() {
+        return new Proxy(type, new java.net.InetSocketAddress(host, port));
     }
 }

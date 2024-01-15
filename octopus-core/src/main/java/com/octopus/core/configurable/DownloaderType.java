@@ -1,4 +1,4 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 /**
  * 下载器类型

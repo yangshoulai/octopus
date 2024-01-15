@@ -1,11 +1,11 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.extractor.configurable.ProcessorProperties;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.io.FileInputStream;
@@ -21,7 +21,7 @@ import java.util.List;
  * @date 2024/01/12
  */
 @Data
-public class OctopusBuilderProperties implements Validator {
+public class OctopusBuilderProperties implements Validatable, Transformable<OctopusBuilder> {
 
     /**
      * 爬虫名称
@@ -129,42 +129,6 @@ public class OctopusBuilderProperties implements Validator {
         this.threads = threads;
     }
 
-    public OctopusBuilder toBuilder() throws ValidateException {
-        this.validate();
-        OctopusBuilder builder = new OctopusBuilder();
-        builder.setName(name);
-        builder.setThreads(threads);
-        builder.autoStop(autoStop);
-        builder.clearStoreOnStartup(clearStoreOnStartup);
-        builder.clearStoreOnStop(clearStoreOnStop);
-        builder.ignoreSeedsWhenStoreHasRequests(ignoreSeedsWhenStoreHasRequests);
-        builder.setReplayFailedRequest(replayFailedRequest);
-        builder.setMaxReplays(maxReplays);
-        for (WebSiteProperties site : sites) {
-            builder.addSite(site.toWebSite());
-        }
-        if (seeds != null) {
-            for (RequestProperties seed : seeds) {
-                builder.addSeeds(seed.toRequest());
-            }
-        }
-        if (downloader == DownloaderType.OKHttp) {
-            builder.useOkHttpDownloader();
-        } else {
-            builder.useHttpClientDownloader();
-        }
-        if (globalDownloadConfig != null) {
-            builder.setGlobalDownloadConfig(globalDownloadConfig.toDownloadConfig());
-        }
-        builder.setStore(store.toStore());
-        if (processors != null) {
-            for (ProcessorProperties processor : processors) {
-                builder.addProcessor(processor.toProcessor());
-            }
-        }
-        return builder;
-    }
-
 
     @Override
     public void validate() throws ValidateException {
@@ -190,6 +154,7 @@ public class OctopusBuilderProperties implements Validator {
         if (store == null) {
             throw new ValidateException("octopus store is required");
         }
+        store.validate();
         if (downloader == null) {
             throw new ValidateException("octopus downloader is required");
         }
@@ -213,4 +178,40 @@ public class OctopusBuilderProperties implements Validator {
         }
     }
 
+    @Override
+    public OctopusBuilder transform() {
+        this.validate();
+        OctopusBuilder builder = new OctopusBuilder();
+        builder.setName(name);
+        builder.setThreads(threads);
+        builder.autoStop(autoStop);
+        builder.clearStoreOnStartup(clearStoreOnStartup);
+        builder.clearStoreOnStop(clearStoreOnStop);
+        builder.ignoreSeedsWhenStoreHasRequests(ignoreSeedsWhenStoreHasRequests);
+        builder.setReplayFailedRequest(replayFailedRequest);
+        builder.setMaxReplays(maxReplays);
+        for (WebSiteProperties site : sites) {
+            builder.addSite(site.transform());
+        }
+        if (seeds != null) {
+            for (RequestProperties seed : seeds) {
+                builder.addSeeds(seed.transform());
+            }
+        }
+        if (downloader == DownloaderType.OKHttp) {
+            builder.useOkHttpDownloader();
+        } else {
+            builder.useHttpClientDownloader();
+        }
+        if (globalDownloadConfig != null) {
+            builder.setGlobalDownloadConfig(globalDownloadConfig.transform());
+        }
+        builder.setStore(store.transform());
+        if (processors != null) {
+            for (ProcessorProperties processor : processors) {
+                builder.addProcessor(processor.transform());
+            }
+        }
+        return builder;
+    }
 }

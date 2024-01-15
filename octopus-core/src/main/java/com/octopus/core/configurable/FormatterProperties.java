@@ -1,7 +1,7 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 /**
@@ -11,7 +11,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class FormatterProperties implements Validator {
+public class FormatterProperties implements Validatable {
 
     /**
      * 是否去除空格

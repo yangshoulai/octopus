@@ -1,9 +1,10 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.store.*;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 /**
@@ -13,7 +14,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class StoreProperties implements Validator {
+public class StoreProperties implements Validatable, Transformable<Store> {
 
     /**
      * 类型
@@ -85,20 +86,6 @@ public class StoreProperties implements Validator {
      */
     private String mongoCollection = "request";
 
-    public Store toStore() {
-        switch (type) {
-            case Redis:
-                return new RedisStore(redisKeyPrefix, redisHost, redisPort);
-            case Sqlite:
-                return new SQLiteStore(sqliteDatabaseFilePath, sqliteTableName);
-            case Memory:
-                return new MemoryStore();
-            case Mongo:
-                return new MongoStore(mongoDatabase, mongoCollection, mongoHost, mongoPort);
-            default:
-                return null;
-        }
-    }
 
     @Override
     public void validate() throws ValidateException {
@@ -140,6 +127,22 @@ public class StoreProperties implements Validator {
             if (StrUtil.isBlank(mongoCollection)) {
                 throw new ValidateException("mongo collection is required");
             }
+        }
+    }
+
+    @Override
+    public Store transform() {
+        switch (type) {
+            case Redis:
+                return new RedisStore(redisKeyPrefix, redisHost, redisPort);
+            case Sqlite:
+                return new SQLiteStore(sqliteDatabaseFilePath, sqliteTableName);
+            case Memory:
+                return new MemoryStore();
+            case Mongo:
+                return new MongoStore(mongoDatabase, mongoCollection, mongoHost, mongoPort);
+            default:
+                return null;
         }
     }
 }

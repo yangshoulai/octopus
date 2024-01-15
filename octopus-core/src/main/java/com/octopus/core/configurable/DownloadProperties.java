@@ -1,11 +1,12 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.http.Header;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.nio.charset.Charset;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
  * @date 2024/01/12
  */
 @Data
-public class DownloadProperties implements Validator {
+public class DownloadProperties implements Validatable, Transformable<DownloadConfig> {
 
     /**
      * 下载超时时间（单位秒）
@@ -52,7 +53,17 @@ public class DownloadProperties implements Validator {
      */
     private List<ProxyProperties> proxies = new ArrayList<>();
 
-    public DownloadConfig toDownloadConfig() {
+    @Override
+    public void validate() throws ValidateException {
+        if (proxies != null) {
+            for (ProxyProperties proxy : proxies) {
+                proxy.validate();
+            }
+        }
+    }
+
+    @Override
+    public DownloadConfig transform() {
         DownloadConfig config = new DownloadConfig();
         config.setConnectTimeout(getTimeoutInSeconds() * 1000);
         config.setSocketTimeout(getTimeoutInSeconds() * 1000);
@@ -68,17 +79,8 @@ public class DownloadProperties implements Validator {
         }
         config.setHeaders(h);
         if (getProxies() != null) {
-            config.setProxyProvider(new PollingProxyProvider(getProxies().stream().map(ProxyProperties::toProxy).collect(Collectors.toList())));
+            config.setProxyProvider(new PollingProxyProvider(getProxies().stream().map(ProxyProperties::transform).collect(Collectors.toList())));
         }
         return config;
-    }
-
-    @Override
-    public void validate() throws ValidateException {
-        if (proxies != null) {
-            for (ProxyProperties proxy : proxies) {
-                proxy.validate();
-            }
-        }
     }
 }

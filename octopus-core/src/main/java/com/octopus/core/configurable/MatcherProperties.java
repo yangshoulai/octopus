@@ -1,9 +1,11 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
+import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -16,7 +18,7 @@ import java.util.List;
  * @date 2024/01/12
  */
 @Data
-public class MatcherProperties implements Validator {
+public class MatcherProperties implements Validatable, Transformable<Matcher> {
 
     /**
      * 匹配器类型
@@ -58,10 +60,32 @@ public class MatcherProperties implements Validator {
         this.pattern = pattern;
     }
 
-    public Matcher toMatcher() {
+
+    @Override
+    public void validate() throws ValidateException {
+        if (type == null) {
+            throw new ValidateException("matcher type is required");
+        }
+        if ((type == MatcherType.And || type == MatcherType.Or)) {
+            if ((this.children == null || this.children.isEmpty())) {
+                throw new ValidateException("matcher children is required");
+            }
+        }
+        if (type == MatcherType.HeaderRegex && StrUtil.isBlank(header)) {
+            throw new ValidateException("header regex matcher header is required");
+        }
+        if (type == MatcherType.ContentTypeRegex || type == MatcherType.HeaderRegex || type == MatcherType.UrlRegex) {
+            if (StrUtil.isBlank(pattern)) {
+                throw new ValidateException("regex matcher pattern is required");
+            }
+        }
+    }
+
+    @Override
+    public Matcher transform() {
         Matcher[] matchers = {};
         if (children != null) {
-            matchers = this.children.stream().map(MatcherProperties::toMatcher).toArray(Matcher[]::new);
+            matchers = this.children.stream().map(MatcherProperties::transform).toArray(Matcher[]::new);
         }
         Matcher matcher = null;
         switch (type) {
@@ -118,15 +142,5 @@ public class MatcherProperties implements Validator {
                 break;
         }
         return matcher;
-    }
-
-    @Override
-    public void validate() throws ValidateException {
-        if (type == null) {
-            throw new ValidateException("matcher type is required");
-        }
-        if ((type == MatcherType.And || type == MatcherType.Or) && (this.children == null || this.children.isEmpty())) {
-            throw new ValidateException("matcher children is required");
-        }
     }
 }

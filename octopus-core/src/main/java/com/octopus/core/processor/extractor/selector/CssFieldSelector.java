@@ -2,7 +2,7 @@ package com.octopus.core.processor.extractor.selector;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jsoup.Jsoup;

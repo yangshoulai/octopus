@@ -1,11 +1,12 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.processor.extractor.collector.DownloadCollector;
 import com.octopus.core.processor.extractor.collector.LoggingCollector;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
  * @date 2024/01/14
  */
 @Data
-public class CollectorProperties implements Validator {
+public class CollectorProperties implements Validatable, Transformable<Collector<Map<String, Object>>> {
 
     public static final String DEFAULT_FILE_DIR_PROP = "_file_dir";
 
@@ -60,18 +61,6 @@ public class CollectorProperties implements Validator {
     private String downloadFileNameProp = DEFAULT_FILE_NAME_PROP;
 
 
-    public Collector<Map<String, Object>> toCollector() {
-        switch (type) {
-            case Logging:
-                return new LoggingCollector<>(collectResult);
-            case Download:
-                return new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
-            default:
-                return null;
-        }
-    }
-
-
     @Override
     public void validate() throws ValidateException {
         if (type == null) {
@@ -82,6 +71,18 @@ public class CollectorProperties implements Validator {
             if (StrUtil.isBlank(downloadDir)) {
                 throw new ValidateException("download collector dir is null");
             }
+        }
+    }
+
+    @Override
+    public Collector<Map<String, Object>> transform() {
+        switch (type) {
+            case Logging:
+                return new LoggingCollector<>(collectResult);
+            case Download:
+                return new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
+            default:
+                return null;
         }
     }
 }

@@ -1,7 +1,7 @@
 package com.octopus.core.processor.extractor.convert;
 
-import com.octopus.core.processor.extractor.configurable.FieldExtProperties;
-import com.octopus.core.processor.extractor.configurable.FieldType;
+import com.octopus.core.configurable.FieldExtProperties;
+import com.octopus.core.configurable.FieldType;
 import com.octopus.core.processor.extractor.annotation.FieldExt;
 import lombok.NonNull;
 

@@ -1,8 +1,8 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 /**
@@ -12,7 +12,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class FieldProperties implements Validator {
+public class FieldProperties implements Validatable {
 
     /**
      * 字段名
@@ -99,6 +99,9 @@ public class FieldProperties implements Validator {
 
     @Override
     public void validate() throws ValidateException {
+        if (StrUtil.isBlank(name)) {
+            throw new ValidateException("field name is required");
+        }
         if (this.extractor == null && this.type == null) {
             throw new ValidateException("field type or extractor is required");
         }

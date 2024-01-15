@@ -1,4 +1,4 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
 /**
  * 请求配置
@@ -10,14 +10,15 @@ package com.octopus.core.configuration;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @Data
-public class RequestProperties implements Validator {
+public class RequestProperties implements Validatable, Transformable<Request> {
 
     /**
      * 请求 URL
@@ -55,7 +56,7 @@ public class RequestProperties implements Validator {
     private int priority;
 
     /**
-     * 是否重复请求
+     * 是否可重复
      * <p>
      * 默认 true
      */
@@ -88,17 +89,6 @@ public class RequestProperties implements Validator {
         this.method = method;
     }
 
-    public Request toRequest() {
-        Request r = new Request(url, method);
-        r.setParams(params);
-        r.setHeaders(headers);
-        r.setPriority(priority);
-        r.setAttributes(attributes);
-        r.setInherit(inherit);
-        r.setRepeatable(repeatable);
-        return r;
-    }
-
 
     @Override
     public void validate() throws ValidateException {
@@ -108,5 +98,17 @@ public class RequestProperties implements Validator {
         if (method == null) {
             throw new ValidateException("request method is required");
         }
+    }
+
+    @Override
+    public Request transform() {
+        Request r = new Request(url, method);
+        r.setParams(params);
+        r.setHeaders(headers);
+        r.setPriority(priority);
+        r.setAttributes(attributes);
+        r.setInherit(inherit);
+        r.setRepeatable(repeatable);
+        return r;
     }
 }

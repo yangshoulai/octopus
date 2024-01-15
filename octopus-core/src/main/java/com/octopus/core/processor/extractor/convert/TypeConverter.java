@@ -1,6 +1,6 @@
 package com.octopus.core.processor.extractor.convert;
 
-import com.octopus.core.processor.extractor.configurable.FieldExtProperties;
+import com.octopus.core.configurable.FieldExtProperties;
 
 /**
  * @author shoulai.yang@gmail.com

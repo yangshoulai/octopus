@@ -1,12 +1,12 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.ConfigurableProcessor;
 import com.octopus.core.processor.Processor;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -19,7 +19,7 @@ import java.io.InputStream;
  * @date 2024/01/12
  */
 @Data
-public class ProcessorProperties implements Validator {
+public class ProcessorProperties implements Validatable, Transformable<Processor> {
 
     /**
      * 匹配器
@@ -60,10 +60,6 @@ public class ProcessorProperties implements Validator {
         this.collector = collector;
     }
 
-    public Processor toProcessor() {
-        this.validate();
-        return new ConfigurableProcessor(matcher.toMatcher(), extractor, collector == null ? null : collector.toCollector());
-    }
 
     @Override
     public void validate() throws ValidateException {
@@ -90,5 +86,11 @@ public class ProcessorProperties implements Validator {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public Processor transform() {
+        this.validate();
+        return new ConfigurableProcessor(matcher.transform(), extractor, collector == null ? null : collector.transform());
     }
 }

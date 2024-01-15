@@ -1,4 +1,4 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 /**
  * 匹配器类型

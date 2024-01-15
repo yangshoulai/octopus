@@ -1,4 +1,4 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import cn.hutool.core.collection.ListUtil;
 import lombok.Getter;

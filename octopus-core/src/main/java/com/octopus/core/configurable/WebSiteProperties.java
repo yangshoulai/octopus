@@ -1,8 +1,10 @@
-package com.octopus.core.configuration;
+package com.octopus.core.configurable;
 
+import cn.hutool.core.util.StrUtil;
 import com.octopus.core.WebSite;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Transformable;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 /**
@@ -12,7 +14,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class WebSiteProperties implements Validator {
+public class WebSiteProperties implements Validatable, Transformable<WebSite> {
 
     /**
      * 站点域名
@@ -43,7 +45,22 @@ public class WebSiteProperties implements Validator {
         this.host = host;
     }
 
-    public WebSite toWebSite() {
+
+    @Override
+    public void validate() throws ValidateException {
+        if (StrUtil.isBlank(host)) {
+            throw new ValidateException("site host is required");
+        }
+        if (downloadConfig != null) {
+            downloadConfig.validate();
+        }
+        if (limitInSecond != null && limitInSecond <= 0) {
+            throw new ValidateException("site limitInSeconds must be greater than 0");
+        }
+    }
+
+    @Override
+    public WebSite transform() {
         WebSite s = WebSite.of(host);
         if (limitInSecond != null) {
             if (limitInSecond > 1) {
@@ -53,19 +70,8 @@ public class WebSiteProperties implements Validator {
             }
         }
         if (this.downloadConfig != null) {
-            s.setDownloadConfig(downloadConfig.toDownloadConfig());
+            s.setDownloadConfig(downloadConfig.transform());
         }
-
         return s;
-    }
-
-    @Override
-    public void validate() throws ValidateException {
-        if (downloadConfig != null) {
-            downloadConfig.validate();
-        }
-        if (limitInSecond != null && limitInSecond <= 0) {
-            throw new ValidateException("site limitInSeconds must be greater than 0");
-        }
     }
 }

@@ -5,7 +5,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.SelectorProperties;
 import net.minidev.json.JSONArray;
 
 import java.util.ArrayList;

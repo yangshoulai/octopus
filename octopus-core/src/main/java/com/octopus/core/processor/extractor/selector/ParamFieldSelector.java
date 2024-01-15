@@ -3,7 +3,7 @@ package com.octopus.core.processor.extractor.selector;
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.net.url.UrlBuilder;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.configurable.SelectorProperties;
+import com.octopus.core.configurable.SelectorProperties;
 
 import java.util.List;
 

@@ -1,8 +1,8 @@
-package com.octopus.core.processor.extractor.configurable;
+package com.octopus.core.configurable;
 
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.extractor.annotation.Selector;
-import com.octopus.core.utils.Validator;
+import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
 /**
@@ -12,7 +12,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class SelectorProperties implements Validator {
+public class SelectorProperties implements Validatable {
 
     /**
      * 类型

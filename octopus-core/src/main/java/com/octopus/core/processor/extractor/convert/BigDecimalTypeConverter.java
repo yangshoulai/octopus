@@ -1,7 +1,7 @@
 package com.octopus.core.processor.extractor.convert;
 
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.processor.extractor.configurable.FieldExtProperties;
+import com.octopus.core.configurable.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
 
 import java.math.BigDecimal;
