@@ -34,6 +34,7 @@ public class TypeConverterRegistry {
         registerHandler(FieldType.String, new CharSequenceTypeConverter());
         registerHandler(FieldType.CharSequence, new CharSequenceTypeConverter());
         registerHandler(FieldType.Date, new DateTypeConverter());
+        registerHandler(FieldType.ByteArray, new ByteArrayTypeConverter());
     }
 
     public static TypeConverterRegistry getInstance() {
@@ -62,9 +63,8 @@ public class TypeConverterRegistry {
     public Object convert(String source, Class<?> type, FieldExt ext) {
         for (Map.Entry<FieldType, TypeConverter<?>> entry : HANDLERS.entrySet()) {
             if (entry.getKey().isSupport(type)) {
-                FieldExtProperties fieldExtProperties = null;
+                FieldExtProperties fieldExtProperties = new FieldExtProperties();
                 if (ext != null) {
-                    fieldExtProperties = new FieldExtProperties();
                     fieldExtProperties.setIgnoreError(ext.ignoreError());
                     fieldExtProperties.setDateFormatPattern(ext.dateFormatPattern());
                     fieldExtProperties.setDateFormatTimeZone(ext.dateFormatTimeZone());

@@ -68,6 +68,10 @@ public @interface Selector {
 
     enum Type {
         /**
+         * Body
+         */
+        Body,
+        /**
          * Attr
          */
         Attr,

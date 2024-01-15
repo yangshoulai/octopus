@@ -179,12 +179,16 @@ public class ExtractorProcessor<T> implements Processor {
         boolean multi = fieldInfo.isArray() || fieldInfo.isCollection();
         List<String> selected = FieldSelectorRegistry.getInstance().select(selector, source, multi, response);
         if (selected != null && !selected.isEmpty()) {
+            FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
+            if (TypeConverterRegistry.getInstance().isSupportType(field.getType())) {
+                ReflectUtil.setFieldValue(result.getObj(), field, TypeConverterRegistry.getInstance().convert(selected.get(0), field.getType(), annotation));
+                return;
+            }
             if (fieldInfo.isArray() || fieldInfo.isCollection()) {
                 List<Object> list = new ArrayList<>();
                 Class<?> componentClass = fieldInfo.getComponentClass();
                 for (String item : selected) {
                     if (!(componentClass.isAnnotationPresent(Extractor.class))) {
-                        FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
                         Object obj = TypeConverterRegistry.getInstance().convert(item, componentClass, annotation);
                         list.add(obj);
                     } else {
@@ -213,7 +217,6 @@ public class ExtractorProcessor<T> implements Processor {
                 }
                 ReflectUtil.setFieldValue(result.getObj(), field, r.getObj());
             } else {
-                FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
                 Object obj = TypeConverterRegistry.getInstance().convert(selected.get(0), fieldInfo.getComponentClass(), annotation);
                 ReflectUtil.setFieldValue(result.getObj(), field, obj);
             }

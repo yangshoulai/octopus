@@ -9,5 +9,6 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface Body {}
+@Selector(type = Selector.Type.Body)
+public @interface Body {
+}

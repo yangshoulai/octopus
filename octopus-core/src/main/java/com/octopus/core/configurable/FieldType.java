@@ -1,7 +1,6 @@
 package com.octopus.core.configurable;
 
 import cn.hutool.core.collection.ListUtil;
-import lombok.Getter;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -59,7 +58,12 @@ public enum FieldType {
     /**
      * Date
      */
-    Date(ListUtil.of(java.util.Date.class));
+    Date(ListUtil.of(java.util.Date.class)),
+
+    /**
+     * byte[]
+     */
+    ByteArray(ListUtil.of(byte[].class));
 
     /**
      * 支持的 Java 类型

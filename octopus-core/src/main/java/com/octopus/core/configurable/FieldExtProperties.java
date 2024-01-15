@@ -1,5 +1,6 @@
 package com.octopus.core.configurable;
 
+import cn.hutool.core.util.CharsetUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;
@@ -40,6 +41,13 @@ public class FieldExtProperties implements Validatable {
      * 默认 空
      */
     private String dateFormatTimeZone;
+
+    /**
+     * 字节数组类型 编码
+     * <p>
+     * 默认 UTF-8
+     */
+    private String charset = CharsetUtil.UTF_8;
 
     @Override
     public void validate() throws ValidateException {

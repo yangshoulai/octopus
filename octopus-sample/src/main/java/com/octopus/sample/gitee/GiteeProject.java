@@ -3,12 +3,7 @@ package com.octopus.sample.gitee;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.annotation.Css;
-import com.octopus.core.processor.extractor.annotation.Formatter;
-import com.octopus.core.processor.extractor.annotation.Selector;
-import com.octopus.core.processor.extractor.annotation.Url;
+import com.octopus.core.processor.extractor.annotation.*;
 import com.octopus.core.processor.matcher.Matchers;
 
 import java.util.Collection;
@@ -33,6 +28,9 @@ public class GiteeProject {
 
     @Css(value = ".items .item", self = true)
     private Collection<Project> projects;
+
+    @Body
+    private byte[] body;
 
     @Data
     @Extractor
@@ -61,6 +59,8 @@ public class GiteeProject {
 
         @Url
         private String url;
+
+
     }
 
     public static void main(String[] args) {

@@ -98,33 +98,34 @@ public class ExtractorValidator {
 
     public void validate(Field field) throws ValidateException {
         Class<?> type = field.getType();
-        FieldInfo fieldInfo = ExtractorHelper.getFieldType(field);
-
-        Class<?> componentType = null;
-        if (fieldInfo.isArray()) {
-            componentType = fieldInfo.getComponentClass();
-        } else if (fieldInfo.isCollection()) {
-            if (!TypeConverterRegistry.getInstance()
-                    .isValidCollectionType(fieldInfo.getCollectionClass())) {
-                throw new ValidateException(
-                        "Collection type only support java.util.List, java.util.ArrayList, java.util.Set or java.util.HashSet");
+        if (!TypeConverterRegistry.getInstance().isSupportType(type)) {
+            FieldInfo fieldInfo = ExtractorHelper.getFieldType(field);
+            Class<?> componentType = null;
+            if (fieldInfo.isArray()) {
+                componentType = fieldInfo.getComponentClass();
+            } else if (fieldInfo.isCollection()) {
+                if (!TypeConverterRegistry.getInstance()
+                        .isValidCollectionType(fieldInfo.getCollectionClass())) {
+                    throw new ValidateException(
+                            "Collection type only support java.util.List, java.util.ArrayList, java.util.Set or java.util.HashSet");
+                }
+                componentType = fieldInfo.getComponentClass();
+            } else {
+                componentType = type;
             }
-            componentType = fieldInfo.getComponentClass();
-        } else {
-            componentType = type;
-        }
-        if (componentType == null) {
-            throw new ValidateException("Can not get real type on field type: " + type + "@" + field);
-        }
-
-        if (componentType.isAnnotationPresent(Extractor.class)) {
-            if (!VALID.contains(componentType) && !VALIDATING.contains(componentType)) {
-                validate(componentType);
+            if (componentType == null) {
+                throw new ValidateException("Can not get real type on field type: " + type + "@" + field);
             }
 
-        } else {
-            if (!TypeConverterRegistry.getInstance().isSupportType(componentType)) {
-                throw new ValidateException("No type handler found for type " + componentType);
+            if (componentType.isAnnotationPresent(Extractor.class)) {
+                if (!VALID.contains(componentType) && !VALIDATING.contains(componentType)) {
+                    validate(componentType);
+                }
+
+            } else {
+                if (!TypeConverterRegistry.getInstance().isSupportType(componentType)) {
+                    throw new ValidateException("No type handler found for type " + componentType);
+                }
             }
         }
     }

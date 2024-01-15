@@ -5,7 +5,9 @@ import com.octopus.core.configurable.FormatterProperties;
 import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.processor.extractor.annotation.Selector;
 import com.octopus.core.exception.SelectorNotFoundException;
+import com.octopus.core.processor.extractor.convert.ByteArrayTypeConverter;
 import lombok.NonNull;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,7 @@ public class FieldSelectorRegistry {
         registerHandler(Selector.Type.Css, new CssFieldSelector());
         registerHandler(Selector.Type.Xpath, new XpathFieldSelector());
         registerHandler(Selector.Type.Regex, new RegexFieldSelector());
+        registerHandler(Selector.Type.Body, new BodyFieldSelector());
         registerHandler(Selector.Type.None, new NoneFieldSelector());
     }
 
@@ -63,16 +66,22 @@ public class FieldSelectorRegistry {
         properties.setGroups(selector.groups());
         properties.setNode(selector.node());
         if (selector.formatter() != null) {
-            FormatterProperties formatter = new FormatterProperties();
-            formatter.setSeparator(selector.formatter().separator());
-            formatter.setFilter(selector.formatter().filter());
-            formatter.setTrim(selector.formatter().trim());
-            formatter.setSplit(selector.formatter().split());
-            formatter.setRegex(selector.formatter().regex());
-            formatter.setFormat(selector.formatter().format());
-            formatter.setGroups(selector.formatter().groups());
+            FormatterProperties formatter = getFormatterProperties(selector);
             properties.setFormatter(formatter);
         }
         return fs.select(source, multi, properties, response);
+    }
+
+    @NotNull
+    private static FormatterProperties getFormatterProperties(Selector selector) {
+        FormatterProperties formatter = new FormatterProperties();
+        formatter.setSeparator(selector.formatter().separator());
+        formatter.setFilter(selector.formatter().filter());
+        formatter.setTrim(selector.formatter().trim());
+        formatter.setSplit(selector.formatter().split());
+        formatter.setRegex(selector.formatter().regex());
+        formatter.setFormat(selector.formatter().format());
+        formatter.setGroups(selector.formatter().groups());
+        return formatter;
     }
 }

@@ -13,9 +13,9 @@ public @interface FieldExt {
 
     boolean ignoreError() default true;
 
-    String[] booleanFalseValues() default {};
+    String[] booleanFalseValues() default {"", "0", "非", "否", "off", "no", "f", "false"};
 
-    String dateFormatPattern() default "";
+    String dateFormatPattern() default "yyyy-MM-dd HH:mm:ss";
 
     String dateFormatTimeZone() default "";
 }

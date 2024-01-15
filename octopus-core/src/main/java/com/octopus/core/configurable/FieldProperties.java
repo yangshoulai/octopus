@@ -51,9 +51,9 @@ public class FieldProperties implements Validatable {
     /**
      * 扩展配置
      * <p>
-     * 默认 空
+     * 默认 默认扩展配置
      */
-    private FieldExtProperties ext;
+    private FieldExtProperties ext = new FieldExtProperties();
 
     public FieldProperties() {
     }
