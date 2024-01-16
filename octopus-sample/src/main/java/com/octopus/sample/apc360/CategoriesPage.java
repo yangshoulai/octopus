@@ -1,10 +1,10 @@
 package com.octopus.sample.apc360;
 
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.annotation.Formatter;
-import com.octopus.core.processor.extractor.annotation.Json;
-import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.annotation.Extractor;
+import com.octopus.core.processor.annotation.Link;
+import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Json;
+import com.octopus.core.processor.annotation.Selector;
 import java.util.Date;
 import java.util.List;
 import lombok.Data;

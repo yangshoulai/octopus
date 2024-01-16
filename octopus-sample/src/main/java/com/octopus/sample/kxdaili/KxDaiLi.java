@@ -4,11 +4,11 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Response;
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.LinkMethod;
-import com.octopus.core.processor.extractor.annotation.Css;
-import com.octopus.core.processor.extractor.annotation.Formatter;
-import com.octopus.core.processor.extractor.annotation.Xpath;
+import com.octopus.core.processor.annotation.Extractor;
+import com.octopus.core.processor.annotation.LinkMethod;
+import com.octopus.core.processor.annotation.Css;
+import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Xpath;
 import com.octopus.core.processor.matcher.Matchers;
 
 import java.util.List;

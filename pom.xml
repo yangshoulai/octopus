@@ -35,6 +35,7 @@
         <jackson.version>2.12.3</jackson.version>
         <sqlite.version>3.44.1.0</sqlite.version>
         <snakeyaml.version>2.2</snakeyaml.version>
+        <rxjava.version>3.1.8</rxjava.version>
     </properties>
 
     <dependencyManagement>
@@ -127,6 +128,12 @@
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.reactivex.rxjava3</groupId>
+                <artifactId>rxjava</artifactId>
+                <version>${rxjava.version}</version>
             </dependency>
 
         </dependencies>

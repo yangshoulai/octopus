@@ -5,7 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
+import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
 import com.octopus.core.utils.RateLimiter;
 import com.octopus.sample.Constants;
 

@@ -10,7 +10,7 @@ import java.util.List;
  * @date 2021/11/26
  */
 @Getter
-class Result<T> {
+public class Result<T> {
 
     private T obj;
 

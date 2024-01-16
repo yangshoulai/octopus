@@ -3,7 +3,7 @@ package com.octopus.core.configurable;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;
 

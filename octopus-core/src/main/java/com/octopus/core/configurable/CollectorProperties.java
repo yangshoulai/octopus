@@ -1,9 +1,9 @@
 package com.octopus.core.configurable;
 
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.extractor.Collector;
-import com.octopus.core.processor.extractor.collector.DownloadCollector;
-import com.octopus.core.processor.extractor.collector.LoggingCollector;
+import com.octopus.core.processor.Collector;
+import com.octopus.core.processor.collector.DownloadCollector;
+import com.octopus.core.processor.collector.LoggingCollector;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;

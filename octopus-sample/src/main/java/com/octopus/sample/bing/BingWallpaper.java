@@ -4,10 +4,10 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.WebSite;
 import com.octopus.core.downloader.DownloadConfig;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
+import com.octopus.core.processor.annotation.Extractor;
+import com.octopus.core.processor.annotation.Link;
+import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 

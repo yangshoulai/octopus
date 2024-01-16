@@ -2,7 +2,7 @@ package com.octopus.core.configurable;
 
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.ConfigurableProcessor;
+import com.octopus.core.processor.impl.ConfigurableProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;

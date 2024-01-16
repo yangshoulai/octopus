@@ -3,8 +3,6 @@ package com.octopus.core.store;
 import com.octopus.core.Request;
 import com.octopus.core.replay.ReplayFilter;
 
-import java.util.List;
-
 /**
  * 请求存储器
  *
@@ -36,9 +34,7 @@ public interface Store {
      */
     boolean exists(Request request);
 
-    /**
-     * 清空所有请求
-     */
+    /** 清空所有请求 */
     void clear();
 
     /**
@@ -52,7 +48,7 @@ public interface Store {
      * 标记失败的下载请求
      *
      * @param request 请求
-     * @param error   失败原因
+     * @param error 失败原因
      */
     void markAsFailed(Request request, String error);
 
@@ -83,13 +79,6 @@ public interface Store {
      * @return 失败的请求数量
      */
     long getFailedSize();
-
-    /**
-     * 获取所有失败的下载请求
-     *
-     * @return 失败的下载请求
-     */
-    List<Request> getFailed();
 
     /**
      * 删除一个请求

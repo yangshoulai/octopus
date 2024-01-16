@@ -2,11 +2,11 @@ package com.octopus.sample.wallhaven;
 
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
-import com.octopus.core.processor.extractor.annotation.Extractor;
-import com.octopus.core.processor.extractor.annotation.Link;
-import com.octopus.core.processor.extractor.annotation.Css;
-import com.octopus.core.processor.extractor.annotation.Selector;
+import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
+import com.octopus.core.processor.annotation.Extractor;
+import com.octopus.core.processor.annotation.Link;
+import com.octopus.core.processor.annotation.Css;
+import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import java.util.List;

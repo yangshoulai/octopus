@@ -3,7 +3,7 @@ package com.octopus.sample.gitee;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.extractor.annotation.*;
+import com.octopus.core.processor.annotation.*;
 import com.octopus.core.processor.matcher.Matchers;
 
 import java.util.Collection;

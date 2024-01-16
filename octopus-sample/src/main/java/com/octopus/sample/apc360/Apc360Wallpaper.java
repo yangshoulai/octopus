@@ -2,7 +2,7 @@ package com.octopus.sample.apc360;
 
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.MediaFileDownloadProcessor;
+import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import lombok.extern.slf4j.Slf4j;

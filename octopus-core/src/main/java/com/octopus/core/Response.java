@@ -95,7 +95,7 @@ public class Response implements Serializable {
     @Override
     public String toString() {
         return String.format(
-                "Response [status = %s, request = %s, charset = %s, length = %s bytes]",
+                "Response[status = %s, request = %s, charset = %s, length = %s bytes]",
                 status, request, charset, body.length);
     }
 }

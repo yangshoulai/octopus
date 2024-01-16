@@ -15,7 +15,7 @@ import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.logging.Logger;
-import com.octopus.core.processor.MatchableProcessor;
+import com.octopus.core.processor.impl.MatchableProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
