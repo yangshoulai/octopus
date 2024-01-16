@@ -3,6 +3,7 @@ package com.octopus.core.configurable;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.processor.extractor.annotation.Selector;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;
 
@@ -30,7 +31,7 @@ public class LinkProperties implements Validatable {
      * <p>
      * 默认 空
      */
-    private SelectorProperties selector;
+    private SelectorProperties selector = new SelectorProperties(Selector.Type.None);
 
     /**
      * 优先级
