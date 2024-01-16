@@ -1,9 +1,8 @@
 package com.octopus.core.processor;
 
-import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.*;
-import cn.hutool.http.HttpUtil;
+import cn.hutool.core.util.ArrayUtil;
+import cn.hutool.core.util.ReflectUtil;
+import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
@@ -11,10 +10,10 @@ import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.extractor.*;
+import com.octopus.core.processor.extractor.annotation.Selector;
 import com.octopus.core.processor.extractor.annotation.*;
-import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
-import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
 import com.octopus.core.utils.AnnotationUtil;
+import com.octopus.core.utils.RequestHelper;
 import lombok.NonNull;
 
 import java.lang.reflect.Array;
@@ -116,7 +115,7 @@ public class ExtractorProcessor<T> implements Processor {
                     item -> {
                         if (item instanceof String) {
                             String u = item.toString();
-                            result.getRequests().add(Request.get(completeUrl(response.getRequest().getUrl(), u)));
+                            result.getRequests().add(Request.get(RequestHelper.completeUrl(response.getRequest().getUrl(), u)));
                         } else if (item instanceof Request) {
                             result.getRequests().add((Request) item);
                         }
@@ -129,14 +128,14 @@ public class ExtractorProcessor<T> implements Processor {
         if (StrUtil.isNotBlank(link.url())) {
             urls.add(link.url());
         }
-        List<String> selected = FieldSelectorRegistry.getInstance().select(link.selector(), source, true, response);
+        List<String> selected = SelectorRegistry.getInstance().select(link.selector(), source, true, response);
         if (selected != null) {
             urls.addAll(selected);
         }
         for (String url : urls) {
             if (StrUtil.isNotBlank(url)) {
                 Request request =
-                        new Request(completeUrl(response.getRequest().getUrl(), url), link.method())
+                        new Request(RequestHelper.completeUrl(response.getRequest().getUrl(), url), link.method())
                                 .setPriority(link.priority())
                                 .setRepeatable(link.repeatable());
                 Arrays.stream(link.headers())
@@ -161,36 +160,25 @@ public class ExtractorProcessor<T> implements Processor {
             }
         }
         if (prop.selector() != null) {
-            List<String> selected = FieldSelectorRegistry.getInstance().select(prop.selector(), source, true, response);
+            List<String> selected = SelectorRegistry.getInstance().select(prop.selector(), source, true, response);
             if (selected != null) {
                 val = String.join(",", selected);
             }
         }
-        return StrUtil.isBlank(val) ? prop.value() : val;
+        return val;
     }
 
-    private String completeUrl(String currentUrl, String url) {
-        if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
-            if (url.startsWith("/")) {
-                return URLUtil.completeUrl(currentUrl, url);
-            } else {
-                url =
-                        UrlBuilder.of(currentUrl).setQuery(UrlQuery.of(url, CharsetUtil.CHARSET_UTF_8)).build();
-            }
-        }
-        return url;
-    }
 
     @SuppressWarnings("unchecked")
     private void extractField(
             Result<?> result, String source, Field field, Selector selector, Response response) {
         FieldInfo fieldInfo = ExtractorHelper.getFieldType(field);
         boolean multi = fieldInfo.isArray() || fieldInfo.isCollection();
-        List<String> selected = FieldSelectorRegistry.getInstance().select(selector, source, multi, response);
+        List<String> selected = SelectorRegistry.getInstance().select(selector, source, multi, response);
         if (selected != null && !selected.isEmpty()) {
             FieldExt annotation = AnnotationUtil.getMergedAnnotation(field, FieldExt.class);
-            if (TypeConverterRegistry.getInstance().isSupportType(field.getType())) {
-                ReflectUtil.setFieldValue(result.getObj(), field, TypeConverterRegistry.getInstance().convert(selected.get(0), field.getType(), annotation));
+            if (ConverterRegistry.getInstance().isSupportType(field.getType())) {
+                ReflectUtil.setFieldValue(result.getObj(), field, ConverterRegistry.getInstance().convert(selected.get(0), field.getType(), annotation));
                 return;
             }
             if (fieldInfo.isArray() || fieldInfo.isCollection()) {
@@ -198,7 +186,7 @@ public class ExtractorProcessor<T> implements Processor {
                 Class<?> componentClass = fieldInfo.getComponentClass();
                 for (String item : selected) {
                     if (!(componentClass.isAnnotationPresent(Extractor.class))) {
-                        Object obj = TypeConverterRegistry.getInstance().convert(item, componentClass, annotation);
+                        Object obj = ConverterRegistry.getInstance().convert(item, componentClass, annotation);
                         list.add(obj);
                     } else {
                         Result<?> r = extract(item, response, componentClass);
@@ -212,7 +200,7 @@ public class ExtractorProcessor<T> implements Processor {
                 if (fieldInfo.isArray()) {
                     ReflectUtil.setFieldValue(result.getObj(), field, list.toArray());
                 } else {
-                    Class<?> collectionClass = TypeConverterRegistry.getInstance().getCollectionImplClass(fieldInfo.getCollectionClass());
+                    Class<?> collectionClass = ConverterRegistry.getInstance().getCollectionImplClass(fieldInfo.getCollectionClass());
                     Collection<Object> collection =
                             (Collection<Object>) ReflectUtil.newInstance(collectionClass);
                     collection.addAll(list);
@@ -226,7 +214,7 @@ public class ExtractorProcessor<T> implements Processor {
                 }
                 ReflectUtil.setFieldValue(result.getObj(), field, r.getObj());
             } else {
-                Object obj = TypeConverterRegistry.getInstance().convert(selected.get(0), fieldInfo.getComponentClass(), annotation);
+                Object obj = ConverterRegistry.getInstance().convert(selected.get(0), fieldInfo.getComponentClass(), annotation);
                 ReflectUtil.setFieldValue(result.getObj(), field, obj);
             }
         }

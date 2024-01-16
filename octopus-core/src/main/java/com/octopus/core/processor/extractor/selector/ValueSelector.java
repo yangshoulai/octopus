@@ -8,13 +8,11 @@ import java.util.List;
 
 /**
  * @author shoulai.yang@gmail.com
- * @date 2024/01/12
+ * @date 2024/01/16
  */
-public class AttrFieldSelector extends AbstractFieldSelector {
+public class ValueSelector extends AbstractSelector {
     @Override
     protected List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {
-        Object attr = response.getRequest().getAttribute(selector.getValue());
-        String val = attr == null ? null : attr.toString();
-        return val == null ? null : ListUtil.of(val);
+        return ListUtil.of(selector.getValue());
     }
 }

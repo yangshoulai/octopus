@@ -10,7 +10,7 @@ import java.util.List;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-public class HeaderFieldSelector extends AbstractFieldSelector {
+public class HeaderSelector extends AbstractSelector {
 
     @Override
     public List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {

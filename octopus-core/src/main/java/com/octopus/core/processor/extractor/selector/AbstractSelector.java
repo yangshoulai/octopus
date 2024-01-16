@@ -7,6 +7,7 @@ import com.octopus.core.Response;
 import com.octopus.core.configurable.FormatterProperties;
 import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.SelectException;
+import com.octopus.core.processor.extractor.Selector;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,7 +19,7 @@ import java.util.stream.Collectors;
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
-public abstract class AbstractFieldSelector implements FieldSelector {
+public abstract class AbstractSelector implements Selector {
 
     @Override
     public List<String> select(String source, boolean multi, SelectorProperties selector, Response response) throws SelectException {

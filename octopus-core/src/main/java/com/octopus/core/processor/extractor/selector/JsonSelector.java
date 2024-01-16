@@ -16,7 +16,7 @@ import java.util.Map;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/27
  */
-public class JsonFieldSelector extends CacheableFieldSelector<String> {
+public class JsonSelector extends CacheableSelector<String> {
 
     private static final Configuration CONFIGURATION =
             Configuration.builder()

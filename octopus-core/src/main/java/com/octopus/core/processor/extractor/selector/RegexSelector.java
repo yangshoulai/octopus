@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/30
  */
-public class RegexFieldSelector extends CacheableFieldSelector<String> {
+public class RegexSelector extends CacheableSelector<String> {
 
     @Override
     protected List<String> doSelectWithDoc(

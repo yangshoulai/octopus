@@ -5,7 +5,6 @@ import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;
@@ -98,13 +97,13 @@ public class ExtractorValidator {
 
     public void validate(Field field) throws ValidateException {
         Class<?> type = field.getType();
-        if (!TypeConverterRegistry.getInstance().isSupportType(type)) {
+        if (!ConverterRegistry.getInstance().isSupportType(type)) {
             FieldInfo fieldInfo = ExtractorHelper.getFieldType(field);
             Class<?> componentType = null;
             if (fieldInfo.isArray()) {
                 componentType = fieldInfo.getComponentClass();
             } else if (fieldInfo.isCollection()) {
-                if (!TypeConverterRegistry.getInstance()
+                if (!ConverterRegistry.getInstance()
                         .isValidCollectionType(fieldInfo.getCollectionClass())) {
                     throw new ValidateException(
                             "Collection type only support java.util.List, java.util.ArrayList, java.util.Set or java.util.HashSet");
@@ -123,7 +122,7 @@ public class ExtractorValidator {
                 }
 
             } else {
-                if (!TypeConverterRegistry.getInstance().isSupportType(componentType)) {
+                if (!ConverterRegistry.getInstance().isSupportType(componentType)) {
                     throw new ValidateException("No type handler found for type " + componentType);
                 }
             }

@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-public class XpathFieldSelector extends CacheableFieldSelector<Node> {
+public class XpathSelector extends CacheableSelector<Node> {
 
     private static final String TAG_TD = "td";
 
@@ -36,7 +36,7 @@ public class XpathFieldSelector extends CacheableFieldSelector<Node> {
 
     private final DomSerializer serializer;
 
-    public XpathFieldSelector() {
+    public XpathSelector() {
         CleanerProperties properties = new CleanerProperties();
         this.cleaner = new HtmlCleaner(properties);
         this.serializer = new DomSerializer(new CleanerProperties(), false, false, false);

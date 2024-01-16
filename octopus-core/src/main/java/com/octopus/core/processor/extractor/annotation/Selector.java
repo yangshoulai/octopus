@@ -103,6 +103,11 @@ public @interface Selector {
          * Xpath
          */
         Xpath,
+
+        /**
+         * Value
+         */
+        Value,
         /**
          * None
          */

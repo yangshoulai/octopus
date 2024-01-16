@@ -21,12 +21,6 @@ public class PropProperties implements Validatable {
      */
     private String name;
 
-    /**
-     * 属性值
-     * <p>
-     * 默认 空
-     */
-    private String value;
 
     /**
      * 属性值来源提取器的字段名

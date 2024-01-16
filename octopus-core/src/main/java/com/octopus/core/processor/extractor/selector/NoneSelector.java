@@ -11,7 +11,7 @@ import java.util.List;
  * @author shoulai.yang@gmail.com
  * @date 2023/4/4
  */
-public class NoneFieldSelector extends AbstractFieldSelector {
+public class NoneSelector extends AbstractSelector {
 
     @Override
     protected List<String> doMultiSelect(String source, SelectorProperties selector, Response response)

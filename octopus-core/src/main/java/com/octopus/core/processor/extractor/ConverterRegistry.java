@@ -1,8 +1,9 @@
-package com.octopus.core.processor.extractor.convert;
+package com.octopus.core.processor.extractor;
 
 import com.octopus.core.configurable.FieldExtProperties;
 import com.octopus.core.configurable.FieldType;
 import com.octopus.core.processor.extractor.annotation.FieldExt;
+import com.octopus.core.processor.extractor.converter.*;
 import lombok.NonNull;
 
 import java.util.*;
@@ -11,11 +12,11 @@ import java.util.*;
  * @author shoulai.yang@gmail.com
  * @date 2023/3/28
  */
-public class TypeConverterRegistry {
+public class ConverterRegistry {
     private static final Map<Class<?>, Class<?>> COLLECTION_CLASS_MAPPING = new HashMap<>();
-    private static final Map<FieldType, TypeConverter<?>> HANDLERS = new HashMap<>();
+    private static final Map<FieldType, Converter<?>> HANDLERS = new HashMap<>();
 
-    private TypeConverterRegistry() {
+    private ConverterRegistry() {
         registerCollection(Collection.class, ArrayList.class);
         registerCollection(List.class, ArrayList.class);
         registerCollection(ArrayList.class, ArrayList.class);
@@ -23,31 +24,31 @@ public class TypeConverterRegistry {
         registerCollection(HashSet.class, HashSet.class);
         registerCollection(LinkedList.class, LinkedList.class);
 
-        registerHandler(FieldType.BigDecimal, new BigDecimalTypeConverter());
-        registerHandler(FieldType.Integer, new IntegerTypeConverter());
-        registerHandler(FieldType.Long, new LongTypeConverter());
-        registerHandler(FieldType.Boolean, new BooleanTypeConverter());
-        registerHandler(FieldType.Double, new DoubleTypeConverter());
-        registerHandler(FieldType.Float, new FloatTypeConverter());
-        registerHandler(FieldType.BigDecimal, new BooleanTypeConverter());
-        registerHandler(FieldType.Character, new CharacterTypeConverter());
-        registerHandler(FieldType.String, new CharSequenceTypeConverter());
-        registerHandler(FieldType.CharSequence, new CharSequenceTypeConverter());
-        registerHandler(FieldType.Date, new DateTypeConverter());
-        registerHandler(FieldType.ByteArray, new ByteArrayTypeConverter());
+        registerHandler(FieldType.BigDecimal, new BigDecimalConverter());
+        registerHandler(FieldType.Integer, new IntegerConverter());
+        registerHandler(FieldType.Long, new LongConverter());
+        registerHandler(FieldType.Boolean, new BooleanConverter());
+        registerHandler(FieldType.Double, new DoubleConverter());
+        registerHandler(FieldType.Float, new FloatConverter());
+        registerHandler(FieldType.BigDecimal, new BooleanConverter());
+        registerHandler(FieldType.Character, new CharacterConverter());
+        registerHandler(FieldType.String, new CharSequenceConverter());
+        registerHandler(FieldType.CharSequence, new CharSequenceConverter());
+        registerHandler(FieldType.Date, new DateConverter());
+        registerHandler(FieldType.ByteArray, new ByteArrayConverter());
     }
 
-    public static TypeConverterRegistry getInstance() {
+    public static ConverterRegistry getInstance() {
         return Holder.INSTANCE;
     }
 
 
-    public TypeConverter<?> getTypeHandler(FieldType type) {
+    public Converter<?> getTypeHandler(FieldType type) {
         return HANDLERS.get(type);
     }
 
     public FieldType getFieldType(Class<?> type) {
-        for (Map.Entry<FieldType, TypeConverter<?>> entry : HANDLERS.entrySet()) {
+        for (Map.Entry<FieldType, Converter<?>> entry : HANDLERS.entrySet()) {
             if (entry.getKey().isSupport(type)) {
                 return entry.getKey();
             }
@@ -61,7 +62,7 @@ public class TypeConverterRegistry {
     }
 
     public Object convert(String source, Class<?> type, FieldExt ext) {
-        for (Map.Entry<FieldType, TypeConverter<?>> entry : HANDLERS.entrySet()) {
+        for (Map.Entry<FieldType, Converter<?>> entry : HANDLERS.entrySet()) {
             if (entry.getKey().isSupport(type)) {
                 FieldExtProperties fieldExtProperties = new FieldExtProperties();
                 if (ext != null) {
@@ -77,7 +78,7 @@ public class TypeConverterRegistry {
     }
 
 
-    public void registerHandler(@NonNull FieldType type, @NonNull TypeConverter<?> handler) {
+    public void registerHandler(@NonNull FieldType type, @NonNull Converter<?> handler) {
         HANDLERS.put(type, handler);
     }
 
@@ -117,6 +118,6 @@ public class TypeConverterRegistry {
     }
 
     private static class Holder {
-        public static final TypeConverterRegistry INSTANCE = new TypeConverterRegistry();
+        public static final ConverterRegistry INSTANCE = new ConverterRegistry();
     }
 }

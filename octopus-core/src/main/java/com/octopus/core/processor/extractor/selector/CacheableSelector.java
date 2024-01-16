@@ -12,11 +12,11 @@ import java.util.List;
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
-public abstract class CacheableFieldSelector<T> extends AbstractFieldSelector {
+public abstract class CacheableSelector<T> extends AbstractSelector {
 
     private final LRUCache<String, T> cache;
 
-    public CacheableFieldSelector() {
+    public CacheableSelector() {
         this.cache = new LRUCache<>(16);
     }
 

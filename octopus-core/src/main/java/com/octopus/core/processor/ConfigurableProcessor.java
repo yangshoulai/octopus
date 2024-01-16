@@ -1,22 +1,13 @@
 package com.octopus.core.processor;
 
-import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.net.url.UrlQuery;
-import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.core.util.URLUtil;
-import cn.hutool.http.HttpUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.configurable.*;
-import com.octopus.core.processor.extractor.Collector;
-import com.octopus.core.processor.extractor.Result;
-import com.octopus.core.processor.extractor.convert.TypeConverter;
-import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
-import com.octopus.core.processor.extractor.selector.FieldSelector;
-import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
+import com.octopus.core.processor.extractor.*;
 import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.utils.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
@@ -76,13 +67,12 @@ public class ConfigurableProcessor extends MatchableProcessor {
     }
 
     private void processField(Result<Map<String, Object>> result, FieldProperties field, String content, Response response) {
-        FieldSelector selector = FieldSelectorRegistry.getInstance().getSelectorHandler(field.getSelector().getType());
-        List<String> selected = selector.select(content, field.isMulti(), field.getSelector(), response);
+        List<String> selected = SelectorRegistry.getInstance().select(field.getSelector(), content, field.isMulti(), response);
         List<Object> list = new ArrayList<>();
         if (selected != null && !selected.isEmpty()) {
             for (String item : selected) {
                 if (field.getExtractor() == null) {
-                    TypeConverter<?> converter = TypeConverterRegistry.getInstance().getTypeHandler(field.getType());
+                    Converter<?> converter = ConverterRegistry.getInstance().getTypeHandler(field.getType());
                     Object obj = converter.convert(item, field.getExt() == null ? new FieldExtProperties() : field.getExt());
                     list.add(obj);
                 } else {
@@ -106,16 +96,14 @@ public class ConfigurableProcessor extends MatchableProcessor {
         if (StrUtil.isNotBlank(link.getUrl())) {
             urls.add(link.getUrl());
         }
-        FieldSelector selector =
-                FieldSelectorRegistry.getInstance().getSelectorHandler(link.getSelector().getType());
-        List<String> selected = selector.select(content, true, link.getSelector(), response);
+        List<String> selected = SelectorRegistry.getInstance().select(link.getSelector(), content, true, response);
         if (selected != null) {
             urls.addAll(selected);
         }
         for (String url : urls) {
             if (StrUtil.isNotBlank(url)) {
                 Request request =
-                        new Request(completeUrl(response.getRequest().getUrl(), url), link.getMethod())
+                        new Request(RequestHelper.completeUrl(response.getRequest().getUrl(), url), link.getMethod())
                                 .setPriority(link.getPriority())
                                 .setRepeatable(link.isRepeatable());
                 link.getHeaders()
@@ -136,25 +124,14 @@ public class ConfigurableProcessor extends MatchableProcessor {
             val = m.get(prop.getField()).toString();
         }
         if (StrUtil.isBlank(val) && prop.getSelector() != null) {
-            List<String> selected = FieldSelectorRegistry.getInstance().getSelectorHandler(prop.getSelector().getType()).select(content, true, prop.getSelector(), response);
+            List<String> selected = SelectorRegistry.getInstance().select(prop.getSelector(), content, true, response);
             if (selected != null) {
                 val = String.join(",", selected);
             }
         }
-        return StrUtil.isBlank(val) ? prop.getValue() : val;
+        return val;
     }
 
-    private String completeUrl(String currentUrl, String url) {
-        if (!HttpUtil.isHttp(url) && !HttpUtil.isHttps(url)) {
-            if (url.startsWith("/")) {
-                return URLUtil.completeUrl(currentUrl, url);
-            } else {
-                url =
-                        UrlBuilder.of(currentUrl).setQuery(UrlQuery.of(url, CharsetUtil.CHARSET_UTF_8)).build();
-            }
-        }
-        return url;
-    }
 
     public static Processor fromYaml(InputStream inputStream) {
         return ProcessorProperties.fromYaml(inputStream).transform();

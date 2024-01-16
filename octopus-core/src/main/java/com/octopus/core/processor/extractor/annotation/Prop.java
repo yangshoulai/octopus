@@ -16,8 +16,6 @@ public @interface Prop {
 
     String name() default "";
 
-    String value() default "";
-
     String field() default "";
 
     Selector selector() default @Selector(type = Selector.Type.None);

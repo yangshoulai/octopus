@@ -1,9 +1,10 @@
-package com.octopus.core.processor.extractor.convert;
+package com.octopus.core.processor.extractor.converter;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.configurable.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
+import com.octopus.core.processor.extractor.Converter;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -13,7 +14,7 @@ import java.util.TimeZone;
  * @author shoulai.yang@gmail.com
  * @date 2023/3/28
  */
-public class DateTypeConverter implements TypeConverter<Date> {
+public class DateConverter implements Converter<Date> {
 
 
     @Override

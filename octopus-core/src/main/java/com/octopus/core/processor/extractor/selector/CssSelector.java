@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CssFieldSelector extends CacheableFieldSelector<Document> {
+public class CssSelector extends CacheableSelector<Document> {
 
     @Override
     public List<String> doSelectWithDoc(
