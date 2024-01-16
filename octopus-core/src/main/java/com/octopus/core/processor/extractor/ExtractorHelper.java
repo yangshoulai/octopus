@@ -2,6 +2,7 @@ package com.octopus.core.processor.extractor;
 
 import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.core.util.TypeUtil;
+import com.octopus.core.processor.FieldInfo;
 import com.octopus.core.utils.AnnotationUtil;
 
 import java.lang.annotation.Annotation;

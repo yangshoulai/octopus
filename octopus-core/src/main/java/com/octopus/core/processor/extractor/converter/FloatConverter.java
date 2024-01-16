@@ -11,7 +11,6 @@ import com.octopus.core.processor.extractor.Converter;
  * @date 2023/3/28
  */
 public class FloatConverter implements Converter<Float> {
-
     @Override
     public Float convert(String source, FieldExtProperties ext) {
         try {

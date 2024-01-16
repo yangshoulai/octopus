@@ -51,7 +51,6 @@ import org.apache.http.util.EntityUtils;
  * @date 2021/11/22
  */
 public class HttpClientDownloader extends AbstractDownloader {
-
     private HttpClient httpClient;
 
     public HttpClientDownloader() {

@@ -11,7 +11,6 @@ import java.util.List;
  * @date 2021/11/25
  */
 public class HeaderSelector extends AbstractSelector {
-
     @Override
     public List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {
         String result = response.getHeaders().get(selector.getValue());

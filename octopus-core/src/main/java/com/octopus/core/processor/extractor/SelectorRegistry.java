@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 选择器注册器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
 public class SelectorRegistry {
-
-
     private final Map<com.octopus.core.processor.extractor.annotation.Selector.Type, Selector> handlers = new HashMap<>();
 
     private SelectorRegistry() {

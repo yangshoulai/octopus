@@ -12,8 +12,6 @@ import java.math.BigDecimal;
  * @date 2023/4/27
  */
 public class BigDecimalConverter implements Converter<BigDecimal> {
-
-
     @Override
     public BigDecimal convert(String source, FieldExtProperties ext) {
         if (StrUtil.isNotEmpty(source)) {

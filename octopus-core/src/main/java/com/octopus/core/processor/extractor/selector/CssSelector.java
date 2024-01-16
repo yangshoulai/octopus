@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class CssSelector extends CacheableSelector<Document> {
-
     @Override
     public List<String> doSelectWithDoc(
             Document document, SelectorProperties selector, boolean multi, Response response) {

@@ -1,4 +1,4 @@
-package com.octopus.core.processor.extractor;
+package com.octopus.core.processor;
 
 import lombok.Data;
 
@@ -16,6 +16,5 @@ public class FieldInfo {
   private Class<?> collectionClass;
 
   private Class<?> componentClass;
-
 
 }

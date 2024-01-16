@@ -25,7 +25,6 @@ import java.util.regex.Pattern;
  * @date 2021/11/25
  */
 public class XpathSelector extends CacheableSelector<Node> {
-
     private static final String TAG_TD = "td";
 
     private static final String TAG_TR = "tr";

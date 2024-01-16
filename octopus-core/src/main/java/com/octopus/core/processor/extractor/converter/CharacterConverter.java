@@ -9,7 +9,6 @@ import com.octopus.core.processor.extractor.Converter;
  * @date 2023/3/28
  */
 public class CharacterConverter implements Converter<Character> {
-
     @Override
     public Character convert(String source, FieldExtProperties ext) {
         return StrUtil.isBlank(source) ? null : source.charAt(0);

@@ -17,7 +17,6 @@ import java.util.Map;
  * @date 2021/11/27
  */
 public class JsonSelector extends CacheableSelector<String> {
-
     private static final Configuration CONFIGURATION =
             Configuration.builder()
                     .options(Option.ALWAYS_RETURN_LIST)

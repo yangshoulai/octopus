@@ -3,6 +3,8 @@ package com.octopus.core.processor.extractor;
 import com.octopus.core.Response;
 
 /**
+ * 收集器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2021/12/27
  */

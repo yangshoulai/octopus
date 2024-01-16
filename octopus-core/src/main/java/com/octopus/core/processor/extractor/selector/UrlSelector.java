@@ -12,7 +12,6 @@ import java.util.List;
  * @date 2021/11/25
  */
 public class UrlSelector extends AbstractSelector {
-
     @Override
     public List<String> doMultiSelect(String content, SelectorProperties selector, Response response)
             throws SelectException {

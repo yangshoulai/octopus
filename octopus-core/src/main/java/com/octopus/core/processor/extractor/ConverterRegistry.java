@@ -9,6 +9,8 @@ import lombok.NonNull;
 import java.util.*;
 
 /**
+ * 类型转换注册器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2023/3/28
  */

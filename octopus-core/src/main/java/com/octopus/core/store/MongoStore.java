@@ -21,15 +21,21 @@ import java.util.List;
 import java.util.Objects;
 
 /**
+ * Mongo 存储器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2021/12/8
  */
 public class MongoStore implements Store {
 
-    private static String DEFAULT_DATABASE = "octopus";
-    public static String DEFAULT_COLLECTION = "request";
+    private static final String DEFAULT_DATABASE = "octopus";
+    private static final String DEFAULT_COLLECTION = "request";
 
-    public static String DEFAULT_URI = "mongodb://127.0.0.1:27017/";
+    private static final String DEFAULT_URI = "mongodb://127.0.0.1:27017/";
+
+    private static final String INDEX_PRIORITY_NAME = "idx_priority";
+
+    private static final String INDEX_STATE_NAME = "idx_status_state";
 
     private final MongoClient mongoClient;
 
@@ -203,12 +209,12 @@ public class MongoStore implements Store {
         for (Document index : this.requests.listIndexes()) {
             indexNames.add(index.getString("name"));
         }
-        if (!indexNames.contains("idx_priority")) {
-            requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name("idx_priority"));
+        if (!indexNames.contains(INDEX_PRIORITY_NAME)) {
+            requests.createIndex(Indexes.ascending("priority"), new IndexOptions().name(INDEX_PRIORITY_NAME));
         }
-        if (!indexNames.contains("idx_status_state")) {
+        if (!indexNames.contains(INDEX_STATE_NAME)) {
             requests.createIndex(
-                    Indexes.ascending("status.state"), new IndexOptions().name("idx_status_state"));
+                    Indexes.ascending("status.state"), new IndexOptions().name(INDEX_STATE_NAME));
         }
     }
 }

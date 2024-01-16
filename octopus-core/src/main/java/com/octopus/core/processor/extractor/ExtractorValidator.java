@@ -5,6 +5,7 @@ import com.octopus.core.Request;
 import com.octopus.core.Response;
 import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.processor.FieldInfo;
 import com.octopus.core.processor.extractor.annotation.Extractor;
 import com.octopus.core.processor.extractor.annotation.Link;
 import com.octopus.core.processor.extractor.annotation.LinkMethod;

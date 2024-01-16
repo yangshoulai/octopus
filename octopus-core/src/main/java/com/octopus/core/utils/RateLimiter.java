@@ -7,6 +7,7 @@ import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
@@ -34,6 +35,7 @@ public class RateLimiter {
 
     private ScheduledExecutorService scheduler;
 
+    @Getter
     private String name;
 
     public RateLimiter(int max, int period, TimeUnit unit) {
@@ -100,7 +102,4 @@ public class RateLimiter {
         return new RateLimiter(max, period, unit);
     }
 
-    public String getName() {
-        return name;
-    }
 }

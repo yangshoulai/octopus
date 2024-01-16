@@ -13,7 +13,6 @@ import java.util.regex.Pattern;
  * @date 2021/11/30
  */
 public class RegexSelector extends CacheableSelector<String> {
-
     @Override
     protected List<String> doSelectWithDoc(
             String content, SelectorProperties selector, boolean multi, Response response) {

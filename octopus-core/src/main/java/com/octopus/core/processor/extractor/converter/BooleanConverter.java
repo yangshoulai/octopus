@@ -14,7 +14,6 @@ import java.util.stream.Collectors;
  * @date 2023/3/28
  */
 public class BooleanConverter implements Converter<Boolean> {
-
     private static final List<String> FALSE_VALUES =
             ListUtil.toList("", "0", "非", "否", "off", "no", "f", "false");
 

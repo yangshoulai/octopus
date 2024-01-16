@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
  * @date 2024/01/12
  */
 public abstract class AbstractSelector implements Selector {
-
     @Override
     public List<String> select(String source, boolean multi, SelectorProperties selector, Response response) throws SelectException {
         try {

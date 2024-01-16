@@ -19,10 +19,14 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 /**
+ * Redis 存储器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2021/11/23
  */
 public class RedisStore implements Store {
+
+    public static final int BATCH_SIZE = 100;
 
     private final JedisPool pool;
 
@@ -75,10 +79,6 @@ public class RedisStore implements Store {
 
     public RedisStore(@NonNull JedisPool pool) {
         this("octopus", pool);
-    }
-
-    public RedisStore(@NonNull String host, int port) {
-        this(new JedisPool(host, port));
     }
 
     public RedisStore() {
@@ -224,7 +224,7 @@ public class RedisStore implements Store {
                     }
                 }
             } while (cursor > 0);
-            for (List<String> list : ListUtil.split(keys, 100)) {
+            for (List<String> list : ListUtil.split(keys, BATCH_SIZE)) {
                 jedis.hdel(this.failedKey, list.toArray(new String[0]));
             }
             return keys.size();

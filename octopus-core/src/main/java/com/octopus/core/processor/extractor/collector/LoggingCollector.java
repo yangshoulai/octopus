@@ -13,7 +13,6 @@ import lombok.Setter;
  * @date 2024/01/14
  */
 public class LoggingCollector<R> implements Collector<R> {
-
     private final Logger logger = LoggerFactory.getLogger(LoggingCollector.class);
 
     @Getter

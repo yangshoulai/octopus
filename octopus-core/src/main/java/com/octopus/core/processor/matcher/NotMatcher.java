@@ -4,19 +4,21 @@ import com.octopus.core.Response;
 import lombok.NonNull;
 
 /**
+ * 逻辑非匹配器
+ *
  * @author shoulai.yang@gmail.com
  * @date 2021/12/18
  */
 public class NotMatcher implements Matcher {
 
-  private final Matcher matcher;
+    private final Matcher matcher;
 
-  public NotMatcher(@NonNull Matcher matcher) {
-    this.matcher = matcher;
-  }
+    public NotMatcher(@NonNull Matcher matcher) {
+        this.matcher = matcher;
+    }
 
-  @Override
-  public boolean matches(Response response) {
-    return !matcher.matches(response);
-  }
+    @Override
+    public boolean matches(Response response) {
+        return !matcher.matches(response);
+    }
 }

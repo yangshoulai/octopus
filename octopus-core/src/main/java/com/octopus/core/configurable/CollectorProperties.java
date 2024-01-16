@@ -65,8 +65,10 @@ public class CollectorProperties implements Validatable, Transformable<Collector
             throw new ValidateException("collector target is required");
         }
 
-        if (dirs == null || dirs.length == 0) {
-            throw new ValidateException("collector directory selectors is required");
+        if (type == CollectorType.Download) {
+            if (dirs == null || dirs.length == 0) {
+                throw new ValidateException("collector directory selectors is required");
+            }
         }
         for (SelectorProperties dir : dirs) {
             dir.validate();

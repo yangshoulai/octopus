@@ -12,7 +12,6 @@ import java.util.List;
  * @date 2021/11/25
  */
 public class ParamSelector extends AbstractSelector {
-
     @Override
     public List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {
         String result = response.getRequest().getParams().get(selector.getValue());

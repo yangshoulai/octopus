@@ -8,12 +8,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import lombok.Data;
+import lombok.Getter;
 import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/19
  */
+@Getter
 public class Request implements Serializable, Comparable<Request> {
 
     private String id;
@@ -68,17 +70,9 @@ public class Request implements Serializable, Comparable<Request> {
         return new Request(url, RequestMethod.POST);
     }
 
-    public String getUrl() {
-        return url;
-    }
-
     public Request setUrl(@NonNull String url) {
         this.url = url;
         return this;
-    }
-
-    public RequestMethod getMethod() {
-        return method;
     }
 
     public Request setMethod(@NonNull RequestMethod method) {
@@ -86,17 +80,9 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    public String getId() {
-        return id;
-    }
-
     public Request setId(@NonNull String id) {
         this.id = id;
         return this;
-    }
-
-    public byte[] getBody() {
-        return body;
     }
 
     public Request setBody(byte[] body) {
@@ -114,17 +100,9 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
-
     public Request setHeaders(@NonNull Map<String, String> headers) {
         this.headers = headers;
         return this;
-    }
-
-    public Map<String, String> getParams() {
-        return params;
     }
 
     public Request setParams(@NonNull Map<String, String> params) {
@@ -142,26 +120,14 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    public int getPriority() {
-        return priority;
-    }
-
     public Request setPriority(int priority) {
         this.priority = priority;
         return this;
     }
 
-    public boolean isRepeatable() {
-        return repeatable;
-    }
-
     public Request setRepeatable(boolean repeatable) {
         this.repeatable = repeatable;
         return this;
-    }
-
-    public Map<String, Object> getAttributes() {
-        return attributes;
     }
 
     public void setAttributes(@NonNull Map<String, Object> attributes) {
@@ -188,17 +154,9 @@ public class Request implements Serializable, Comparable<Request> {
         return value == null ? defaultValue : value;
     }
 
-    public String getParent() {
-        return parent;
-    }
-
     public Request setParent(@NonNull String parent) {
         this.parent = parent;
         return this;
-    }
-
-    public boolean isInherit() {
-        return inherit;
     }
 
     public Request setInherit(boolean inherit) {
@@ -206,21 +164,14 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    public Status getStatus() {
-        return status;
-    }
-
     public Request setStatus(Status status) {
         this.status = status;
         return this;
     }
 
-    public int getFailTimes() {
-        return failTimes;
-    }
-
-    public void setFailTimes(int failTimes) {
+    public Request setFailTimes(int failTimes) {
         this.failTimes = failTimes;
+        return this;
     }
 
     @Override
@@ -254,6 +205,7 @@ public class Request implements Serializable, Comparable<Request> {
         return String.format("%s", builder.build());
     }
 
+    @Getter
     public enum RequestMethod {
         /**
          * GET
@@ -270,9 +222,6 @@ public class Request implements Serializable, Comparable<Request> {
             this.name = name;
         }
 
-        public String getName() {
-            return name;
-        }
     }
 
     public enum State {
@@ -294,7 +243,7 @@ public class Request implements Serializable, Comparable<Request> {
         Completed
     }
 
-    @Data
+    @Getter
     public static class Status {
 
         private State state;
@@ -321,12 +270,5 @@ public class Request implements Serializable, Comparable<Request> {
             return new Status(state);
         }
 
-        public State getState() {
-            return state;
-        }
-
-        public String getMessage() {
-            return message;
-        }
     }
 }

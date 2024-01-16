@@ -11,7 +11,6 @@ import com.octopus.core.processor.extractor.Converter;
  * @date 2023/3/28
  */
 public class DoubleConverter implements Converter<Double> {
-
     @Override
     public Double convert(String source, FieldExtProperties ext) {
         try {

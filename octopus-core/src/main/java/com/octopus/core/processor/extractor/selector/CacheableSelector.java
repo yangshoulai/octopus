@@ -13,9 +13,7 @@ import java.util.List;
  * @date 2024/01/12
  */
 public abstract class CacheableSelector<T> extends AbstractSelector {
-
     private final LRUCache<String, T> cache;
-
     public CacheableSelector() {
         this.cache = new LRUCache<>(16);
     }
