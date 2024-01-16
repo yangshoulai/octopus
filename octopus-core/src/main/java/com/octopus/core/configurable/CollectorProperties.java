@@ -1,6 +1,5 @@
 package com.octopus.core.configurable;
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.extractor.Collector;
 import com.octopus.core.processor.extractor.collector.DownloadCollector;
@@ -8,7 +7,6 @@ import com.octopus.core.processor.extractor.collector.LoggingCollector;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import lombok.Data;
-import lombok.NonNull;
 
 import java.util.Map;
 
@@ -21,10 +19,6 @@ import java.util.Map;
 @Data
 public class CollectorProperties implements Validatable, Transformable<Collector<Map<String, Object>>> {
 
-    public static final String DEFAULT_FILE_DIR_PROP = "_file_dir";
-
-    public static final String DEFAULT_FILE_NAME_PROP = "_file_name";
-
     /**
      * 收集器类型
      * <p>
@@ -33,40 +27,26 @@ public class CollectorProperties implements Validatable, Transformable<Collector
     private CollectorType type = CollectorType.Logging;
 
     /**
-     * 是否搜集结果（
-     * true 为收集结果 false 为收集响应体
+     * 搜集对象
      * <p>
-     * 默认 true
+     * 默认 Result
      */
-    private boolean collectResult = true;
+    private CollectorTarget target = CollectorTarget.Result;
 
     /**
-     * 下载搜集器 下载目录
+     * 下载搜集器 下载分类目录属性名列表
      * <p>
      * 默认 空
      */
-    private String downloadDir;
-
-    /**
-     * 下载搜集器 下载分类目录属性名
-     * <p>
-     * 默认 _file_dir
-     */
-    private String downloadFileDirProp = DEFAULT_FILE_DIR_PROP;
+    private SelectorProperties[] dirs = new SelectorProperties[]{};
 
     /**
      * 下载搜集器 下载文件属性名
      * <p>
-     * 默认 _file_name
+     * 默认 空
      */
-    private String downloadFileNameProp = DEFAULT_FILE_NAME_PROP;
+    private SelectorProperties name;
 
-    /**
-     * 下载收集器 使用请求id作为文件名
-     * <p>
-     * 默认 false
-     */
-    private boolean downloadUseRequestIdAsFileName = false;
 
     public CollectorProperties() {
     }
@@ -78,13 +58,21 @@ public class CollectorProperties implements Validatable, Transformable<Collector
     @Override
     public void validate() throws ValidateException {
         if (type == null) {
-            throw new ValidateException("collector type is null");
+            throw new ValidateException("collector type is required");
         }
 
-        if (type == CollectorType.Download) {
-            if (StrUtil.isBlank(downloadDir)) {
-                throw new ValidateException("download collector dir is null");
-            }
+        if (target == null) {
+            throw new ValidateException("collector target is required");
+        }
+
+        if (dirs == null || dirs.length == 0) {
+            throw new ValidateException("collector directory selectors is required");
+        }
+        for (SelectorProperties dir : dirs) {
+            dir.validate();
+        }
+        if (name != null) {
+            name.validate();
         }
     }
 
@@ -92,11 +80,9 @@ public class CollectorProperties implements Validatable, Transformable<Collector
     public Collector<Map<String, Object>> transform() {
         switch (type) {
             case Logging:
-                return new LoggingCollector<>(collectResult);
+                return new LoggingCollector<>(target == CollectorTarget.Result);
             case Download:
-                DownloadCollector<Map<String, Object>> collector = new DownloadCollector<>(downloadDir, downloadFileDirProp, downloadFileNameProp, collectResult);
-                collector.setUseRequestIdAsFileName(downloadUseRequestIdAsFileName);
-                return collector;
+                return new DownloadCollector<>(dirs, name, target == CollectorTarget.Result);
             default:
                 return null;
         }

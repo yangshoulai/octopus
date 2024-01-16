@@ -5,13 +5,20 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
+import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.extractor.Collector;
+import com.octopus.core.processor.extractor.SelectorRegistry;
+import com.octopus.core.processor.extractor.annotation.Selector;
 import lombok.Data;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -22,54 +29,49 @@ public class DownloadCollector<R> implements Collector<R> {
 
     private boolean downloadResult = true;
 
-    private String dir;
+    private SelectorProperties[] dirSelectors;
 
-    private String fileDirPropName;
+    private SelectorProperties nameSelector;
 
-    private String fileNameProdName;
-
-    private boolean useRequestIdAsFileName;
-
-    public DownloadCollector(String dir) {
-        this(dir, null, null);
+    public DownloadCollector() {
+        this(null, null);
     }
 
-    public DownloadCollector(String dir, String fileDirPropName, String fileNameProdName) {
-        this(dir, fileDirPropName, fileNameProdName, true);
+    public DownloadCollector(SelectorProperties[] dirSelectors, SelectorProperties nameSelector) {
+        this(dirSelectors, nameSelector, true);
     }
 
-    public DownloadCollector(String dir, String fileDirPropName, String fileNameProdName, boolean downloadResult) {
-        this.dir = dir;
-        this.fileDirPropName = fileDirPropName;
-        this.fileNameProdName = fileNameProdName;
+    public DownloadCollector(SelectorProperties[] dirSelectors, SelectorProperties nameSelector, boolean downloadResult) {
+        this.dirSelectors = dirSelectors;
+        this.nameSelector = nameSelector;
         this.downloadResult = downloadResult;
+
+        if (this.nameSelector == null) {
+            this.nameSelector = new SelectorProperties(Selector.Type.Url);
+            this.nameSelector.getFormatter().setRegex("^.*/([^/\\?]+)[^/]*$");
+            this.nameSelector.getFormatter().setGroups(new int[]{1});
+        }
     }
 
     @Override
     public void collect(R result, Response response) {
-        String fileDir = null;
+        String fileDir = getFileSubDir(response);
         String fileName = null;
-        if (StrUtil.isNotBlank(fileDirPropName)) {
-            fileDir = response.getRequest().getAttribute(fileDirPropName);
-        }
-        if (StrUtil.isNotBlank(fileNameProdName)) {
-            fileName = response.getRequest().getAttribute(fileNameProdName);
-        }
 
+        if (nameSelector != null) {
+            List<String> selected = SelectorRegistry.getInstance().select(nameSelector, response.asText(), false, response);
+            if (selected != null && !selected.isEmpty()) {
+                fileName = selected.get(0);
+            }
+        }
         if (StrUtil.isBlank(fileName)) {
             fileName = getFileNameFromDisposition(response.getHeaders());
         }
-        if (this.useRequestIdAsFileName) {
+        if (StrUtil.isBlank(fileName)) {
             fileName = response.getRequest().getId();
-        } else {
-            if (StrUtil.isBlank(fileName)) {
-                fileName = FileUtil.getName(response.getRequest().getUrl());
-            }
         }
-        File targetDir = new File(dir);
-        if (StrUtil.isNotBlank(fileDir)) {
-            targetDir = new File(dir, fileDir);
-        }
+
+        File targetDir = new File(fileDir);
         File targetFile = new File(targetDir, fileName);
 
         byte[] bytes = null;
@@ -87,6 +89,15 @@ public class DownloadCollector<R> implements Collector<R> {
                         String.format("Can not save file [%s]", targetFile), e);
             }
         }
+    }
+
+    public String getFileSubDir(Response response) {
+        if (dirSelectors != null && dirSelectors.length > 0) {
+            return Arrays.stream(dirSelectors).filter(Objects::nonNull).flatMap(selector ->
+                            SelectorRegistry.getInstance().select(selector, response.asText(), false, response).stream())
+                    .filter(StrUtil::isNotBlank).collect(Collectors.joining(File.separator));
+        }
+        return null;
     }
 
     /**
