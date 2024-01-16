@@ -47,6 +47,11 @@ public class CollectorProperties implements Validatable, Transformable<Collector
      */
     private SelectorProperties name;
 
+    /**
+     * 是否美化文本内容
+     */
+    private boolean pretty = true;
+
 
     public CollectorProperties() {
     }
@@ -82,9 +87,9 @@ public class CollectorProperties implements Validatable, Transformable<Collector
     public Collector<Map<String, Object>> transform() {
         switch (type) {
             case Logging:
-                return new LoggingCollector<>(target == CollectorTarget.Result);
+                return new LoggingCollector<>(this);
             case Download:
-                return new DownloadCollector<>(dirs, name, target == CollectorTarget.Result);
+                return new DownloadCollector<>(this);
             default:
                 return null;
         }

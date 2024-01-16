@@ -5,6 +5,8 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
+import com.octopus.core.configurable.CollectorProperties;
+import com.octopus.core.configurable.CollectorTarget;
 import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.extractor.Collector;
@@ -27,37 +29,24 @@ import java.util.stream.Collectors;
 @Data
 public class DownloadCollector<R> implements Collector<R> {
 
-    private boolean downloadResult = true;
+    private static SelectorProperties DEFAULT_NAME_SELECTOR = new SelectorProperties(Selector.Type.Url);
 
-    private SelectorProperties[] dirSelectors;
-
-    private SelectorProperties nameSelector;
-
-    public DownloadCollector() {
-        this(null, null);
+    static {
+        DEFAULT_NAME_SELECTOR.getFormatter().setRegex("^.*/([^/\\?]+)[^/]*$");
+        DEFAULT_NAME_SELECTOR.getFormatter().setGroups(new int[]{1});
     }
 
-    public DownloadCollector(SelectorProperties[] dirSelectors, SelectorProperties nameSelector) {
-        this(dirSelectors, nameSelector, true);
-    }
+    private final CollectorProperties properties;
 
-    public DownloadCollector(SelectorProperties[] dirSelectors, SelectorProperties nameSelector, boolean downloadResult) {
-        this.dirSelectors = dirSelectors;
-        this.nameSelector = nameSelector;
-        this.downloadResult = downloadResult;
-
-        if (this.nameSelector == null) {
-            this.nameSelector = new SelectorProperties(Selector.Type.Url);
-            this.nameSelector.getFormatter().setRegex("^.*/([^/\\?]+)[^/]*$");
-            this.nameSelector.getFormatter().setGroups(new int[]{1});
-        }
+    public DownloadCollector(CollectorProperties properties) {
+        this.properties = properties;
     }
 
     @Override
     public void collect(R result, Response response) {
         String fileDir = getFileSubDir(response);
         String fileName = null;
-
+        SelectorProperties nameSelector = this.properties.getName() == null ? DEFAULT_NAME_SELECTOR : this.properties.getName();
         if (nameSelector != null) {
             List<String> selected = SelectorRegistry.getInstance().select(nameSelector, response.asText(), false, response);
             if (selected != null && !selected.isEmpty()) {
@@ -75,9 +64,13 @@ public class DownloadCollector<R> implements Collector<R> {
         File targetFile = new File(targetDir, fileName);
 
         byte[] bytes = null;
-        if (downloadResult && result != null) {
-            bytes = JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8);
-        } else if (!downloadResult) {
+        if (this.properties.getTarget() == CollectorTarget.Result && result != null) {
+            if (this.properties.isPretty()) {
+                bytes = JSONUtil.toJsonPrettyStr(result).getBytes(StandardCharsets.UTF_8);
+            } else {
+                bytes = JSONUtil.toJsonStr(result).getBytes(StandardCharsets.UTF_8);
+            }
+        } else if (this.properties.getTarget() == CollectorTarget.Body) {
             bytes = response.getBody();
         }
 
@@ -92,8 +85,8 @@ public class DownloadCollector<R> implements Collector<R> {
     }
 
     public String getFileSubDir(Response response) {
-        if (dirSelectors != null && dirSelectors.length > 0) {
-            return Arrays.stream(dirSelectors).filter(Objects::nonNull).flatMap(selector ->
+        if (this.properties.getDirs() != null && this.properties.getDirs().length > 0) {
+            return Arrays.stream(this.properties.getDirs()).filter(Objects::nonNull).flatMap(selector ->
                             SelectorRegistry.getInstance().select(selector, response.asText(), false, response).stream())
                     .filter(StrUtil::isNotBlank).collect(Collectors.joining(File.separator));
         }

@@ -2,11 +2,11 @@ package com.octopus.core.processor.extractor.collector;
 
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
+import com.octopus.core.configurable.CollectorProperties;
+import com.octopus.core.configurable.CollectorTarget;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.extractor.Collector;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -15,23 +15,23 @@ import lombok.Setter;
 public class LoggingCollector<R> implements Collector<R> {
     private final Logger logger = LoggerFactory.getLogger(LoggingCollector.class);
 
-    @Getter
-    @Setter
-    private boolean logResult = true;
+    private final CollectorProperties properties;
 
-    public LoggingCollector() {
+    public LoggingCollector(CollectorProperties properties) {
+        this.properties = properties;
     }
 
-    public LoggingCollector(boolean logResult) {
-        this.logResult = logResult;
-    }
 
     @Override
     public void collect(R result, Response response) {
-        if (!logResult) {
+        if (properties.getTarget() == CollectorTarget.Body) {
             logger.info(response.asText());
         } else {
-            logger.info(JSONUtil.toJsonStr(result));
+            if (this.properties.isPretty()) {
+                logger.info(JSONUtil.toJsonPrettyStr(result));
+            } else {
+                logger.info(JSONUtil.toJsonStr(result));
+            }
         }
     }
 
