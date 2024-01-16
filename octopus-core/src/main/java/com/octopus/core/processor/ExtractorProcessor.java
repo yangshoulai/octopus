@@ -10,10 +10,10 @@ import com.octopus.core.Response;
 import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.processor.extractor.*;
 import com.octopus.core.processor.extractor.annotation.*;
 import com.octopus.core.processor.extractor.convert.TypeConverterRegistry;
 import com.octopus.core.processor.extractor.selector.FieldSelectorRegistry;
-import com.octopus.core.processor.extractor.*;
 import com.octopus.core.utils.AnnotationUtil;
 import lombok.NonNull;
 
@@ -140,24 +140,33 @@ public class ExtractorProcessor<T> implements Processor {
                                 .setPriority(link.priority())
                                 .setRepeatable(link.repeatable());
                 Arrays.stream(link.headers())
-                        .forEach(p -> request.addHeader(p.name(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.addHeader(p.name(), resolveValueFromProp(source, result.getObj(), p, response)));
                 Arrays.stream(link.params())
-                        .forEach(p -> request.addParam(p.name(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.addParam(p.name(), resolveValueFromProp(source, result.getObj(), p, response)));
                 Arrays.stream(link.attrs())
-                        .forEach(p -> request.putAttribute(p.name(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.putAttribute(p.name(), resolveValueFromProp(source, result.getObj(), p, response)));
                 request.setInherit(link.inherit());
                 result.getRequests().add(request);
             }
         }
     }
 
-    private String resolveValueFromProp(Object target, Prop prop) {
+    private String resolveValueFromProp(String source, Object target, Prop prop, Response response) {
+        String val = null;
         if (StrUtil.isNotBlank(prop.field())) {
             Field field = ReflectUtil.getField(target.getClass(), prop.field());
-            Object val = ReflectUtil.getFieldValue(target, field);
-            return val == null ? null : val.toString();
+            Object v = ReflectUtil.getFieldValue(target, field);
+            if (v != null) {
+                val = v.toString();
+            }
         }
-        return prop.value();
+        if (prop.selector() != null) {
+            List<String> selected = FieldSelectorRegistry.getInstance().select(prop.selector(), source, true, response);
+            if (selected != null) {
+                val = String.join(",", selected);
+            }
+        }
+        return StrUtil.isBlank(val) ? prop.value() : val;
     }
 
     private String completeUrl(String currentUrl, String url) {

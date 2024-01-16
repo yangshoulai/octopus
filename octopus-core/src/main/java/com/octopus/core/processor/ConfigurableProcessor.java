@@ -119,23 +119,29 @@ public class ConfigurableProcessor extends MatchableProcessor {
                                 .setPriority(link.getPriority())
                                 .setRepeatable(link.isRepeatable());
                 link.getHeaders()
-                        .forEach(p -> request.addHeader(p.getName(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.addHeader(p.getName(), resolveValueFromProp(content, result.getObj(), p, response)));
                 link.getParams()
-                        .forEach(p -> request.addParam(p.getName(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.addParam(p.getName(), resolveValueFromProp(content, result.getObj(), p, response)));
                 link.getAttrs()
-                        .forEach(p -> request.putAttribute(p.getName(), resolveValueFromProp(result.getObj(), p)));
+                        .forEach(p -> request.putAttribute(p.getName(), resolveValueFromProp(content, result.getObj(), p, response)));
                 request.setInherit(link.isInherit());
                 result.getRequests().add(request);
             }
         }
     }
 
-    private String resolveValueFromProp(Map<String, Object> m, PropProperties prop) {
-        if (StrUtil.isNotBlank(prop.getField())) {
-            Object val = m.get(prop.getField());
-            return val == null ? null : val.toString();
+    private String resolveValueFromProp(String content, Map<String, Object> m, PropProperties prop, Response response) {
+        String val = null;
+        if (StrUtil.isNotBlank(prop.getField()) && m.get(prop.getField()) != null) {
+            val = m.get(prop.getField()).toString();
         }
-        return prop.getValue();
+        if (StrUtil.isBlank(val) && prop.getSelector() != null) {
+            List<String> selected = FieldSelectorRegistry.getInstance().getSelectorHandler(prop.getSelector().getType()).select(content, true, prop.getSelector(), response);
+            if (selected != null) {
+                val = String.join(",", selected);
+            }
+        }
+        return StrUtil.isBlank(val) ? prop.getValue() : val;
     }
 
     private String completeUrl(String currentUrl, String url) {

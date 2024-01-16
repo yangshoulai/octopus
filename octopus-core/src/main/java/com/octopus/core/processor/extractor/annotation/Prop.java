@@ -14,9 +14,11 @@ import java.lang.annotation.RetentionPolicy;
 @Inherited
 public @interface Prop {
 
-  String name() default "";
+    String name() default "";
 
-  String value() default "";
+    String value() default "";
 
-  String field() default "";
+    String field() default "";
+
+    Selector selector() default @Selector(type = Selector.Type.None);
 }
