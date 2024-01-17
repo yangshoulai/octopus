@@ -9,8 +9,8 @@ import com.octopus.core.downloader.HttpClientDownloader;
 import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
-import com.octopus.core.processor.*;
 import com.octopus.core.processor.Collector;
+import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.impl.ExtractorProcessor;
 import com.octopus.core.processor.impl.LoggerProcessor;
 import com.octopus.core.processor.impl.MatchableProcessor;
@@ -162,14 +162,14 @@ public class OctopusBuilder {
     /**
      * 使用 Mongo 请求存储器
      *
-     * @param database 数据库
-     * @param collection 集合名称
      * @param uri        链接
+     * @param database   数据库
+     * @param collection 集合名称
      * @return OctopusBuilder
      * @see com.octopus.core.store.MongoStore
      */
-    public OctopusBuilder useMongoStore(@NonNull String database, @NonNull String collection, @NonNull String uri) {
-        this.store = new MongoStore(database, collection, uri);
+    public OctopusBuilder useMongoStore(@NonNull String uri, @NonNull String database, @NonNull String collection) {
+        this.store = new MongoStore(uri, database, collection);
         return this;
     }
 
@@ -197,21 +197,21 @@ public class OctopusBuilder {
     }
 
     /**
-     * @param databaseFilePath sqlite数据库文件
+     * @param db sqlite数据库文件
      * @return OctopusBuilder
      */
-    public OctopusBuilder useSqliteStore(@NonNull String databaseFilePath) {
-        this.store = new SqliteStore(databaseFilePath);
+    public OctopusBuilder useSqliteStore(@NonNull String db) {
+        this.store = new SqliteStore(new SqliteStoreProperties(db));
         return this;
     }
 
     /**
-     * @param databaseFilePath sqlite数据库文件
-     * @param tableName        表名
+     * @param db    sqlite数据库文件
+     * @param table 表名
      * @return OctopusBuilder
      */
-    public OctopusBuilder useSqliteStore(@NonNull String databaseFilePath, @NonNull String tableName) {
-        this.store = new SqliteStore(databaseFilePath, tableName);
+    public OctopusBuilder useSqliteStore(@NonNull String db, @NonNull String table) {
+        this.store = new SqliteStore(new SqliteStoreProperties(db, table));
         return this;
     }
 

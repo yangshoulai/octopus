@@ -15,35 +15,30 @@ import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.logging.Logger;
-import com.octopus.core.processor.impl.MatchableProcessor;
 import com.octopus.core.processor.Processor;
+import com.octopus.core.processor.impl.MatchableProcessor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
 import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
+import io.reactivex.rxjava3.core.Observable;
+import io.reactivex.rxjava3.disposables.Disposable;
+import io.reactivex.rxjava3.schedulers.Schedulers;
+import lombok.NonNull;
 
 import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -284,7 +279,16 @@ class OctopusImpl implements Octopus {
                         }
                     }
                     if (wait) {
+                        Disposable disposable = Observable.interval(5, TimeUnit.SECONDS, Schedulers.from(this.workers))
+                                .subscribe(l -> {
+                                    long waiting = this.store.getWaitingSize();
+                                    logger.info("Found " + waiting + " waiting requests");
+                                    if (this.store.getWaitingSize() > 0) {
+                                        this.idleSignal();
+                                    }
+                                });
                         this.idleWait();
+                        disposable.dispose();
                     }
                 }
             } catch (InterruptedException e) {
@@ -476,4 +480,6 @@ class OctopusImpl implements Octopus {
                 new LinkedBlockingQueue<>(),
                 new NamedThreadFactory(this.name + "/worker-", false));
     }
+
+
 }

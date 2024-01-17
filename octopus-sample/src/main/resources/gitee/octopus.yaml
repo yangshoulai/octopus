@@ -14,7 +14,10 @@ seeds:
 sites:
   - host: gitee.com
     limitInSecond: 1
-store: Memory
+store:
+  sqlite:
+    db: /Users/yangshoulai/Downloads/octopus.db
+    table: gitee
 threads: 20
 processors:
   - matcher: Html
