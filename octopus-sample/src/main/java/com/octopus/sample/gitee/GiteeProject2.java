@@ -1,7 +1,6 @@
 package com.octopus.sample.gitee;
 
 import com.octopus.core.Octopus;
-import com.octopus.core.configurable.OctopusBuilderProperties;
 import com.octopus.core.exception.ValidateException;
 
 import java.io.IOException;

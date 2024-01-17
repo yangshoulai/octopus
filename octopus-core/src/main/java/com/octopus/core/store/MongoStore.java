@@ -13,6 +13,7 @@ import com.mongodb.client.result.UpdateResult;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
+import com.octopus.core.properties.store.MongoStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
 import org.bson.Document;

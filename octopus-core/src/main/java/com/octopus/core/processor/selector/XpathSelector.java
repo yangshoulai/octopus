@@ -5,7 +5,7 @@ import cn.hutool.core.util.EscapeUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.XmlUtil;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.SelectorProperties;
+import com.octopus.core.properties.selector.XpathSelectorProperties;
 import org.htmlcleaner.CleanerProperties;
 import org.htmlcleaner.DomSerializer;
 import org.htmlcleaner.HtmlCleaner;
@@ -24,7 +24,7 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/25
  */
-public class XpathSelector extends CacheableSelector<Node> {
+public class XpathSelector extends AbstractCacheableSelector<Node, XpathSelectorProperties> {
     private static final String TAG_TD = "td";
 
     private static final String TAG_TR = "tr";
@@ -41,12 +41,23 @@ public class XpathSelector extends CacheableSelector<Node> {
         this.serializer = new DomSerializer(new CleanerProperties(), false, false, false);
     }
 
+    private static String wrap(String tag, String content) {
+        return "<" + tag + ">" + content + "</" + tag + ">";
+    }
+
+    private static boolean isWrappedBy(String tag, String content) {
+        Pattern pattern =
+                Pattern.compile("^<" + tag + "[\\s\\S]*</" + tag + ">$", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = pattern.matcher(content);
+        return matcher.matches();
+    }
+
     @Override
     public List<String> doSelectWithDoc(
-            Node document, SelectorProperties selector, boolean multi, Response response) {
+            Node document, XpathSelectorProperties selector, boolean multi, Response response) {
         List<String> results = new ArrayList<>();
         if (selector.isNode()) {
-            NodeList nodes = XmlUtil.getNodeListByXPath(selector.getValue(), document);
+            NodeList nodes = XmlUtil.getNodeListByXPath(selector.getExpression(), document);
             int end = multi ? nodes.getLength() : 1;
             for (int i = 0; i < end; i++) {
                 Node node = nodes.item(i);
@@ -64,7 +75,7 @@ public class XpathSelector extends CacheableSelector<Node> {
                 results.add(value);
             }
         } else {
-            Object val = XmlUtil.getByXPath(selector.getValue(), document, XPathConstants.STRING);
+            Object val = XmlUtil.getByXPath(selector.getExpression(), document, XPathConstants.STRING);
             if (val != null) {
                 results.add(val.toString());
             }
@@ -89,16 +100,5 @@ public class XpathSelector extends CacheableSelector<Node> {
             return wrap(TAG_TABLE, content);
         }
         return content;
-    }
-
-    private static String wrap(String tag, String content) {
-        return "<" + tag + ">" + content + "</" + tag + ">";
-    }
-
-    private static boolean isWrappedBy(String tag, String content) {
-        Pattern pattern =
-                Pattern.compile("^<" + tag + "[\\s\\S]*</" + tag + ">$", Pattern.CASE_INSENSITIVE);
-        Matcher matcher = pattern.matcher(content);
-        return matcher.matches();
     }
 }

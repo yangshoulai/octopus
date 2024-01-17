@@ -2,8 +2,8 @@ package com.octopus.core.processor.collector;
 
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.CollectorProperties;
-import com.octopus.core.configurable.CollectorTarget;
+import com.octopus.core.properties.CollectorProperties;
+import com.octopus.core.properties.CollectorTarget;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.Collector;

@@ -4,6 +4,7 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
+import com.octopus.core.properties.store.SqliteStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
 

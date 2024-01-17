@@ -4,13 +4,13 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.*;
+import com.octopus.core.properties.*;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.Converter;
 import com.octopus.core.processor.ConverterRegistry;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.Result;
-import com.octopus.core.processor.SelectorRegistry;
+import com.octopus.core.processor.SelectorHelper;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.utils.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
@@ -72,7 +72,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
     }
 
     private void processField(Result<Map<String, Object>> result, FieldProperties field, String content, Response response) {
-        List<String> selected = SelectorRegistry.getInstance().select(field.getSelector(), content, field.isMulti(), response);
+        List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(field.getSelector(), content, field.isMulti(), response);
         List<Object> list = new ArrayList<>();
         if (selected != null && !selected.isEmpty()) {
             for (String item : selected) {
@@ -101,7 +101,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
         if (StrUtil.isNotBlank(link.getUrl())) {
             urls.add(link.getUrl());
         }
-        List<String> selected = SelectorRegistry.getInstance().select(link.getSelector(), content, true, response);
+        List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(link.getSelector(), content, true, response);
         if (selected != null) {
             urls.addAll(selected);
         }
@@ -129,7 +129,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
             val = m.get(prop.getField()).toString();
         }
         if (StrUtil.isBlank(val) && prop.getSelector() != null) {
-            List<String> selected = SelectorRegistry.getInstance().select(prop.getSelector(), content, true, response);
+            List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(prop.getSelector(), content, true, response);
             if (selected != null) {
                 val = String.join(",", selected);
             }

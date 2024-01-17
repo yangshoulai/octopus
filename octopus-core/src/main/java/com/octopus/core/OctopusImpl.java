@@ -257,6 +257,7 @@ class OctopusImpl implements Octopus {
                             });
                 } else if (this.store.getWaitingSize() <= 0) {
                     boolean wait = true;
+                    Disposable disposable = null;
                     if (this.workerSemaphore.availablePermits() == 2 * this.threads) {
                         if (this.replayFailedRequest && this.replyFailedRequests()) {
                             continue;
@@ -268,6 +269,14 @@ class OctopusImpl implements Octopus {
                         } else {
                             logger.info("No more requests found, octopus will idle");
                             this.translateState(State.STARTED, State.IDLE);
+                            disposable = Observable.interval(5, TimeUnit.SECONDS, Schedulers.from(this.workers))
+                                    .subscribe(l -> {
+                                        long waiting = this.store.getWaitingSize();
+                                        logger.info("Found " + waiting + " waiting requests");
+                                        if (this.store.getWaitingSize() > 0) {
+                                            this.idleSignal();
+                                        }
+                                    });
                         }
 
                     } else {
@@ -279,16 +288,10 @@ class OctopusImpl implements Octopus {
                         }
                     }
                     if (wait) {
-                        Disposable disposable = Observable.interval(5, TimeUnit.SECONDS, Schedulers.from(this.workers))
-                                .subscribe(l -> {
-                                    long waiting = this.store.getWaitingSize();
-                                    logger.info("Found " + waiting + " waiting requests");
-                                    if (this.store.getWaitingSize() > 0) {
-                                        this.idleSignal();
-                                    }
-                                });
                         this.idleWait();
-                        disposable.dispose();
+                        if (disposable != null) {
+                            disposable.dispose();
+                        }
                     }
                 }
             } catch (InterruptedException e) {

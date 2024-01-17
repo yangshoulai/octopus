@@ -2,7 +2,7 @@ package com.octopus.core.processor.selector;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.SelectorProperties;
+import com.octopus.core.properties.selector.CssSelectorProperties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jsoup.Jsoup;
@@ -19,15 +19,15 @@ import java.util.stream.Collectors;
  */
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class CssSelector extends CacheableSelector<Document> {
+public class CssSelector extends AbstractCacheableSelector<Document, CssSelectorProperties> {
     @Override
     public List<String> doSelectWithDoc(
-            Document document, SelectorProperties selector, boolean multi, Response response) {
+            Document document, CssSelectorProperties selector, boolean multi, Response response) {
         Elements elements = new Elements();
         if (multi) {
-            elements = document.select(selector.getValue());
+            elements = document.select(selector.getExpression());
         } else {
-            Element e = document.selectFirst(selector.getValue());
+            Element e = document.selectFirst(selector.getExpression());
             if (e != null) {
                 elements = new Elements(e);
             }
@@ -50,4 +50,6 @@ public class CssSelector extends CacheableSelector<Document> {
     protected Document parse(String content) {
         return Jsoup.parse(content);
     }
+
+
 }

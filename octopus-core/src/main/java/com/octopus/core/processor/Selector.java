@@ -1,7 +1,6 @@
 package com.octopus.core.processor;
 
 import com.octopus.core.Response;
-import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.SelectException;
 
 import java.util.List;
@@ -12,7 +11,7 @@ import java.util.List;
  * @author shoulai.yang@gmail.com
  * @date 2024/01/12
  */
-public interface Selector {
+public interface Selector<P> {
 
     /**
      * 基于源内容选择匹配的内容
@@ -24,5 +23,5 @@ public interface Selector {
      * @return 选中的内容集合
      * @throws SelectException 异常
      */
-    List<String> select(String source, boolean multi, SelectorProperties selector, Response response) throws SelectException;
+    List<String> select(String source, boolean multi, P selector, Response response) throws SelectException;
 }

@@ -2,7 +2,7 @@ package com.octopus.core.processor.converter;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.configurable.FieldExtProperties;
+import com.octopus.core.properties.FieldExtProperties;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.processor.Converter;
 

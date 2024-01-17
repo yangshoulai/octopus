@@ -1,7 +1,7 @@
 package com.octopus.core.processor.selector;
 
 import com.octopus.core.Response;
-import com.octopus.core.configurable.SelectorProperties;
+import com.octopus.core.properties.selector.RegexSelectorProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,14 +12,14 @@ import java.util.regex.Pattern;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/30
  */
-public class RegexSelector extends CacheableSelector<String> {
+public class RegexSelector extends AbstractCacheableSelector<String, RegexSelectorProperties> {
     @Override
     protected List<String> doSelectWithDoc(
-            String content, SelectorProperties selector, boolean multi, Response response) {
+            String content, RegexSelectorProperties selector, boolean multi, Response response) {
         List<String> list = new ArrayList<>();
         int[] groups = selector.getGroups();
         String format = selector.getFormat();
-        Pattern pattern = Pattern.compile(selector.getValue());
+        Pattern pattern = Pattern.compile(selector.getExpression());
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             List<String> args = new ArrayList<>();

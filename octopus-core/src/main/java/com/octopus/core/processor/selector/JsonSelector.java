@@ -5,7 +5,7 @@ import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.SelectorProperties;
+import com.octopus.core.properties.selector.JsonSelectorProperties;
 import net.minidev.json.JSONArray;
 
 import java.util.ArrayList;
@@ -16,7 +16,7 @@ import java.util.Map;
  * @author shoulai.yang@gmail.com
  * @date 2021/11/27
  */
-public class JsonSelector extends CacheableSelector<String> {
+public class JsonSelector extends AbstractCacheableSelector<String, JsonSelectorProperties> {
     private static final Configuration CONFIGURATION =
             Configuration.builder()
                     .options(Option.ALWAYS_RETURN_LIST)
@@ -25,9 +25,9 @@ public class JsonSelector extends CacheableSelector<String> {
 
     @Override
     public List<String> doSelectWithDoc(
-            String json, SelectorProperties selector, boolean multi, Response response) {
+            String json, JsonSelectorProperties selector, boolean multi, Response response) {
         List<String> list = new ArrayList<>();
-        Object obj = JsonPath.using(CONFIGURATION).parse(json).read(selector.getValue());
+        Object obj = JsonPath.using(CONFIGURATION).parse(json).read(selector.getExpression());
         if (obj instanceof JSONArray) {
             JSONArray array = (JSONArray) obj;
             for (Object o : array) {
@@ -47,4 +47,5 @@ public class JsonSelector extends CacheableSelector<String> {
     protected String parse(String content) {
         return content;
     }
+
 }

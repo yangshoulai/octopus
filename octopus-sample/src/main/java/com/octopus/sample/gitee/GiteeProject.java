@@ -5,11 +5,10 @@ import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.annotation.*;
 import com.octopus.core.processor.matcher.Matchers;
+import lombok.Data;
 
 import java.util.Collection;
 import java.util.List;
-
-import lombok.Data;
 
 /**
  * 获取Gitee所有推荐项目 https://gitee.com/explore/all
@@ -32,6 +31,22 @@ public class GiteeProject {
     @Body
     private byte[] body;
 
+    public static void main(String[] args) {
+        Octopus.builder()
+                .addSite(WebSite.of("gitee.com").setRateLimiter(1))
+                .addSeeds("https://gitee.com/explore/all?order=starred")
+                .addProcessor(
+                        Matchers.HTML,
+                        GiteeProject.class,
+                        (gitee, r) -> {
+                            if (gitee.getProjects() != null) {
+                                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
+                            }
+                        })
+                .build()
+                .start();
+    }
+
     @Data
     @Extractor
     public static class Project {
@@ -39,8 +54,7 @@ public class GiteeProject {
         @Css(".project-title a.title")
         private String name;
 
-        @Css(
-                value = ".project-title a.title",
+        @Css(value = ".project-title a.title",
                 attr = "href",
                 formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
         private String address;
@@ -61,21 +75,5 @@ public class GiteeProject {
         private String url;
 
 
-    }
-
-    public static void main(String[] args) {
-        Octopus.builder()
-                .addSite(WebSite.of("gitee.com").setRateLimiter(1))
-                .addSeeds("https://gitee.com/explore/all?order=starred")
-                .addProcessor(
-                        Matchers.HTML,
-                        GiteeProject.class,
-                        (gitee, r) -> {
-                            if (gitee.getProjects() != null) {
-                                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
-                            }
-                        })
-                .build()
-                .start();
     }
 }

@@ -1,6 +1,6 @@
 package com.octopus.core.processor.converter;
 
-import com.octopus.core.configurable.FieldExtProperties;
+import com.octopus.core.properties.FieldExtProperties;
 import com.octopus.core.processor.Converter;
 
 /**

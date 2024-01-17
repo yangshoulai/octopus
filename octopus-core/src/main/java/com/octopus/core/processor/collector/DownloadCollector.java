@@ -5,13 +5,13 @@ import cn.hutool.core.util.ReUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
-import com.octopus.core.configurable.CollectorProperties;
-import com.octopus.core.configurable.CollectorTarget;
-import com.octopus.core.configurable.SelectorProperties;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.Collector;
-import com.octopus.core.processor.SelectorRegistry;
-import com.octopus.core.processor.annotation.Selector;
+import com.octopus.core.processor.SelectorHelper;
+import com.octopus.core.properties.CollectorProperties;
+import com.octopus.core.properties.CollectorTarget;
+import com.octopus.core.properties.SelectorProperties;
+import com.octopus.core.properties.selector.UrlSelectorProperties;
 import lombok.Data;
 
 import java.io.File;
@@ -29,11 +29,13 @@ import java.util.stream.Collectors;
 @Data
 public class DownloadCollector<R> implements Collector<R> {
 
-    private static SelectorProperties DEFAULT_NAME_SELECTOR = new SelectorProperties(Selector.Type.Url);
+    private static final SelectorProperties DEFAULT_NAME_SELECTOR = new SelectorProperties();
 
     static {
-        DEFAULT_NAME_SELECTOR.getFormatter().setRegex("^.*/([^/\\?]+)[^/]*$");
-        DEFAULT_NAME_SELECTOR.getFormatter().setGroups(new int[]{1});
+
+        DEFAULT_NAME_SELECTOR.setUrl(new UrlSelectorProperties());
+        DEFAULT_NAME_SELECTOR.getDenoiser().setRegex("^.*/([^/\\?]+)[^/]*$");
+        DEFAULT_NAME_SELECTOR.getDenoiser().setGroups(new int[]{1});
     }
 
     private final CollectorProperties properties;
@@ -48,7 +50,7 @@ public class DownloadCollector<R> implements Collector<R> {
         String fileName = null;
         SelectorProperties nameSelector = this.properties.getName() == null ? DEFAULT_NAME_SELECTOR : this.properties.getName();
         if (nameSelector != null) {
-            List<String> selected = SelectorRegistry.getInstance().select(nameSelector, response.asText(), false, response);
+            List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(nameSelector, response.asText(), false, response);
             if (selected != null && !selected.isEmpty()) {
                 fileName = selected.get(0);
             }
@@ -87,7 +89,7 @@ public class DownloadCollector<R> implements Collector<R> {
     public String getFileSubDir(Response response) {
         if (this.properties.getDirs() != null && this.properties.getDirs().length > 0) {
             return Arrays.stream(this.properties.getDirs()).filter(Objects::nonNull).flatMap(selector ->
-                            SelectorRegistry.getInstance().select(selector, response.asText(), false, response).stream())
+                            SelectorHelper.getInstance().selectBySelectorProperties(selector, response.asText(), false, response).stream())
                     .filter(StrUtil::isNotBlank).collect(Collectors.joining(File.separator));
         }
         return null;

@@ -1,6 +1,6 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.configurable.FieldExtProperties;
+import com.octopus.core.properties.FieldExtProperties;
 
 /**
  * 转换器
