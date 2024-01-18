@@ -101,9 +101,11 @@ public class ConfigurableProcessor extends MatchableProcessor {
         if (StrUtil.isNotBlank(link.getUrl())) {
             urls.add(link.getUrl());
         }
-        List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(link.getSelector(), content, true, response);
-        if (selected != null) {
-            urls.addAll(selected);
+        if (link.getSelector() != null) {
+            List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(link.getSelector(), content, true, response);
+            if (selected != null) {
+                urls.addAll(selected);
+            }
         }
         for (String url : urls) {
             if (StrUtil.isNotBlank(url)) {

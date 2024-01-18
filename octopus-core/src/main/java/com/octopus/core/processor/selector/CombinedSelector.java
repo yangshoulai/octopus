@@ -54,7 +54,7 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
     }
 
     private <A extends AbstractSelectorProperties> void delegateSelect(Selector<A> selector, A properties, String source, Response response, List<String> container) {
-        if (properties != null) {
+        if (selector != null && properties != null) {
             List<String> selected = selector.select(source, true, properties, response);
             if (selected != null) {
                 container.addAll(selected);
