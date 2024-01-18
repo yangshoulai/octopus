@@ -76,6 +76,8 @@ public class OctopusBuilder {
     private int maxReplays = 1;
     private String name = "Octopus";
 
+    private int maxDepth = -1;
+
     private Logger logger = LoggerFactory.getLogger(Octopus.class.getName());
 
     /**
@@ -521,6 +523,21 @@ public class OctopusBuilder {
      */
     public OctopusBuilder setName(@NonNull String name) {
         this.name = name;
+        return this;
+    }
+
+    public int getMaxDepth() {
+        return maxDepth;
+    }
+
+    /**
+     * 设置最大爬取深度 -1（无限）
+     *
+     * @param maxDepth 最大爬取深度
+     * @return OctopusBuilder
+     */
+    public OctopusBuilder setMaxDepth(int maxDepth) {
+        this.maxDepth = maxDepth;
         return this;
     }
 

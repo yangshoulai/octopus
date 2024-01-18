@@ -80,6 +80,11 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
     private int maxReplays = 1;
 
     /**
+     * 最大爬取深度 -1 无限制
+     */
+    private int maxDepth = -1;
+
+    /**
      * 站点配置列表
      */
     private List<WebSiteProperties> sites = new ArrayList<>();
@@ -122,6 +127,17 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
         this.threads = threads;
     }
 
+    public static OctopusBuilderProperties fromYaml(InputStream inputStream) {
+        return YamlUtil.load(inputStream, OctopusBuilderProperties.class);
+    }
+
+    public static OctopusBuilderProperties fromYaml(String filePath) {
+        try (FileInputStream inputStream = new FileInputStream(filePath)) {
+            return fromYaml(inputStream);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     @Override
     public void validate() throws ValidateException {
@@ -133,18 +149,6 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
         Validator.validateWhenNotNull(store);
         Validator.notEmpty(downloader, "octopus downloader is required");
         Validator.validateWhenNotNull(processors);
-    }
-
-    public static OctopusBuilderProperties fromYaml(InputStream inputStream) {
-        return YamlUtil.load(inputStream, OctopusBuilderProperties.class);
-    }
-
-    public static OctopusBuilderProperties fromYaml(String filePath) {
-        try (FileInputStream inputStream = new FileInputStream(filePath)) {
-            return fromYaml(inputStream);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @Override
@@ -159,6 +163,7 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
         builder.ignoreSeedsWhenStoreHasRequests(ignoreSeedsWhenStoreHasRequests);
         builder.setReplayFailedRequest(replayFailedRequest);
         builder.setMaxReplays(maxReplays);
+        builder.setMaxDepth(maxDepth);
         for (WebSiteProperties site : sites) {
             builder.addSite(site.transform());
         }

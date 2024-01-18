@@ -72,6 +72,7 @@ class OctopusImpl implements Octopus {
     private ExecutorService boss;
     private ExecutorService workers;
     private Semaphore workerSemaphore;
+    private int maxDepth;
 
     public OctopusImpl(OctopusBuilder builder) {
         this.logger = builder.getLogger();
@@ -93,6 +94,7 @@ class OctopusImpl implements Octopus {
         this.replayFilter =
                 ReplayFilters.and(
                         builder.getReplayFilter(), r -> r.getFailTimes() - 1 < builder.getMaxReplays());
+        this.maxDepth = builder.getMaxDepth();
     }
 
     @Override
@@ -386,6 +388,10 @@ class OctopusImpl implements Octopus {
     }
 
     private void addNewRequests(Request parentRequest, @NonNull Request request) {
+        if (this.maxDepth >= 0 && parentRequest.getDepth() >= this.maxDepth) {
+            logger.warn(String.format("Request[%s] is ignored as octopus reach max depth %s", request, this.maxDepth));
+            return;
+        }
         request.setParent(parentRequest.getId());
         if (request.isInherit() && parentRequest.getAttributes() != null) {
             Map<String, Object> attrs = parentRequest.getAttributes();
@@ -414,6 +420,7 @@ class OctopusImpl implements Octopus {
                             + (port < 0 ? "" : ":" + port)
                             + (url.startsWith("/") ? url : "/" + url));
         }
+        request.setDepth(parentRequest.getDepth() + 1);
         this.addRequest(request);
     }
 

@@ -1,15 +1,12 @@
 package com.octopus.core;
 
 import cn.hutool.core.net.url.UrlBuilder;
-import cn.hutool.core.util.URLUtil;
+import lombok.Getter;
+import lombok.NonNull;
 
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
-
-import lombok.Data;
-import lombok.Getter;
-import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -49,6 +46,11 @@ public class Request implements Serializable, Comparable<Request> {
      * 失败次数
      */
     private int failTimes = 0;
+
+    /**
+     * 深度
+     */
+    private int depth = 0;
 
     public Request() {
     }
@@ -171,6 +173,11 @@ public class Request implements Serializable, Comparable<Request> {
 
     public Request setFailTimes(int failTimes) {
         this.failTimes = failTimes;
+        return this;
+    }
+
+    public Request setDepth(int depth) {
+        this.depth = depth;
         return this;
     }
 
