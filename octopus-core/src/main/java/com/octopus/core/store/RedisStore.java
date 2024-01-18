@@ -88,7 +88,7 @@ public class RedisStore implements Store {
 
     @Override
     public Request get() {
-        String id = this.waiting.first();
+        String id = this.waiting.last();
         if (StrUtil.isNotBlank(id)) {
             Request request = this.all.get(id);
             RBatch batch = this.redissonClient.createBatch();
@@ -202,5 +202,4 @@ public class RedisStore implements Store {
         batch.execute();
         return keys.size();
     }
-
 }
