@@ -79,6 +79,26 @@ public class OctopusBuilder {
     private Logger logger = LoggerFactory.getLogger(Octopus.class.getName());
 
     /**
+     * 从配置文件加载
+     *
+     * @param inputStream 配置文件
+     * @return OctopusBuilder
+     */
+    public static OctopusBuilder fromYaml(InputStream inputStream) {
+        return OctopusBuilderProperties.fromYaml(inputStream).transform();
+    }
+
+    /**
+     * 从配置文件加载
+     *
+     * @param yaml 配置文件路径
+     * @return OctopusBuilder
+     */
+    public static OctopusBuilder fromYaml(String yaml) {
+        return OctopusBuilderProperties.fromYaml(yaml).transform();
+    }
+
+    /**
      * 使用 HttpClientDownloader
      *
      * @return OctopusBuilder
@@ -100,7 +120,6 @@ public class OctopusBuilder {
         return this;
     }
 
-
     /**
      * 使用 本机 Redis 请求存储器
      *
@@ -121,6 +140,19 @@ public class OctopusBuilder {
      */
     public OctopusBuilder useRedisStore(@NonNull RedisStoreProperties properties) {
         this.store = new RedisStore(properties);
+        return this;
+    }
+
+    /**
+     * 使用 本机 Redis 请求存储器
+     *
+     * @param uri    redis
+     * @param prefix key prefix
+     * @return OctopusBuilder
+     * @see com.octopus.core.store.RedisStore
+     */
+    public OctopusBuilder useRedisStore(@NonNull String uri, @NonNull String prefix) {
+        this.store = new RedisStore(new RedisStoreProperties(uri, prefix));
         return this;
     }
 
@@ -573,26 +605,6 @@ public class OctopusBuilder {
     public OctopusBuilder setMaxReplays(int maxReplays) {
         this.maxReplays = maxReplays;
         return this;
-    }
-
-    /**
-     * 从配置文件加载
-     *
-     * @param inputStream 配置文件
-     * @return OctopusBuilder
-     */
-    public static OctopusBuilder fromYaml(InputStream inputStream) {
-        return OctopusBuilderProperties.fromYaml(inputStream).transform();
-    }
-
-    /**
-     * 从配置文件加载
-     *
-     * @param yaml 配置文件路径
-     * @return OctopusBuilder
-     */
-    public static OctopusBuilder fromYaml(String yaml) {
-        return OctopusBuilderProperties.fromYaml(yaml).transform();
     }
 
     public Octopus build() {

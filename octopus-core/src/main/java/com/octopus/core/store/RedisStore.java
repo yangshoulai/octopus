@@ -1,6 +1,9 @@
 package com.octopus.core.store;
 
 import cn.hutool.core.util.StrUtil;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
@@ -9,6 +12,7 @@ import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
 import org.redisson.Redisson;
 import org.redisson.api.*;
+import org.redisson.codec.JsonJacksonCodec;
 import org.redisson.config.Config;
 
 import java.util.ArrayList;
@@ -22,6 +26,14 @@ import java.util.List;
  */
 public class RedisStore implements Store {
 
+    public static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static {
+        MAPPER.disable(SerializationFeature.FAIL_ON_UNWRAPPED_TYPE_IDENTIFIERS);
+        MAPPER.disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+        MAPPER.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+    }
+
     private final RedissonClient redissonClient;
 
     private RScoredSortedSet<String> waiting;
@@ -34,54 +46,71 @@ public class RedisStore implements Store {
 
     private RMap<String, String> fails;
 
-    private RLock lock;
+    private String waitingKey;
+
+    private String completedKey;
+
+    private String allKey;
+
+    private String executingKey;
+
+    private String failsKey;
 
 
     public RedisStore(@NonNull RedisStoreProperties properties) {
         Config config = new Config();
+        config.setCodec(new JsonJacksonCodec(MAPPER));
         config.useSingleServer().setAddress(properties.getUri());
         this.redissonClient = Redisson.create(config);
         this.init(properties.getPrefix());
     }
 
-
     private void init(String prefix) {
-        this.lock = this.redissonClient.getLock(prefix + ":lock");
-        this.all = this.redissonClient.getMap(prefix + ":all");
-        this.fails = this.redissonClient.getMap(prefix + ":fails");
-        this.waiting = this.redissonClient.getScoredSortedSet(prefix + ":waiting");
-        this.completed = this.redissonClient.getSet(prefix + ":completed");
-        this.executing = this.redissonClient.getSet(prefix + ":executing");
-        try {
-            this.lock.lock();
-            if (!this.executing.isEmpty()) {
-                for (String id : executing) {
-                    if (!this.waiting.contains(id)) {
-                        Request request = this.all.get(id);
-                        this.waiting.add(request.getPriority(), id);
-                        this.executing.remove(id);
-                    }
-                }
-            }
-        } finally {
-            lock.unlock();
+        this.allKey = prefix + ":all";
+        this.failsKey = prefix + ":fails";
+        this.waitingKey = prefix + ":waiting";
+        this.completedKey = prefix + ":completed";
+        this.executingKey = prefix + ":executing";
+
+        this.all = this.redissonClient.getMap(this.allKey);
+        this.fails = this.redissonClient.getMap(this.failsKey);
+        this.waiting = this.redissonClient.getScoredSortedSet(this.waitingKey);
+        this.completed = this.redissonClient.getSet(this.completedKey);
+        this.executing = this.redissonClient.getSet(this.executingKey);
+        RBatch batch = this.redissonClient.createBatch();
+        for (String id : this.executing) {
+            Request request = this.all.get(id);
+            batch.<String>getScoredSortedSet(this.waitingKey).addAsync(request.getPriority(), request.getId());
+            batch.<String>getSet(this.executingKey).removeAsync(id);
         }
+        batch.execute();
     }
 
     @Override
     public Request get() {
-        String id = this.waiting.pollFirst();
+        String id = this.waiting.first();
         if (StrUtil.isNotBlank(id)) {
-            this.executing.add(id);
-            return this.all.get(id);
+            Request request = this.all.get(id);
+            RBatch batch = this.redissonClient.createBatch();
+            batch.<String>getSet(this.executingKey).addAsync(id);
+            batch.<String>getScoredSortedSet(this.waitingKey).removeAsync(id);
+            request.setStatus(Status.of(State.Waiting));
+            batch.<String, Request>getMap(this.allKey).putAsync(id, request);
+            batch.execute();
+            return request;
         }
         return null;
     }
 
     @Override
     public boolean put(Request request) {
+        request.setStatus(Status.of(State.Waiting));
+        RBatch batch = this.redissonClient.createBatch();
+        batch.<String, Request>getMap(allKey).putAsync(request.getId(), request);
+        batch.<String>getScoredSortedSet(this.waitingKey).addAsync(request.getPriority(), request.getId());
         this.all.put(request.getId(), request);
         this.waiting.add(request.getPriority(), request.getId());
+        batch.execute();
         return true;
     }
 
@@ -92,28 +121,34 @@ public class RedisStore implements Store {
 
     @Override
     public void clear() {
-        this.all.clear();
-        this.waiting.clear();
-        this.completed.clear();
-        this.executing.clear();
-        this.fails.clear();
+        RBatch batch = this.redissonClient.createBatch();
+        batch.getMap(this.allKey).deleteAsync();
+        batch.getScoredSortedSet(this.waitingKey).deleteAsync();
+        batch.getSet(this.completedKey).deleteAsync();
+        batch.getSet(this.executingKey).deleteAsync();
+        batch.getMap(this.failsKey).deleteAsync();
+        batch.execute();
     }
 
     @Override
     public void markAsCompleted(Request request) {
-        this.completed.add(request.getId());
-        this.executing.remove(request.getId());
         request.setStatus(Status.of(State.Completed));
-        this.all.put(request.getId(), request);
+        RBatch batch = this.redissonClient.createBatch();
+        batch.<String>getSet(this.completedKey).addAsync(request.getId());
+        batch.<String>getSet(this.executingKey).removeAsync(request.getId());
+        batch.<String, Request>getMap(this.allKey).putAsync(request.getId(), request);
+        batch.execute();
     }
 
     @Override
     public void markAsFailed(Request request, String error) {
-        this.fails.put(request.getId(), error);
-        this.executing.remove(request.getId());
         request.setStatus(Status.of(State.Failed, error));
         request.setFailTimes(request.getFailTimes() + 1);
-        this.all.put(request.getId(), request);
+        RBatch batch = this.redissonClient.createBatch();
+        batch.<String, String>getMap(this.failsKey).putAsync(request.getId(), error);
+        batch.<String>getSet(this.executingKey).removeAsync(request.getId());
+        batch.<String, Request>getMap(this.allKey).putAsync(request.getId(), request);
+        batch.execute();
     }
 
     @Override
@@ -139,28 +174,32 @@ public class RedisStore implements Store {
 
     @Override
     public void delete(String id) {
-        this.all.remove(id);
-        this.fails.remove(id);
-        this.waiting.remove(id);
-        this.completed.remove(id);
+        RBatch batch = this.redissonClient.createBatch();
+        batch.getMap(this.allKey).removeAsync(id);
+        batch.getScoredSortedSet(this.waitingKey).removeAsync(id);
+        batch.getSet(this.completedKey).removeAsync(id);
+        batch.getSet(this.executingKey).removeAsync(id);
+        batch.getMap(this.failsKey).removeAsync(id);
+        batch.execute();
     }
 
     @Override
     public int replayFailed(ReplayFilter filter) {
         List<String> keys = new ArrayList<>();
+        RBatch batch = this.redissonClient.createBatch();
         for (String id : this.fails.keySet()) {
             Request request = this.all.get(id);
             if (filter.filter(request)) {
                 request.setStatus(Status.of(State.Waiting));
-                this.all.put(id, request);
-                this.waiting.add(request.getPriority(), id);
+                batch.<String, Request>getMap(this.allKey).putAsync(id, request);
+                batch.<String>getScoredSortedSet(this.waitingKey).addAsync(request.getPriority(), id);
                 keys.add(id);
             }
         }
-
         for (String id : keys) {
-            this.fails.remove(id);
+            batch.<String, String>getMap(this.failsKey).removeAsync(id);
         }
+        batch.execute();
         return keys.size();
     }
 
