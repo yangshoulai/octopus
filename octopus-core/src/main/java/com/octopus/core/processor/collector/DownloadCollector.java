@@ -8,10 +8,9 @@ import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.SelectorHelper;
-import com.octopus.core.properties.CollectorProperties;
-import com.octopus.core.properties.CollectorTarget;
+import com.octopus.core.properties.collector.CollectorTarget;
 import com.octopus.core.properties.SelectorProperties;
-import com.octopus.core.properties.selector.UrlSelectorProperties;
+import com.octopus.core.properties.collector.DownloaderCollectorProperties;
 import lombok.Data;
 
 import java.io.File;
@@ -29,18 +28,9 @@ import java.util.stream.Collectors;
 @Data
 public class DownloadCollector<R> implements Collector<R> {
 
-    private static final SelectorProperties DEFAULT_NAME_SELECTOR = new SelectorProperties();
+    private final DownloaderCollectorProperties properties;
 
-    static {
-
-        DEFAULT_NAME_SELECTOR.setUrl(new UrlSelectorProperties());
-        DEFAULT_NAME_SELECTOR.getDenoiser().setRegex("^.*/([^/\\?]+)[^/]*$");
-        DEFAULT_NAME_SELECTOR.getDenoiser().setGroups(new int[]{1});
-    }
-
-    private final CollectorProperties properties;
-
-    public DownloadCollector(CollectorProperties properties) {
+    public DownloadCollector(DownloaderCollectorProperties properties) {
         this.properties = properties;
     }
 
@@ -48,12 +38,10 @@ public class DownloadCollector<R> implements Collector<R> {
     public void collect(R result, Response response) {
         String fileDir = getFileSubDir(response);
         String fileName = null;
-        SelectorProperties nameSelector = this.properties.getName() == null ? DEFAULT_NAME_SELECTOR : this.properties.getName();
-        if (nameSelector != null) {
-            List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(nameSelector, response.asText(), false, response);
-            if (selected != null && !selected.isEmpty()) {
-                fileName = selected.get(0);
-            }
+        SelectorProperties nameSelector = this.properties.getName();
+        List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(nameSelector, response.asText(), false, response);
+        if (selected != null && !selected.isEmpty()) {
+            fileName = selected.get(0);
         }
         if (StrUtil.isBlank(fileName)) {
             fileName = getFileNameFromDisposition(response.getHeaders());

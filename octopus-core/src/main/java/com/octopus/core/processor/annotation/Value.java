@@ -14,7 +14,6 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME)
 @Selector(type = Type.Value)
 public @interface Value {
-
     @AliasFor(annotation = Selector.class, field = "value")
     String value() default "";
 }

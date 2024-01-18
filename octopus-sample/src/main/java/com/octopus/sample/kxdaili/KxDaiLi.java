@@ -7,7 +7,7 @@ import com.octopus.core.Response;
 import com.octopus.core.processor.annotation.Extractor;
 import com.octopus.core.processor.annotation.LinkMethod;
 import com.octopus.core.processor.annotation.Css;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.annotation.Xpath;
 import com.octopus.core.processor.matcher.Matchers;
 
@@ -51,10 +51,10 @@ public class KxDaiLi {
         @Xpath("//td[3]/text()")
         private String level;
 
-        @Xpath(expression = "//td[4]/text()", formatter = @Formatter(split = true))
+        @Xpath(expression = "//td[4]/text()", denoiser = @Denoiser(split = true))
         private String[] types;
 
-        @Xpath(expression = "//td[5]/text()", formatter = @Formatter(regex = "^(.*) 秒$", groups = 1))
+        @Xpath(expression = "//td[5]/text()", denoiser = @Denoiser(regex = "^(.*) 秒$", groups = 1))
         private double responseSeconds;
 
         @Xpath(expression = "//td[6]/text()")

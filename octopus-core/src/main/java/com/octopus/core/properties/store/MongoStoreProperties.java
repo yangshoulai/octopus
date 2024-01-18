@@ -5,6 +5,7 @@ import com.octopus.core.exception.ValidateException;
 import com.octopus.core.store.MongoStore;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -66,15 +67,8 @@ public class MongoStoreProperties implements Validatable, Transformable<MongoSto
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(uri)) {
-            throw new ValidateException("mongo uri is required");
-        }
-        if (StrUtil.isBlank(database)) {
-            throw new ValidateException("mongo database is required");
-        }
-
-        if (StrUtil.isBlank(collection)) {
-            throw new ValidateException("mongo collection is required");
-        }
+        Validator.notBlank(uri, "mongo uri is required");
+        Validator.notBlank(database, "mongo database is required");
+        Validator.notBlank(collection, "mongo collection is required");
     }
 }

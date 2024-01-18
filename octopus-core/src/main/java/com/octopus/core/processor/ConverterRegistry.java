@@ -1,8 +1,8 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.properties.FieldType;
-import com.octopus.core.processor.annotation.FieldExt;
+import com.octopus.core.processor.annotation.Converter;
 import com.octopus.core.processor.converter.*;
 import lombok.NonNull;
 
@@ -16,7 +16,7 @@ import java.util.*;
  */
 public class ConverterRegistry {
     private static final Map<Class<?>, Class<?>> COLLECTION_CLASS_MAPPING = new HashMap<>();
-    private static final Map<FieldType, Converter<?>> HANDLERS = new HashMap<>();
+    private static final Map<FieldType, com.octopus.core.processor.Converter<?>> HANDLERS = new HashMap<>();
 
     private ConverterRegistry() {
         registerCollection(Collection.class, ArrayList.class);
@@ -45,12 +45,12 @@ public class ConverterRegistry {
     }
 
 
-    public Converter<?> getTypeHandler(FieldType type) {
+    public com.octopus.core.processor.Converter<?> getTypeHandler(FieldType type) {
         return HANDLERS.get(type);
     }
 
     public FieldType getFieldType(Class<?> type) {
-        for (Map.Entry<FieldType, Converter<?>> entry : HANDLERS.entrySet()) {
+        for (Map.Entry<FieldType, com.octopus.core.processor.Converter<?>> entry : HANDLERS.entrySet()) {
             if (entry.getKey().isSupport(type)) {
                 return entry.getKey();
             }
@@ -63,24 +63,24 @@ public class ConverterRegistry {
         return getFieldType(type) != null;
     }
 
-    public Object convert(String source, Class<?> type, FieldExt ext) {
-        for (Map.Entry<FieldType, Converter<?>> entry : HANDLERS.entrySet()) {
+    public Object convert(String source, Class<?> type, Converter ext) {
+        for (Map.Entry<FieldType, com.octopus.core.processor.Converter<?>> entry : HANDLERS.entrySet()) {
             if (entry.getKey().isSupport(type)) {
-                FieldExtProperties fieldExtProperties = new FieldExtProperties();
+                ConverterProperties converterProperties = new ConverterProperties();
                 if (ext != null) {
-                    fieldExtProperties.setIgnoreError(ext.ignoreError());
-                    fieldExtProperties.setDateFormatPattern(ext.dateFormatPattern());
-                    fieldExtProperties.setDateFormatTimeZone(ext.dateFormatTimeZone());
-                    fieldExtProperties.setBooleanFalseValues(ext.booleanFalseValues());
+                    converterProperties.setIgnoreError(ext.ignoreError());
+                    converterProperties.setDateFormatPattern(ext.dateFormatPattern());
+                    converterProperties.setDateFormatTimeZone(ext.dateFormatTimeZone());
+                    converterProperties.setBooleanFalseValues(ext.booleanFalseValues());
                 }
-                return entry.getValue().convert(source, fieldExtProperties);
+                return entry.getValue().convert(source, converterProperties);
             }
         }
         return null;
     }
 
 
-    public void registerHandler(@NonNull FieldType type, @NonNull Converter<?> handler) {
+    public void registerHandler(@NonNull FieldType type, @NonNull com.octopus.core.processor.Converter<?> handler) {
         HANDLERS.put(type, handler);
     }
 

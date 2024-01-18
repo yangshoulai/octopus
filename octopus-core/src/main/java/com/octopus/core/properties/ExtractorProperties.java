@@ -2,6 +2,7 @@ package com.octopus.core.properties;
 
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -40,15 +41,7 @@ public class ExtractorProperties implements Validatable {
 
     @Override
     public void validate() throws ValidateException {
-        if (links != null) {
-            for (LinkProperties link : links) {
-                link.validate();
-            }
-        }
-        if (fields != null) {
-            for (FieldProperties field : fields) {
-                field.validate();
-            }
-        }
+        Validator.validateWhenNotNull(links);
+        Validator.validateWhenNotNull(fields);
     }
 }

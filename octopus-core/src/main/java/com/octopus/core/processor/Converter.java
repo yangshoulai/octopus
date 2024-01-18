@@ -1,6 +1,6 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 
 /**
  * 转换器
@@ -17,6 +17,6 @@ public interface Converter<T> {
      * @param ext    转换器配置
      * @return 目标类型
      */
-    T convert(String source, FieldExtProperties ext);
+    T convert(String source, ConverterProperties ext);
 
 }

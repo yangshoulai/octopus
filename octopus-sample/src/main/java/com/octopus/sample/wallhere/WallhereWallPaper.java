@@ -15,7 +15,7 @@ import com.octopus.core.processor.annotation.Extractor;
 import com.octopus.core.processor.annotation.Link;
 import com.octopus.core.processor.annotation.LinkMethod;
 import com.octopus.core.processor.annotation.Css;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.annotation.Json;
 import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.annotation.Selector.Type;
@@ -71,7 +71,7 @@ public class WallhereWallPaper {
 
     @Xpath(
         expression = "//div[@class='item-container']/a[1]/@href",
-        formatter = @Formatter(format = "https://wallhere.com%s"))
+        denoiser = @Denoiser(format = "https://wallhere.com%s"))
     private String href;
   }
 

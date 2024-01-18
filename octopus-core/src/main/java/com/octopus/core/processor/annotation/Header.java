@@ -21,6 +21,6 @@ public @interface Header {
     @AliasFor(annotation = Selector.class, field = "value")
     String name() default "";
 
-    @AliasFor(annotation = Selector.class, field = "formatter")
-    Formatter formatter() default @Formatter();
+    @AliasFor(annotation = Selector.class, field = "denoiser")
+    Denoiser denoiser() default @Denoiser();
 }

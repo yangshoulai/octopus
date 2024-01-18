@@ -11,7 +11,7 @@ import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
 import com.octopus.core.processor.annotation.Extractor;
 import com.octopus.core.processor.annotation.Link;
 import com.octopus.core.processor.annotation.LinkMethod;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.annotation.Json;
 import com.octopus.core.processor.annotation.Regex;
 import com.octopus.core.processor.annotation.Selector;
@@ -37,7 +37,7 @@ public class TumblrArchiveBlog {
     @Regex(expression = ".*\"API_TOKEN\":\"(\\w+)\".*", groups = 1)
     private String apiToken;
 
-    @Url(formatter = @Formatter(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
+    @Url(denoiser = @Denoiser(regex = ".*https://(.*)\\.tumblr\\.com/archive/?$", groups = 1))
     private String username;
 
     @LinkMethod

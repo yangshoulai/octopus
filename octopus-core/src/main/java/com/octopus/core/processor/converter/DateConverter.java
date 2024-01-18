@@ -2,7 +2,7 @@ package com.octopus.core.processor.converter;
 
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.processor.Converter;
 
@@ -16,7 +16,7 @@ import java.util.TimeZone;
  */
 public class DateConverter implements Converter<Date> {
     @Override
-    public Date convert(String source, FieldExtProperties ext) {
+    public Date convert(String source, ConverterProperties ext) {
         String pattern = ext.getDateFormatPattern();
         String timeZone = ext.getDateFormatTimeZone();
         String format = StrUtil.isBlank(pattern) ? DatePattern.NORM_DATETIME_PATTERN : pattern;

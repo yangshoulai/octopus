@@ -4,8 +4,11 @@ import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.collector.DownloadCollector;
 import com.octopus.core.processor.collector.LoggingCollector;
+import com.octopus.core.properties.collector.DownloaderCollectorProperties;
+import com.octopus.core.properties.collector.LoggingCollectorProperties;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.util.Map;
@@ -19,79 +22,29 @@ import java.util.Map;
 @Data
 public class CollectorProperties implements Validatable, Transformable<Collector<Map<String, Object>>> {
 
-    /**
-     * 收集器类型
-     * <p>
-     * 默认 Logging
-     */
-    private CollectorType type = CollectorType.Logging;
+    private LoggingCollectorProperties logging;
 
-    /**
-     * 搜集对象
-     * <p>
-     * 默认 Result
-     */
-    private CollectorTarget target = CollectorTarget.Result;
-
-    /**
-     * 下载搜集器 下载分类目录属性名列表
-     * <p>
-     * 默认 空
-     */
-    private SelectorProperties[] dirs = new SelectorProperties[]{};
-
-    /**
-     * 下载搜集器 下载文件属性名
-     * <p>
-     * 默认 空
-     */
-    private SelectorProperties name;
-
-    /**
-     * 是否美化文本内容
-     */
-    private boolean pretty = true;
+    private DownloaderCollectorProperties download;
 
 
     public CollectorProperties() {
     }
 
-    public CollectorProperties(CollectorType type) {
-        this.type = type;
-    }
-
     @Override
     public void validate() throws ValidateException {
-        if (type == null) {
-            throw new ValidateException("collector type is required");
-        }
-
-        if (target == null) {
-            throw new ValidateException("collector target is required");
-        }
-
-        if (type == CollectorType.Download) {
-            if (dirs == null || dirs.length == 0) {
-                throw new ValidateException("collector directory selectors is required");
-            }
-        }
-        for (SelectorProperties dir : dirs) {
-            dir.validate();
-        }
-        if (name != null) {
-            name.validate();
-        }
+        Validator.validateWhenNotNull(logging);
+        Validator.validateWhenNotNull(download);
     }
 
     @Override
     public Collector<Map<String, Object>> transform() {
-        switch (type) {
-            case Logging:
-                return new LoggingCollector<>(this);
-            case Download:
-                return new DownloadCollector<>(this);
-            default:
-                return null;
-        }
+        return (result, response) -> {
+            if (this.logging != null) {
+                new LoggingCollector<>(this.logging).collect(result, response);
+            }
+            if (this.download != null) {
+                new DownloadCollector<>(this.download).collect(result, response);
+            }
+        };
     }
 }

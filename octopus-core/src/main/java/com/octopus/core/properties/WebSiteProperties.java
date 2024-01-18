@@ -5,6 +5,7 @@ import com.octopus.core.WebSite;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
@@ -48,14 +49,10 @@ public class WebSiteProperties implements Validatable, Transformable<WebSite> {
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(host)) {
-            throw new ValidateException("site host is required");
-        }
-        if (downloadConfig != null) {
-            downloadConfig.validate();
-        }
+        Validator.notBlank(host, "site host is required");
+        Validator.validateWhenNotNull(downloadConfig);
         if (limitInSecond != null && limitInSecond <= 0) {
-            throw new ValidateException("site limitInSeconds must be greater than 0");
+            Validator.gt(limitInSecond, 0d, "site limitInSeconds must be greater than 0");
         }
     }
 

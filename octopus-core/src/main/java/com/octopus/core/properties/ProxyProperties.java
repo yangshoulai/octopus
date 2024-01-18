@@ -1,9 +1,9 @@
 package com.octopus.core.properties;
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.net.Proxy;
@@ -40,15 +40,9 @@ public class ProxyProperties implements Validatable, Transformable<Proxy> {
 
     @Override
     public void validate() throws ValidateException {
-        if (type == null) {
-            throw new ValidateException("proxy type is required");
-        }
-        if (StrUtil.isBlank(host)) {
-            throw new ValidateException("proxy host is required");
-        }
-        if (port <= 0) {
-            throw new ValidateException("proxy port is invalid");
-        }
+        Validator.notEmpty(type, "proxy type is required");
+        Validator.notBlank(host, "proxy host is required");
+        Validator.gt(port, 0, "proxy port is invalid");
     }
 
     @Override

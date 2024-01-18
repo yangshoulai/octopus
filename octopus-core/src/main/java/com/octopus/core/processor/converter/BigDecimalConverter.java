@@ -1,7 +1,7 @@
 package com.octopus.core.processor.converter;
 
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.exception.OctopusException;
 import com.octopus.core.processor.Converter;
 
@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  */
 public class BigDecimalConverter implements Converter<BigDecimal> {
     @Override
-    public BigDecimal convert(String source, FieldExtProperties ext) {
+    public BigDecimal convert(String source, ConverterProperties ext) {
         if (StrUtil.isNotEmpty(source)) {
             try {
                 return new BigDecimal(source);

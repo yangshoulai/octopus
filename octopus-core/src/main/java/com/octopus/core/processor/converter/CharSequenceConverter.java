@@ -1,6 +1,6 @@
 package com.octopus.core.processor.converter;
 
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.processor.Converter;
 
 /**
@@ -9,7 +9,7 @@ import com.octopus.core.processor.Converter;
  */
 public class CharSequenceConverter implements Converter<CharSequence> {
     @Override
-    public CharSequence convert(String source, FieldExtProperties ext) {
+    public CharSequence convert(String source, ConverterProperties ext) {
         return source;
     }
 }

@@ -7,6 +7,7 @@ import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.nio.charset.Charset;
@@ -55,11 +56,7 @@ public class DownloadProperties implements Validatable, Transformable<DownloadCo
 
     @Override
     public void validate() throws ValidateException {
-        if (proxies != null) {
-            for (ProxyProperties proxy : proxies) {
-                proxy.validate();
-            }
-        }
+        Validator.validateWhenNotNull(proxies);
     }
 
     @Override
@@ -67,9 +64,7 @@ public class DownloadProperties implements Validatable, Transformable<DownloadCo
         DownloadConfig config = new DownloadConfig();
         config.setConnectTimeout(getTimeoutInSeconds() * 1000);
         config.setSocketTimeout(getTimeoutInSeconds() * 1000);
-
         config.setCharset(Charset.forName(charset));
-
         Map<String, String> h = getHeaders();
         if (!h.containsKey(Header.USER_AGENT.getValue())) {
             h.put(Header.USER_AGENT.getValue(), DownloadConfig.DEFAULT_UA);

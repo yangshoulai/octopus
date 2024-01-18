@@ -11,6 +11,8 @@ import lombok.Data;
 @Data
 public class DenoiserProperties implements Validatable {
 
+    private String regex;
+
     private boolean trim = true;
 
     private boolean filter = true;
@@ -19,11 +21,16 @@ public class DenoiserProperties implements Validatable {
 
     private String separator = "；|;|，|,|#| |、|/|\\\\|\\|";
 
-    private String regex;
-
     private int[] groups = new int[]{0};
 
     private String format = "%s";
+
+    public DenoiserProperties() {
+    }
+
+    public DenoiserProperties(String regex) {
+        this.regex = regex;
+    }
 
     @Override
     public void validate() throws ValidateException {

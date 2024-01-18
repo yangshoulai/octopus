@@ -6,6 +6,7 @@ import com.octopus.core.processor.impl.ConfigurableProcessor;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.io.FileInputStream;
@@ -63,17 +64,9 @@ public class ProcessorProperties implements Validatable, Transformable<Processor
 
     @Override
     public void validate() throws ValidateException {
-        if (matcher == null) {
-            throw new ValidateException("processor matcher is required");
-        }
-        matcher.validate();
-        if (extractor != null) {
-            extractor.validate();
-        }
-
-        if (collector != null) {
-            collector.validate();
-        }
+        Validator.notEmpty(matcher, "processor matcher is required");
+        Validator.validateWhenNotNull(extractor);
+        Validator.validateWhenNotNull(collector);
     }
 
     public static ProcessorProperties fromYaml(InputStream inputStream) {

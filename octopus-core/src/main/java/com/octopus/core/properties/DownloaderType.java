@@ -16,6 +16,6 @@ public enum DownloaderType {
     /**
      * OkHttp 下载器
      */
-    OKHttp
+    OkHttp
 
 }

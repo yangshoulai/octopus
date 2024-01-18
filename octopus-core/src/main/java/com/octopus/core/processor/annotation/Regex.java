@@ -30,6 +30,6 @@ public @interface Regex {
   @AliasFor(annotation = Selector.class, field = "format")
   String format() default "%s";
 
-  @AliasFor(annotation = Selector.class, field = "formatter")
-  Formatter formatter() default @Formatter();
+  @AliasFor(annotation = Selector.class, field = "denoiser")
+  Denoiser denoiser() default @Denoiser();
 }

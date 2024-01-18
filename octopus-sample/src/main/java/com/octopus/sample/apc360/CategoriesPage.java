@@ -2,7 +2,7 @@ package com.octopus.sample.apc360;
 
 import com.octopus.core.processor.annotation.Extractor;
 import com.octopus.core.processor.annotation.Link;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.annotation.Json;
 import com.octopus.core.processor.annotation.Selector;
 import java.util.Date;
@@ -20,8 +20,8 @@ import lombok.Data;
           @Selector(
               type = Selector.Type.Json,
               value = "$.data[*].id",
-              formatter =
-                  @Formatter(
+              denoiser =
+                  @Denoiser(
                       format =
                           "http://wallpaper.apc.360.cn/index.php?c=WallPaper&start=0&count=200&from=360chrome&a=getAppsByCategory&cid=%s")))
 })

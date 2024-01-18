@@ -10,6 +10,7 @@ import com.octopus.core.properties.store.SqliteStoreProperties;
 import com.octopus.core.store.*;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
@@ -43,15 +44,9 @@ public class StoreProperties implements Validatable, Transformable<Store> {
 
     @Override
     public void validate() throws ValidateException {
-        if (this.redis != null) {
-            this.redis.validate();
-        }
-        if (this.mongo != null) {
-            this.mongo.validate();
-        }
-        if (this.sqlite != null) {
-            this.sqlite.validate();
-        }
+        Validator.validateWhenNotNull(redis);
+        Validator.validateWhenNotNull(mongo);
+        Validator.validateWhenNotNull(sqlite);
     }
 
     @Override

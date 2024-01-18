@@ -5,11 +5,11 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.WebSite;
-import com.octopus.core.processor.annotation.FieldExt;
+import com.octopus.core.processor.annotation.Converter;
 import com.octopus.core.processor.annotation.Extractor;
 import com.octopus.core.processor.annotation.Link;
 import com.octopus.core.processor.annotation.Css;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.annotation.Regex;
 import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.annotation.Xpath;
@@ -87,7 +87,7 @@ public class DoubanMovie {
     @Regex(
             expression = "语言:</span>([\\S\\s]*?)<br/>",
             groups = 1,
-            formatter = @Formatter(split = true))
+            denoiser = @Denoiser(split = true))
     private String[] languages;
 
     /**
@@ -95,8 +95,8 @@ public class DoubanMovie {
      */
     @Xpath(
             expression = "//span[@property='v:initialReleaseDate']/text()",
-            formatter = @Formatter(regex = "^(\\d{4}-\\d{2}-\\d{2}).*$", groups = 1))
-    @FieldExt(dateFormatPattern = DatePattern.NORM_DATE_PATTERN)
+            denoiser = @Denoiser(regex = "^(\\d{4}-\\d{2}-\\d{2}).*$", groups = 1))
+    @Converter(dateFormatPattern = DatePattern.NORM_DATE_PATTERN)
     private Date publishedDate;
 
     /**
@@ -116,14 +116,14 @@ public class DoubanMovie {
      */
     @Xpath(
             value = "//div[@id='link-report-intra']//span[@property='v:summary']/text()",
-            formatter = @Formatter(trim = true))
+            denoiser = @Denoiser(trim = true))
     private String brief;
 
     @Data
     @Extractor
     public static class Actor {
 
-        @Xpath(value = "//a/@href", formatter = @Formatter(regex = "^/celebrity/(\\d+)/$", groups = 1))
+        @Xpath(value = "//a/@href", denoiser = @Denoiser(regex = "^/celebrity/(\\d+)/$", groups = 1))
         private String id;
 
         @Css("a")

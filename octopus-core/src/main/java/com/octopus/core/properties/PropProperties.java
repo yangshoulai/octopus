@@ -1,8 +1,8 @@
 package com.octopus.core.properties;
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
@@ -45,11 +45,7 @@ public class PropProperties implements Validatable {
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(name)) {
-            throw new ValidateException("prop name is required");
-        }
-        if (this.selector != null) {
-            selector.validate();
-        }
+        Validator.notBlank(name, "prop name is required");
+        Validator.validateWhenNotNull(selector);
     }
 }

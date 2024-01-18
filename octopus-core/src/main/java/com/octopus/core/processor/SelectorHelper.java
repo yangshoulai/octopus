@@ -27,15 +27,15 @@ public class SelectorHelper {
     }
 
     private static DenoiserProperties getDenoiserProperties(com.octopus.core.processor.annotation.Selector selector) {
-        if (selector.formatter() != null) {
+        if (selector.denoiser() != null) {
             DenoiserProperties denoiser = new DenoiserProperties();
-            denoiser.setSeparator(selector.formatter().separator());
-            denoiser.setFilter(selector.formatter().filter());
-            denoiser.setTrim(selector.formatter().trim());
-            denoiser.setSplit(selector.formatter().split());
-            denoiser.setRegex(selector.formatter().regex());
-            denoiser.setFormat(selector.formatter().format());
-            denoiser.setGroups(selector.formatter().groups());
+            denoiser.setSeparator(selector.denoiser().separator());
+            denoiser.setFilter(selector.denoiser().filter());
+            denoiser.setTrim(selector.denoiser().trim());
+            denoiser.setSplit(selector.denoiser().split());
+            denoiser.setRegex(selector.denoiser().regex());
+            denoiser.setFormat(selector.denoiser().format());
+            denoiser.setGroups(selector.denoiser().groups());
             return denoiser;
         }
         return null;

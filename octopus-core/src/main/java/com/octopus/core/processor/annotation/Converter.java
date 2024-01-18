@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Documented
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FieldExt {
+public @interface Converter {
 
     boolean ignoreError() default true;
 

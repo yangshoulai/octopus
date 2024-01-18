@@ -4,6 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -93,23 +94,9 @@ public class LinkProperties implements Validatable {
         if (StrUtil.isBlank(url) && selector == null) {
             throw new ValidateException("link url or selector is required");
         }
-        if (selector != null) {
-            selector.validate();
-        }
-        if (params != null) {
-            for (PropProperties prop : params) {
-                prop.validate();
-            }
-        }
-        if (headers != null) {
-            for (PropProperties prop : headers) {
-                prop.validate();
-            }
-        }
-        if (attrs != null) {
-            for (PropProperties prop : attrs) {
-                prop.validate();
-            }
-        }
+        Validator.validateWhenNotNull(selector);
+        Validator.validateWhenNotNull(params);
+        Validator.validateWhenNotNull(headers);
+        Validator.validateWhenNotNull(attrs);
     }
 }

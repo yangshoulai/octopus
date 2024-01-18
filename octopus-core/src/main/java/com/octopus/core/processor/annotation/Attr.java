@@ -2,11 +2,8 @@ package com.octopus.core.processor.annotation;
 
 import com.octopus.core.processor.annotation.Selector.Type;
 import com.octopus.core.utils.AliasFor;
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+
+import java.lang.annotation.*;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -18,12 +15,12 @@ import java.lang.annotation.Target;
 @Selector(type = Type.Attr)
 public @interface Attr {
 
-  @AliasFor(annotation = Selector.class, field = "value")
-  String value() default "";
+    @AliasFor(annotation = Selector.class, field = "value")
+    String value() default "";
 
-  @AliasFor(annotation = Selector.class, field = "value")
-  String name() default "";
+    @AliasFor(annotation = Selector.class, field = "value")
+    String name() default "";
 
-  @AliasFor(annotation = Selector.class, field = "formatter")
-  Formatter formatter() default @Formatter();
+    @AliasFor(annotation = Selector.class, field = "denoiser")
+    Denoiser denoiser() default @Denoiser();
 }

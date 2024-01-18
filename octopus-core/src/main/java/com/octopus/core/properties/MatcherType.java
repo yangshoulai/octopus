@@ -86,5 +86,9 @@ public enum MatcherType {
     /**
      * 或组合匹配器
      */
-    Or
+    Or,
+    /**
+     * 非匹配器
+     */
+    Not
 }

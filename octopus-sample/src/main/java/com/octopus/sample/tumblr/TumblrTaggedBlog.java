@@ -9,7 +9,7 @@ import com.octopus.core.downloader.proxy.PollingProxyProvider;
 import com.octopus.core.downloader.proxy.ProxyProvider;
 import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
 import com.octopus.core.processor.annotation.*;
-import com.octopus.core.processor.annotation.Formatter;
+import com.octopus.core.processor.annotation.Denoiser;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.sample.Constants;
 import lombok.Data;
@@ -25,7 +25,7 @@ import java.util.*;
 @Data
 @Extractor(
         links = {
-                @Link(selector = @Selector(type = Selector.Type.Json, value = "$.response.timeline._links.next.href", formatter = @Formatter(format = "https://www.tumblr.com/api%s", regex = "^[\\w\\W]*$", groups = {0})), repeatable = false),
+                @Link(selector = @Selector(type = Selector.Type.Json, value = "$.response.timeline._links.next.href", denoiser = @Denoiser(format = "https://www.tumblr.com/api%s", regex = "^[\\w\\W]*$", groups = {0})), repeatable = false),
                 @Link(selector = @Selector(type = Selector.Type.Json, value = "$.response.timeline.elements[*].content[*].media[0].url"), repeatable = false)
         }
 )

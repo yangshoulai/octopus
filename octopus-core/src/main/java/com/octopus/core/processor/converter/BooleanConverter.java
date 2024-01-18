@@ -2,7 +2,7 @@ package com.octopus.core.processor.converter;
 
 import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.processor.Converter;
 
 import java.util.Arrays;
@@ -18,7 +18,7 @@ public class BooleanConverter implements Converter<Boolean> {
             ListUtil.toList("", "0", "非", "否", "off", "no", "f", "false");
 
     @Override
-    public Boolean convert(String source, FieldExtProperties ext) {
+    public Boolean convert(String source, ConverterProperties ext) {
         if (StrUtil.isBlank(source)) {
             return Boolean.FALSE;
         }

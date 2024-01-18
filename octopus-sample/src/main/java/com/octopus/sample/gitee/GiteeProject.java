@@ -56,7 +56,7 @@ public class GiteeProject {
 
         @Css(value = ".project-title a.title",
                 attr = "href",
-                formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
+                denoiser = @Denoiser(regex = "^.*$", format = "https://gitee.com%s"))
         private String address;
 
         @Css(".project-desc")

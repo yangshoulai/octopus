@@ -1,10 +1,6 @@
 package com.octopus.core.processor.annotation;
 
-import java.lang.annotation.Documented;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.annotation.*;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -64,7 +60,7 @@ public @interface Selector {
     /**
      * @return 格式化
      */
-    Formatter formatter() default @Formatter();
+    Denoiser denoiser() default @Denoiser();
 
     enum Type {
         /**

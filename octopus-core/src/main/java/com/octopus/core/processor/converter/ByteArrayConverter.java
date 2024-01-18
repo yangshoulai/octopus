@@ -2,7 +2,7 @@ package com.octopus.core.processor.converter;
 
 import cn.hutool.core.util.CharsetUtil;
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.processor.Converter;
 
 import java.nio.charset.Charset;
@@ -13,7 +13,7 @@ import java.nio.charset.Charset;
  */
 public class ByteArrayConverter implements Converter<byte[]> {
     @Override
-    public byte[] convert(String source, FieldExtProperties ext) {
+    public byte[] convert(String source, ConverterProperties ext) {
         return source.getBytes(StrUtil.isBlank(ext.getCharset()) ? CharsetUtil.CHARSET_UTF_8 : Charset.forName(ext.getCharset()));
     }
 }

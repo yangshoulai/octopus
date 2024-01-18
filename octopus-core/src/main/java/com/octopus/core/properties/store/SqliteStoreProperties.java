@@ -5,6 +5,7 @@ import com.octopus.core.exception.ValidateException;
 import com.octopus.core.store.SqliteStore;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -50,11 +51,7 @@ public class SqliteStoreProperties implements Validatable, Transformable<SqliteS
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(db)) {
-            throw new ValidateException("sqlite db is required");
-        }
-        if (StrUtil.isBlank(table)) {
-            throw new ValidateException("sqlite table is required");
-        }
+        Validator.notBlank(db, "sqlite db is required");
+        Validator.notBlank(db, "sqlite table is required");
     }
 }

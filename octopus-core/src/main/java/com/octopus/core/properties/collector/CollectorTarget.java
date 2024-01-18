@@ -1,4 +1,4 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.collector;
 
 /**
  * @author shoulai.yang@gmail.com

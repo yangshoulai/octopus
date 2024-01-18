@@ -2,11 +2,11 @@ package com.octopus.core.processor.collector;
 
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
-import com.octopus.core.properties.CollectorProperties;
-import com.octopus.core.properties.CollectorTarget;
+import com.octopus.core.properties.collector.CollectorTarget;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.Collector;
+import com.octopus.core.properties.collector.LoggingCollectorProperties;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -15,9 +15,9 @@ import com.octopus.core.processor.Collector;
 public class LoggingCollector<R> implements Collector<R> {
     private final Logger logger = LoggerFactory.getLogger(LoggingCollector.class);
 
-    private final CollectorProperties properties;
+    private final LoggingCollectorProperties properties;
 
-    public LoggingCollector(CollectorProperties properties) {
+    public LoggingCollector(LoggingCollectorProperties properties) {
         this.properties = properties;
     }
 

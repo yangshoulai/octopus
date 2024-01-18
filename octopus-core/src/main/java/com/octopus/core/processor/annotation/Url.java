@@ -2,6 +2,7 @@ package com.octopus.core.processor.annotation;
 
 import com.octopus.core.processor.annotation.Selector.Type;
 import com.octopus.core.utils.AliasFor;
+
 import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -17,6 +18,6 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Selector(type = Type.Url)
 public @interface Url {
-  @AliasFor(annotation = Selector.class, field = "formatter")
-  Formatter formatter() default @Formatter();
+    @AliasFor(annotation = Selector.class, field = "denoiser")
+    Denoiser denoiser() default @Denoiser();
 }

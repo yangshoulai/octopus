@@ -12,7 +12,7 @@ import lombok.Data;
  * @date 2024/01/12
  */
 @Data
-public class FieldExtProperties implements Validatable {
+public class ConverterProperties implements Validatable {
 
     /**
      * 是否忽略转换异常

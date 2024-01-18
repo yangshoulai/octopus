@@ -1,11 +1,11 @@
 package com.octopus.core.properties;
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -63,21 +63,18 @@ public class MatcherProperties implements Validatable, Transformable<Matcher> {
 
     @Override
     public void validate() throws ValidateException {
-        if (type == null) {
-            throw new ValidateException("matcher type is required");
+        Validator.notEmpty(type, "matcher type is required");
+        if ((type == MatcherType.And || type == MatcherType.Or || type == MatcherType.Not)) {
+            Validator.notEmpty(children, "matcher children is required");
         }
-        if ((type == MatcherType.And || type == MatcherType.Or)) {
-            if ((this.children == null || this.children.isEmpty())) {
-                throw new ValidateException("matcher children is required");
-            }
+        if (type == MatcherType.Not) {
+            Validator.eq(children.size(), 1, "not matcher must has only one child");
         }
-        if (type == MatcherType.HeaderRegex && StrUtil.isBlank(header)) {
-            throw new ValidateException("header regex matcher header is required");
+        if (type == MatcherType.HeaderRegex) {
+            Validator.notBlank(header, "header regex matcher header is required");
         }
         if (type == MatcherType.ContentTypeRegex || type == MatcherType.HeaderRegex || type == MatcherType.UrlRegex) {
-            if (StrUtil.isBlank(pattern)) {
-                throw new ValidateException("regex matcher pattern is required");
-            }
+            Validator.notBlank(pattern, "regex matcher pattern is required");
         }
     }
 
@@ -136,6 +133,9 @@ public class MatcherProperties implements Validatable, Transformable<Matcher> {
                 break;
             case Media:
                 matcher = Matchers.MEDIA;
+                break;
+            case Not:
+                matcher = Matchers.not(matchers[0]);
                 break;
             default:
                 matcher = Matchers.ALL;

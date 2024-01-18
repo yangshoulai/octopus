@@ -10,6 +10,7 @@ import com.octopus.core.exception.InvalidExtractorException;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.*;
+import com.octopus.core.processor.annotation.Converter;
 import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.annotation.*;
 import com.octopus.core.utils.AnnotationUtil;
@@ -174,7 +175,7 @@ public class ExtractorProcessor<T> implements Processor {
     boolean multi = fieldInfo.isArray() || fieldInfo.isCollection();
     List<String> selected = SelectorHelper.getInstance().selectBySelectorAnnotation(selectors, source, multi, response);
     if (selected != null && !selected.isEmpty()) {
-      FieldExt annotation = AnnotationUtil.getDirectlyMergedAnnotation(field, FieldExt.class);
+      Converter annotation = AnnotationUtil.getDirectlyMergedAnnotation(field, Converter.class);
       if (ConverterRegistry.getInstance().isSupportType(field.getType())) {
         ReflectUtil.setFieldValue(result.getObj(), field, ConverterRegistry.getInstance().convert(selected.get(0), field.getType(), annotation));
         return;

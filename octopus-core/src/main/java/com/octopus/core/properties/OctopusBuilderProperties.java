@@ -1,11 +1,11 @@
 package com.octopus.core.properties;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.io.FileInputStream;
@@ -90,18 +90,11 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
     private List<RequestProperties> seeds = new ArrayList<>();
 
     /**
-     * 下载器类型
+     * 下载器配置
      * <p>
      * 默认 OKHttp
      */
-    private DownloaderType downloader = DownloaderType.OKHttp;
-
-    /**
-     * 全局下载配置
-     * <p>
-     * 默认 下载配置默认参数
-     */
-    private DownloadProperties globalDownloadConfig = new DownloadProperties();
+    private DownloaderProperties downloader = new DownloaderProperties();
 
     /**
      * 请求存储器配置
@@ -132,38 +125,14 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(name)) {
-            throw new ValidateException("octopus name is required");
-        }
-        if (threads <= 0) {
-            throw new ValidateException("octopus threads must be greater than 0");
-        }
-        if (sites != null) {
-            for (WebSiteProperties site : sites) {
-                site.validate();
-            }
-        }
-        if (seeds != null) {
-            for (RequestProperties seed : seeds) {
-                seed.validate();
-            }
-        }
-        if (globalDownloadConfig != null) {
-            globalDownloadConfig.validate();
-        }
-        if (store == null) {
-            throw new ValidateException("octopus store is required");
-        }
-        store.validate();
-        if (downloader == null) {
-            throw new ValidateException("octopus downloader is required");
-        }
-        if (processors != null) {
-            for (ProcessorProperties processor : processors) {
-                processor.validate();
-            }
-        }
-
+        Validator.notBlank(name, "octopus name is required");
+        Validator.gt(threads, 0, "octopus threads must be greater than 0");
+        Validator.validateWhenNotNull(sites);
+        Validator.validateWhenNotNull(seeds);
+        Validator.notEmpty(store, "octopus store is required");
+        Validator.validateWhenNotNull(store);
+        Validator.notEmpty(downloader, "octopus downloader is required");
+        Validator.validateWhenNotNull(processors);
     }
 
     public static OctopusBuilderProperties fromYaml(InputStream inputStream) {
@@ -198,14 +167,12 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
                 builder.addSeeds(seed.transform());
             }
         }
-        if (downloader == DownloaderType.OKHttp) {
+        if (downloader.getType() == DownloaderType.OkHttp) {
             builder.useOkHttpDownloader();
         } else {
             builder.useHttpClientDownloader();
         }
-        if (globalDownloadConfig != null) {
-            builder.setGlobalDownloadConfig(globalDownloadConfig.transform());
-        }
+        builder.setGlobalDownloadConfig(downloader.transform());
         builder.setStore(store.transform());
         if (processors != null) {
             for (ProcessorProperties processor : processors) {

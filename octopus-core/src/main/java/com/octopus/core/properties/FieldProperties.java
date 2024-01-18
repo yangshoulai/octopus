@@ -3,6 +3,7 @@ package com.octopus.core.properties;
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 /**
@@ -53,7 +54,7 @@ public class FieldProperties implements Validatable {
      * <p>
      * 默认 默认扩展配置
      */
-    private FieldExtProperties ext = new FieldExtProperties();
+    private ConverterProperties converter = new ConverterProperties();
 
     public FieldProperties() {
     }
@@ -99,22 +100,16 @@ public class FieldProperties implements Validatable {
 
     @Override
     public void validate() throws ValidateException {
+        Validator.notBlank(name, "field name is required");
         if (StrUtil.isBlank(name)) {
             throw new ValidateException("field name is required");
         }
         if (this.extractor == null && this.type == null) {
             throw new ValidateException("field type or extractor is required");
         }
-        if (this.extractor != null) {
-            this.extractor.validate();
-        }
-        if (selector == null) {
-            throw new ValidateException("field selector is required");
-        }
-        this.selector.validate();
-
-        if (this.ext != null) {
-            this.ext.validate();
-        }
+        Validator.validateWhenNotNull(extractor);
+        Validator.notEmpty(selector, "field selector is required");
+        Validator.validateWhenNotNull(selector);
+        Validator.validateWhenNotNull(converter);
     }
 }

@@ -33,6 +33,22 @@ public class GiteeProject {
     @Body
     private byte[] body;
 
+    public static void main(String[] args) {
+        Octopus.builder()
+                .addSite(WebSite.of("gitee.com").setRateLimiter(1))
+                .addSeeds("https://gitee.com/explore/all?order=starred")
+                .addProcessor(
+                        Matchers.HTML,
+                        GiteeProject.class,
+                        (gitee, r) -> {
+                            if (gitee.getProjects() != null) {
+                                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
+                            }
+                        })
+                .build()
+                .start();
+    }
+
     @Data
     @Extractor
     public static class Project {
@@ -40,10 +56,9 @@ public class GiteeProject {
         @Css(".project-title a.title")
         private String name;
 
-        @Css(
-                value = ".project-title a.title",
+        @Css(value = ".project-title a.title",
                 attr = "href",
-                formatter = @Formatter(regex = "^.*$", format = "https://gitee.com%s"))
+                denoiser = @Denoiser(regex = "^.*$", format = "https://gitee.com%s"))
         private String address;
 
         @Css(".project-desc")
@@ -63,22 +78,6 @@ public class GiteeProject {
 
 
     }
-
-    public static void main(String[] args) {
-        Octopus.builder()
-                .addSite(WebSite.of("gitee.com").setRateLimiter(1))
-                .addSeeds("https://gitee.com/explore/all?order=starred")
-                .addProcessor(
-                        Matchers.HTML,
-                        GiteeProject.class,
-                        (gitee, r) -> {
-                            if (gitee.getProjects() != null) {
-                                gitee.getProjects().forEach(p -> System.out.println(JSONUtil.toJsonStr(p)));
-                            }
-                        })
-                .build()
-                .start();
-    }
 }
 ```
 
@@ -87,72 +86,127 @@ public class GiteeProject {
 ##### 配置文件方式
 
 ```yaml
+# 爬虫名称
 name: Gitee
+# 是否自动关闭
 autoStop: true
+# 启动时是否清空请求存储器
 clearStoreOnStartup: true
+# 关闭时是否清空请求存储器
 clearStoreOnStop: true
-downloader: OKHttp
-globalDownloadConfig:
-  charset: UTF-8
-  timeoutInSeconds: 60
+# 当请求存储器还有未完成的请求时，是否忽略种子请求
 ignoreSeedsWhenStoreHasRequests: true
+# 最大重试次数
 maxReplays: 1
+# 是否重试失败请求
 replayFailedRequest: true
+# 工作线程数量
+threads: 20
+# 种子请求
 seeds:
   - https://gitee.com/explore/all?order=starred
+# 目标站点配置
 sites:
+  # 站点域名
   - host: gitee.com
+    # 站点限速
     limitInSecond: 1
-store: Memory
-threads: 20
+# 请求存储器
+store:
+  # 使用 sqlite 存储
+  sqlite:
+    # 数据库文件路径
+    db: /Users/yangshoulai/Downloads/octopus.db
+    # 表名
+    table: gitee
+# 下载器配置
+downloader:
+  # 使用 OkHttp 下载器
+  type: OkHttp
+  # 默认编码
+  charset: UTF-8
+  # 下载超时时间
+  timeoutInSeconds: 60
+# 处理器列表
 processors:
+  # 匹配器
   - matcher: Html
-    collector: Logging
+    # 收集器
+    collector:
+      # 打印日志
+      logging: { }
+      # 下载内容
+      downloader:
+        # 下载目录
+        dirs:
+          - value: /Users/yangshoulai/Downloads/gitee
+        # 下载文件名
+        name:
+          param:
+            name: page
+            defaultValue: 1
+            denoiser:
+              regex: ^.*$
+              format: "%s.json"
+    # 内容提取（项目列表）
     extractor:
+      # 字段配置列表
       fields:
-        - extractor:
+        # 字段名
+        - name: projects
+          # 是否多个
+          multi: true
+          # 选择器
+          selector:
+            # 使用 css选择器
+            css:
+              # 选择符
+              expression: .items .item
+              # 选取节点本身
+              self: true
+          # 嵌套提取内容（项目）
+          extractor:
             fields:
+              # 项目名称
               - name: name
                 selector:
-                  type: Css
-                  value: .project-title a.title
+                  css: .project-title a.title
+                # 项目地址
               - name: address
                 selector:
-                  attr: href
-                  formatter:
-                    format: https://gitee.com%s
-                    regex: ^.*$
-                  type: Css
-                  value: .project-title a.title
+                  css:
+                    expression: .project-title a.title
+                    attr: href
+                    denoiser:
+                      format: https://gitee.com%s
+                      regex: ^.*$
+                # 项目标签
               - name: tags
                 selector:
-                  type: Css
-                  value: .project-label-item
+                  css: .project-label-item
+                # 项目描述
               - name: description
                 selector:
-                  type: Css
-                  value: .project-desc
+                  css: .project-desc
+                # 项目关注数
               - name: stars
                 selector:
-                  type: Css
-                  value: .stars-count
+                  css: .stars-count
                 type: Integer
+                # 当前请求地址
               - name: url
                 selector:
-                  type: Url
-                type: String
-          multi: true
-          name: projects
-          selector:
-            self: true
-            type: Css
-            value: .items .item
+                  url: { }
+      # 提取链接
       links:
+        # 链接优先级
         - priority: 1
+          # 不可重复
           repeatable: false
+          # 链接选择器
           selector:
-            type: Xpath
-            value: //a[@rel='next'][position()=2]/@href
+            # xpath 选择器 选取下一页
+            xpath: //a[@rel='next'][position()=2]/@href
 
 ```
 

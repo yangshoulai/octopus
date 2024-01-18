@@ -1,7 +1,7 @@
 package com.octopus.core.processor.converter;
 
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.FieldExtProperties;
+import com.octopus.core.properties.ConverterProperties;
 import com.octopus.core.processor.Converter;
 
 /**
@@ -10,7 +10,7 @@ import com.octopus.core.processor.Converter;
  */
 public class CharacterConverter implements Converter<Character> {
     @Override
-    public Character convert(String source, FieldExtProperties ext) {
+    public Character convert(String source, ConverterProperties ext) {
         return StrUtil.isBlank(source) ? null : source.charAt(0);
     }
 }

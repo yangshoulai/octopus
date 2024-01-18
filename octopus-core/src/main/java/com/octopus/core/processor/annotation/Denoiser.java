@@ -15,7 +15,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited
-public @interface Formatter {
+public @interface Denoiser {
 
   /**
    * @return 是否去除首尾空白

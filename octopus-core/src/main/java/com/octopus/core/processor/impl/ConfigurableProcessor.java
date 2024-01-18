@@ -78,7 +78,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
             for (String item : selected) {
                 if (field.getExtractor() == null) {
                     Converter<?> converter = ConverterRegistry.getInstance().getTypeHandler(field.getType());
-                    Object obj = converter.convert(item, field.getExt() == null ? new FieldExtProperties() : field.getExt());
+                    Object obj = converter.convert(item, field.getConverter() == null ? new ConverterProperties() : field.getConverter());
                     list.add(obj);
                 } else {
                     Result<Map<String, Object>> r = processExtractor(item, response, field.getExtractor());

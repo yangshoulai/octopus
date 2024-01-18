@@ -5,6 +5,7 @@ import com.octopus.core.exception.ValidateException;
 import com.octopus.core.store.RedisStore;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.NonNull;
 
@@ -42,13 +43,8 @@ public class RedisStoreProperties implements Validatable, Transformable<RedisSto
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(uri)) {
-            throw new ValidateException("redis uri is required");
-        }
-
-        if (StrUtil.isBlank(prefix)) {
-            throw new ValidateException("redis key prefix is required");
-        }
+        Validator.notBlank(uri, "redis uri is required");
+        Validator.notBlank(uri, "redis key prefix is required");
     }
 
     @Override

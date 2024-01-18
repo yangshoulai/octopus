@@ -7,11 +7,11 @@ package com.octopus.core.properties;
  * @date 2024/01/12
  */
 
-import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
+import com.octopus.core.utils.Validator;
 import lombok.Data;
 
 import java.util.HashMap;
@@ -92,12 +92,8 @@ public class RequestProperties implements Validatable, Transformable<Request> {
 
     @Override
     public void validate() throws ValidateException {
-        if (StrUtil.isBlank(url)) {
-            throw new ValidateException("request url is required");
-        }
-        if (method == null) {
-            throw new ValidateException("request method is required");
-        }
+        Validator.notBlank(url, "request url is required");
+        Validator.notEmpty(method, "request method is required");
     }
 
     @Override
