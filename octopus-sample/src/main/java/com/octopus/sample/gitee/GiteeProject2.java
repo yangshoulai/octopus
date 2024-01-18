@@ -14,6 +14,6 @@ import java.io.IOException;
 public class GiteeProject2 {
 
     public static void main(String[] args) throws IOException, ValidateException {
-        Octopus.fromYaml(GiteeProject2.class.getResourceAsStream("/gitee/octopus.yaml")).start();
+        Octopus.fromYaml(GiteeProject2.class.getResourceAsStream("/gitee.yaml")).start();
     }
 }
