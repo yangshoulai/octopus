@@ -2,7 +2,6 @@ package com.octopus.core;
 
 import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
-import com.octopus.core.properties.OctopusBuilderProperties;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
 import com.octopus.core.downloader.HttpClientDownloader;
@@ -17,12 +16,13 @@ import com.octopus.core.processor.impl.MatchableProcessor;
 import com.octopus.core.processor.impl.MatchedProcessor;
 import com.octopus.core.processor.matcher.Matcher;
 import com.octopus.core.processor.matcher.Matchers;
+import com.octopus.core.properties.OctopusBuilderProperties;
+import com.octopus.core.properties.store.RedisStoreProperties;
 import com.octopus.core.properties.store.SqliteStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.*;
 import lombok.NonNull;
-import redis.clients.jedis.JedisPool;
 
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -102,50 +102,25 @@ public class OctopusBuilder {
 
 
     /**
-     * 设置 Redis 请求存储器
-     *
-     * @param pool jedisPool
-     * @return OctopusBuilder
-     * @see com.octopus.core.store.RedisStore
-     */
-    public OctopusBuilder useRedisStore(@NonNull JedisPool pool) {
-        this.store = new RedisStore(pool);
-        return this;
-    }
-
-    /**
-     * 使用 Redis 请求存储器
-     *
-     * @param keyPrefix redis 键名前缀
-     * @param pool      jedisPool
-     * @return OctopusBuilder
-     * @see com.octopus.core.store.RedisStore
-     */
-    public OctopusBuilder useRedisStore(@NonNull String keyPrefix, @NonNull JedisPool pool) {
-        this.store = new RedisStore(keyPrefix, pool);
-        return this;
-    }
-
-    /**
      * 使用 本机 Redis 请求存储器
      *
      * @return OctopusBuilder
      * @see com.octopus.core.store.RedisStore
      */
     public OctopusBuilder useRedisStore() {
-        this.store = new RedisStore();
+        this.store = new RedisStore(new RedisStoreProperties());
         return this;
     }
 
     /**
      * 使用 本机 Redis 请求存储器
      *
-     * @param keyPrefix redis 键名前缀
+     * @param properties redis
      * @return OctopusBuilder
      * @see com.octopus.core.store.RedisStore
      */
-    public OctopusBuilder useRedisStore(@NonNull String keyPrefix) {
-        this.store = new RedisStore(keyPrefix, new JedisPool());
+    public OctopusBuilder useRedisStore(@NonNull RedisStoreProperties properties) {
+        this.store = new RedisStore(properties);
         return this;
     }
 

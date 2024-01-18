@@ -1,28 +1,18 @@
 package com.octopus.core.store;
 
-import cn.hutool.core.collection.ListUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
 import com.octopus.core.properties.store.RedisStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
+import lombok.NonNull;
+import org.redisson.Redisson;
+import org.redisson.api.*;
+import org.redisson.config.Config;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-
-import lombok.NonNull;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.ScanResult;
-import redis.clients.jedis.Transaction;
 
 /**
  * Redis 存储器
@@ -32,203 +22,146 @@ import redis.clients.jedis.Transaction;
  */
 public class RedisStore implements Store {
 
-    public static final int BATCH_SIZE = 100;
+    private final RedissonClient redissonClient;
 
-    private final JedisPool pool;
+    private RScoredSortedSet<String> waiting;
 
-    private String allKey;
+    private RSet<String> executing;
 
-    private String waitingKey;
+    private RSet<String> completed;
 
-    private String completedKey;
+    private RMap<String, Request> all;
 
-    private String failedKey;
+    private RMap<String, String> fails;
 
-    private String executingKey;
+    private RLock lock;
 
 
     public RedisStore(@NonNull RedisStoreProperties properties) {
+        Config config = new Config();
+        config.useSingleServer().setAddress(properties.getUri());
+        this.redissonClient = Redisson.create(config);
+        this.init(properties.getPrefix());
+    }
+
+
+    private void init(String prefix) {
+        this.lock = this.redissonClient.getLock(prefix + ":lock");
+        this.all = this.redissonClient.getMap(prefix + ":all");
+        this.fails = this.redissonClient.getMap(prefix + ":fails");
+        this.waiting = this.redissonClient.getScoredSortedSet(prefix + ":waiting");
+        this.completed = this.redissonClient.getSet(prefix + ":completed");
+        this.executing = this.redissonClient.getSet(prefix + ":executing");
         try {
-            this.pool = new JedisPool(new URI(properties.getUri()));
-            this.init(properties.getPrefix());
-        } catch (URISyntaxException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-
-    public RedisStore(@NonNull String prefix, @NonNull JedisPool pool) {
-        this.pool = pool;
-        this.init(prefix);
-    }
-
-    public RedisStore(@NonNull JedisPool pool) {
-        this(RedisStoreProperties.DEFAULT_PREFIX, pool);
-    }
-
-    public RedisStore() {
-        this(new JedisPool());
-    }
-
-    private void init(String keyPrefix) {
-        this.allKey = keyPrefix + ":" + "all";
-        this.waitingKey = keyPrefix + ":" + "waiting";
-        this.completedKey = keyPrefix + ":" + "completed";
-        this.failedKey = keyPrefix + ":" + "failed";
-        this.executingKey = keyPrefix + ":" + "executing";
-        try (Jedis jedis = this.pool.getResource()) {
-            Set<String> executing = jedis.smembers(this.executingKey);
-            if (!executing.isEmpty()) {
-                executing.forEach(
-                        id -> {
-                            if (jedis.zscore(this.waitingKey, id) == null) {
-                                Request request = JSONUtil.toBean(jedis.hget(this.allKey, id), Request.class);
-                                jedis.zadd(this.waitingKey, request.getPriority(), id);
-                                jedis.srem(this.executingKey, id);
-                            }
-                        });
+            this.lock.lock();
+            if (!this.executing.isEmpty()) {
+                for (String id : executing) {
+                    if (!this.waiting.contains(id)) {
+                        Request request = this.all.get(id);
+                        this.waiting.add(request.getPriority(), id);
+                        this.executing.remove(id);
+                    }
+                }
             }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public Request get() {
-        try (Jedis jedis = this.pool.getResource()) {
-            Set<String> idSet = jedis.zrevrange(this.waitingKey, 0, 0);
-            if (!idSet.isEmpty()) {
-                String selected = idSet.stream().findFirst().get();
-                try (Transaction transaction = jedis.multi()) {
-                    transaction.sadd(this.executingKey, selected);
-                    transaction.zrem(this.waitingKey, selected);
-                    transaction.exec();
-                }
-                if (StrUtil.isNotBlank(selected)) {
-                    String json = jedis.hget(this.allKey, selected);
-                    Request request = JSONUtil.toBean(json, Request.class);
-                    request.setStatus(Status.of(State.Executing));
-                    return request;
-                }
-            }
+        String id = this.waiting.pollFirst();
+        if (StrUtil.isNotBlank(id)) {
+            this.executing.add(id);
+            return this.all.get(id);
         }
         return null;
     }
 
     @Override
     public boolean put(Request request) {
-        try (Jedis jedis = this.pool.getResource()) {
-            jedis.hset(this.allKey, request.getId(), JSONUtil.toJsonStr(request));
-            jedis.zadd(this.waitingKey, request.getPriority(), request.getId());
-            return true;
-        }
+        this.all.put(request.getId(), request);
+        this.waiting.add(request.getPriority(), request.getId());
+        return true;
     }
 
     @Override
     public boolean exists(Request request) {
-        try (Jedis jedis = this.pool.getResource()) {
-            return jedis.hexists(this.allKey, request.getId());
-        }
+        return this.all.containsKey(request.getId());
     }
 
     @Override
     public void clear() {
-        try (Jedis jedis = this.pool.getResource()) {
-            jedis.del(this.allKey, this.waitingKey, this.completedKey, this.executingKey, this.failedKey);
-        }
+        this.all.clear();
+        this.waiting.clear();
+        this.completed.clear();
+        this.executing.clear();
+        this.fails.clear();
     }
 
     @Override
     public void markAsCompleted(Request request) {
-        try (Jedis jedis = this.pool.getResource()) {
-            jedis.sadd(this.completedKey, request.getId());
-            jedis.srem(this.executingKey, request.getId());
-            this.setStatus(jedis, request.getId(), State.Completed, null);
-        }
+        this.completed.add(request.getId());
+        this.executing.remove(request.getId());
+        request.setStatus(Status.of(State.Completed));
+        this.all.put(request.getId(), request);
     }
 
     @Override
     public void markAsFailed(Request request, String error) {
-        try (Jedis jedis = this.pool.getResource()) {
-            jedis.hset(this.failedKey, request.getId(), error);
-            jedis.srem(this.executingKey, request.getId());
-            this.setStatus(jedis, request.getId(), State.Failed, error);
-        }
+        this.fails.put(request.getId(), error);
+        this.executing.remove(request.getId());
+        request.setStatus(Status.of(State.Failed, error));
+        request.setFailTimes(request.getFailTimes() + 1);
+        this.all.put(request.getId(), request);
     }
 
     @Override
     public long getTotalSize() {
-        try (Jedis jedis = this.pool.getResource()) {
-            return jedis.hlen(this.allKey);
-        }
+        return this.all.size();
     }
 
     @Override
     public long getCompletedSize() {
-        try (Jedis jedis = this.pool.getResource()) {
-            return jedis.scard(this.completedKey);
-        }
+        return this.completed.size();
     }
 
     @Override
     public long getWaitingSize() {
-        try (Jedis jedis = this.pool.getResource()) {
-            return jedis.zcard(this.waitingKey);
-        }
+        return this.waiting.size();
     }
 
     @Override
     public long getFailedSize() {
-        try (Jedis jedis = this.pool.getResource()) {
-            return jedis.hlen(this.failedKey);
-        }
+        return this.fails.size();
     }
 
 
     @Override
     public void delete(String id) {
-        try (Jedis jedis = this.pool.getResource()) {
-            jedis.hdel(this.allKey, id);
-            jedis.hdel(this.failedKey, id);
-            jedis.zrem(this.waitingKey, id);
-            jedis.srem(this.completedKey, id);
-        }
+        this.all.remove(id);
+        this.fails.remove(id);
+        this.waiting.remove(id);
+        this.completed.remove(id);
     }
 
     @Override
     public int replayFailed(ReplayFilter filter) {
-        try (Jedis jedis = this.pool.getResource()) {
-            int cursor = 0;
-            List<String> keys = new ArrayList<>();
-            ScanParams scanParams = new ScanParams().match("*").count(1000);
-            do {
-                ScanResult<Map.Entry<String, String>> result =
-                        jedis.hscan(this.failedKey, String.valueOf(cursor), scanParams);
-                cursor = Integer.parseInt(result.getCursor());
-                for (Entry<String, String> entry : result.getResult()) {
-                    String json = jedis.hget(this.allKey, entry.getKey());
-                    if (StrUtil.isNotBlank(json)) {
-                        Request r = JSONUtil.toBean(json, Request.class);
-                        if (filter.filter(r)) {
-                            r.setStatus(Status.of(State.Waiting));
-                            keys.add(entry.getKey());
-                            this.put(r);
-                        }
-                    }
-                }
-            } while (cursor > 0);
-            for (List<String> list : ListUtil.split(keys, BATCH_SIZE)) {
-                jedis.hdel(this.failedKey, list.toArray(new String[0]));
+        List<String> keys = new ArrayList<>();
+        for (String id : this.fails.keySet()) {
+            Request request = this.all.get(id);
+            if (filter.filter(request)) {
+                request.setStatus(Status.of(State.Waiting));
+                this.all.put(id, request);
+                this.waiting.add(request.getPriority(), id);
+                keys.add(id);
             }
-            return keys.size();
         }
+
+        for (String id : keys) {
+            this.fails.remove(id);
+        }
+        return keys.size();
     }
 
-    private void setStatus(Jedis jedis, String id, State state, String message) {
-        String json = jedis.hget(this.allKey, id);
-        Request request = JSONUtil.toBean(json, Request.class);
-        request.setStatus(Status.of(state, message));
-        if (state == State.Failed) {
-            request.setFailTimes(request.getFailTimes() + 1);
-        }
-        jedis.hset(this.allKey, id, JSONUtil.toJsonStr(request));
-    }
 }

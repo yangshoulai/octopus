@@ -41,6 +41,7 @@
         <sqlite.version>3.44.1.0</sqlite.version>
         <snakeyaml.version>2.2</snakeyaml.version>
         <rxjava.version>3.1.8</rxjava.version>
+        <redisson.version>3.26.0</redisson.version>
     </properties>
 
     <dependencyManagement>
@@ -139,6 +140,12 @@
                 <groupId>io.reactivex.rxjava3</groupId>
                 <artifactId>rxjava</artifactId>
                 <version>${rxjava.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.redisson</groupId>
+                <artifactId>redisson</artifactId>
+                <version>${redisson.version}</version>
             </dependency>
 
         </dependencies>
