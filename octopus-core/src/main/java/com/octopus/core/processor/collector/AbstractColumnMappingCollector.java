@@ -1,5 +1,7 @@
 package com.octopus.core.processor.collector;
 
+import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.json.JSONUtil;
@@ -12,10 +14,7 @@ import com.octopus.core.properties.collector.AbstractColumnMappingCollectorPrope
 import lombok.NonNull;
 import net.minidev.json.JSONArray;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +50,8 @@ public abstract class AbstractColumnMappingCollector implements Collector<Map<St
                         row.put(pair.getKey(), null);
                     } else if (ClassUtil.isBasicType(columnValue.getClass())) {
                         row.put(pair.getKey(), columnValue.toString());
+                    } else if (Date.class.isAssignableFrom(columnValue.getClass())) {
+                        row.put(pair.getKey(), DateUtil.format(((Date) columnValue), DatePattern.NORM_DATETIME_PATTERN));
                     } else {
                         row.put(pair.getKey(), JSONUtil.toJsonStr(columnValue));
                     }
