@@ -28,7 +28,7 @@ store:
   # 使用 sqlite 存储
   sqlite:
     # 数据库文件路径
-    db: /Users/yangshoulai/Downloads/octopus.db
+    db: /Users/yann/Downloads/octopus.db
     # 表名
     table: gitee
 # 下载器配置
@@ -51,7 +51,7 @@ processors:
       download:
         # 下载目录
         dirs:
-          - value: /Users/yangshoulai/Downloads/gitee
+          - value: /Users/yann/Downloads/gitee
         # 下载文件名
         name:
           param:
@@ -60,6 +60,21 @@ processors:
             denoiser:
               regex: ^.*$
               format: "%s.json"
+      excel:
+        append: false
+        file: /Users/yann/Downloads/gitee.xlsx
+        mappings:
+          - jsonPath: "$.projects[*].name"
+            columnName: 名称
+          - jsonPath: "$.projects[*].tags"
+            columnName: 标签
+          - jsonPath: "$.projects[*].stars"
+            columnName: 关注数
+          - jsonPath: "$.projects[*].name"
+            columnName: 项目地址
+          - jsonPath: "$.projects[*].description"
+            columnName: 描述
+
     # 内容提取（项目列表）
     extractor:
       # 字段配置列表

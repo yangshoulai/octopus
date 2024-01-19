@@ -2,12 +2,11 @@ package com.octopus.core.properties.collector;
 
 import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
-import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.collector.AbstractCustomCollector;
 import com.octopus.core.processor.collector.DownloadCollector;
+import com.octopus.core.processor.collector.ExcelCollector;
 import com.octopus.core.processor.collector.LoggingCollector;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
@@ -31,6 +30,8 @@ public class CollectorProperties implements Validatable, Transformable<Collector
 
     private DownloaderCollectorProperties download;
 
+    private ExcelCollectorProperties excel;
+
     private CustomCollectorProperties custom;
 
 
@@ -41,6 +42,7 @@ public class CollectorProperties implements Validatable, Transformable<Collector
     public void validate() throws ValidateException {
         Validator.validateWhenNotNull(logging);
         Validator.validateWhenNotNull(download);
+        Validator.validateWhenNotNull(excel);
         Validator.validateWhenNotNull(custom);
     }
 
@@ -52,6 +54,9 @@ public class CollectorProperties implements Validatable, Transformable<Collector
         }
         if (this.download != null) {
             collectors.add(new DownloadCollector<>(this.download));
+        }
+        if (this.excel != null) {
+            collectors.add(new ExcelCollector(this.excel));
         }
         if (this.custom != null) {
             Class<? extends AbstractCustomCollector> cls = ClassUtil.loadClass(custom.getCollector());
