@@ -9,6 +9,8 @@ import lombok.NonNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -17,6 +19,8 @@ import java.util.Map;
 public class ExcelCollector extends AbstractColumnMappingCollector {
 
     private final String file;
+
+    private final Lock lock = new ReentrantLock();
 
     public ExcelCollector(@NonNull ExcelCollectorProperties properties) {
         super(properties);
@@ -29,10 +33,15 @@ public class ExcelCollector extends AbstractColumnMappingCollector {
 
     @Override
     public void collectRows(List<Map<String, Object>> rows, Response response) {
-        try (ExcelWriter writer = ExcelUtil.getWriter(this.file)) {
-            writer.setCurrentRowToEnd();
-            writer.write(rows);
-            writer.autoSizeColumnAll();
+        lock.lock();
+        try {
+            try (ExcelWriter writer = ExcelUtil.getWriter(this.file)) {
+                writer.setCurrentRowToEnd();
+                writer.write(rows);
+                writer.autoSizeColumnAll();
+            }
+        } finally {
+            lock.unlock();
         }
     }
 }
