@@ -1,7 +1,7 @@
 package com.octopus.core.processor.converter;
 
 import cn.hutool.core.util.StrUtil;
-import com.octopus.core.properties.ConverterProperties;
+import com.octopus.core.properties.selector.ConverterProperties;
 import com.octopus.core.processor.Converter;
 
 /**

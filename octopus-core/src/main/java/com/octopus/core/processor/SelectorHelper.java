@@ -2,7 +2,7 @@ package com.octopus.core.processor;
 
 import com.octopus.core.Response;
 import com.octopus.core.processor.selector.CombinedSelector;
-import com.octopus.core.properties.SelectorProperties;
+import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.properties.selector.*;
 
 import java.util.ArrayList;

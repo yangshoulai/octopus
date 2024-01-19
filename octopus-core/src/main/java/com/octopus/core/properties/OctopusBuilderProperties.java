@@ -3,6 +3,8 @@ package com.octopus.core.properties;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.properties.processor.ProcessorProperties;
+import com.octopus.core.properties.store.StoreProperties;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;

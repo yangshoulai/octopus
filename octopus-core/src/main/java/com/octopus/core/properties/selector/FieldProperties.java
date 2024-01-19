@@ -1,7 +1,8 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.selector;
 
 import cn.hutool.core.util.StrUtil;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.properties.processor.ExtractorProperties;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
 import lombok.Data;

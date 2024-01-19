@@ -1,9 +1,16 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.processor;
 
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.setting.yaml.YamlUtil;
+import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.processor.impl.ConfigurableProcessor;
+import com.octopus.core.logging.Logger;
+import com.octopus.core.logging.LoggerFactory;
 import com.octopus.core.processor.Processor;
+import com.octopus.core.processor.impl.AbstractCustomProcessor;
+import com.octopus.core.processor.impl.ConfigurableProcessor;
+import com.octopus.core.properties.collector.CollectorProperties;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
@@ -21,7 +28,7 @@ import java.io.InputStream;
  */
 @Data
 public class ProcessorProperties implements Validatable, Transformable<Processor> {
-
+    private Logger logger = LoggerFactory.getLogger(OctopusBuilder.class);
     /**
      * 匹配器
      * <p>
@@ -35,6 +42,12 @@ public class ProcessorProperties implements Validatable, Transformable<Processor
      * 默认 空
      */
     private ExtractorProperties extractor;
+
+
+    /**
+     * 自定义处理器
+     */
+    private CustomerProcessorProperties custom;
 
     /**
      * 搜集器
@@ -67,6 +80,7 @@ public class ProcessorProperties implements Validatable, Transformable<Processor
         Validator.notEmpty(matcher, "processor matcher is required");
         Validator.validateWhenNotNull(extractor);
         Validator.validateWhenNotNull(collector);
+        Validator.validateWhenNotNull(custom);
     }
 
     public static ProcessorProperties fromYaml(InputStream inputStream) {
@@ -84,6 +98,13 @@ public class ProcessorProperties implements Validatable, Transformable<Processor
     @Override
     public Processor transform() {
         this.validate();
-        return new ConfigurableProcessor(matcher.transform(), extractor, collector == null ? null : collector.transform());
+        if (custom != null) {
+            logger.info("Custom processor " + custom.getProcessor() + " found, ignore other extractor conf");
+            Class<? extends AbstractCustomProcessor> cls = ClassUtil.loadClass(custom.getProcessor());
+            return ReflectUtil.newInstance(cls, matcher.transform(), custom.getConf());
+        } else {
+            return new ConfigurableProcessor(matcher.transform(), extractor, collector == null ? null : collector.transform());
+        }
+
     }
 }

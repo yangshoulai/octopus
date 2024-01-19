@@ -12,6 +12,9 @@ import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.Result;
 import com.octopus.core.processor.SelectorHelper;
 import com.octopus.core.processor.matcher.Matcher;
+import com.octopus.core.properties.processor.*;
+import com.octopus.core.properties.selector.ConverterProperties;
+import com.octopus.core.properties.selector.FieldProperties;
 import com.octopus.core.utils.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
 

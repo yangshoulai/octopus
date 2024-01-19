@@ -1,7 +1,7 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.properties.ConverterProperties;
-import com.octopus.core.properties.FieldType;
+import com.octopus.core.properties.selector.ConverterProperties;
+import com.octopus.core.properties.selector.FieldType;
 import com.octopus.core.processor.annotation.Converter;
 import com.octopus.core.processor.converter.*;
 import lombok.NonNull;

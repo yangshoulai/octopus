@@ -1,4 +1,4 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.selector;
 
 import cn.hutool.core.util.CharsetUtil;
 import com.octopus.core.exception.ValidateException;

@@ -1,6 +1,7 @@
 package com.octopus.core.properties;
 
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
 import lombok.Data;

@@ -1,4 +1,4 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.processor;
 
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.matcher.Matcher;

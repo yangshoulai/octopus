@@ -1,4 +1,4 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.selector;
 
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.properties.selector.*;

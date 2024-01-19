@@ -1,4 +1,4 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.processor;
 
 /**
  * 匹配器类型

@@ -1,12 +1,11 @@
-package com.octopus.core.properties;
+package com.octopus.core.properties.store;
 
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ReflectUtil;
 import com.octopus.core.OctopusBuilder;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.logging.LoggerFactory;
-import com.octopus.core.properties.store.MongoStoreProperties;
-import com.octopus.core.properties.store.RedisStoreProperties;
-import com.octopus.core.properties.store.SqliteStoreProperties;
 import com.octopus.core.store.*;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
@@ -39,6 +38,11 @@ public class StoreProperties implements Validatable, Transformable<Store> {
      */
     private SqliteStoreProperties sqlite;
 
+    /**
+     * Custom store
+     */
+    private CustomStoreProperties custom;
+
     public StoreProperties() {
     }
 
@@ -52,7 +56,10 @@ public class StoreProperties implements Validatable, Transformable<Store> {
     @Override
     public Store transform() {
         Store store = null;
-        if (this.redis != null) {
+        if (this.custom != null) {
+            Class<? extends AbstractCustomStore> cls = ClassUtil.loadClass(custom.getStore());
+            store = ReflectUtil.newInstance(cls, custom.getConf());
+        } else if (this.redis != null) {
             store = this.redis.transform();
         } else if (this.mongo != null) {
             store = this.mongo.transform();

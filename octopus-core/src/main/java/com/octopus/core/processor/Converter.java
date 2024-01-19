@@ -1,6 +1,6 @@
 package com.octopus.core.processor;
 
-import com.octopus.core.properties.ConverterProperties;
+import com.octopus.core.properties.selector.ConverterProperties;
 
 /**
  * 转换器

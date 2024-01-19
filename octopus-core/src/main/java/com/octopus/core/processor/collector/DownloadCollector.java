@@ -9,7 +9,7 @@ import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.SelectorHelper;
 import com.octopus.core.properties.collector.CollectorTarget;
-import com.octopus.core.properties.SelectorProperties;
+import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.properties.collector.DownloaderCollectorProperties;
 import lombok.Data;
 

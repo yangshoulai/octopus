@@ -2,7 +2,6 @@ package com.octopus.core.processor.selector;
 
 import cn.hutool.core.collection.ListUtil;
 import com.octopus.core.Response;
-import com.octopus.core.properties.SelectorProperties;
 import com.octopus.core.properties.selector.ValueSelectorProperties;
 
 import java.util.List;
