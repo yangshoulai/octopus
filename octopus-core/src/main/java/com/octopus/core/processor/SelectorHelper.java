@@ -16,7 +16,7 @@ import java.util.List;
  */
 public class SelectorHelper {
 
-    private static final CombinedSelector SELECTOR =  new CombinedSelector();
+    private static final CombinedSelector SELECTOR = new CombinedSelector();
 
     private SelectorHelper() {
 
@@ -144,6 +144,18 @@ public class SelectorHelper {
                 xpath.setDefaultValue(selector.def());
                 xpath.setDenoiser(denoiser);
                 properties.setXpath(xpath);
+                break;
+            case Id:
+                IdSelectorProperties id = new IdSelectorProperties();
+                id.setDefaultValue(selector.def());
+                id.setDenoiser(denoiser);
+                properties.setId(id);
+                break;
+            case Env:
+                EnvSelectorProperties env = new EnvSelectorProperties(selector.value());
+                env.setDefaultValue(selector.def());
+                env.setDenoiser(denoiser);
+                properties.setEnv(env);
                 break;
             default:
                 break;

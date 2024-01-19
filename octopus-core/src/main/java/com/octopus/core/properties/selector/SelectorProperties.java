@@ -34,6 +34,10 @@ public class SelectorProperties extends AbstractSelectorProperties {
 
     private XpathSelectorProperties xpath;
 
+    private IdSelectorProperties id;
+
+    private EnvSelectorProperties env;
+
     private NoneSelectorProperties none = new NoneSelectorProperties();
 
     @Override

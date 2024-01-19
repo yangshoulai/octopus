@@ -104,6 +104,17 @@ public @interface Selector {
          * Value
          */
         Value,
+
+        /**
+         * Id
+         */
+        Id,
+
+        /**
+         *
+         */
+        Env,
+
         /**
          * None
          */

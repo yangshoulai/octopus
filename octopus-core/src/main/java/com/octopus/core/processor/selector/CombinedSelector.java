@@ -2,8 +2,8 @@ package com.octopus.core.processor.selector;
 
 import com.octopus.core.Response;
 import com.octopus.core.processor.Selector;
-import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.properties.selector.AbstractSelectorProperties;
+import com.octopus.core.properties.selector.SelectorProperties;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +36,11 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
 
     private static final XpathSelector XPATH = new XpathSelector();
 
+    private static final IdSelector ID = new IdSelector();
+
+    private static final EnvSelector ENV = new EnvSelector();
+
+
     @Override
     protected List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {
         List<String> selected = new ArrayList<>();
@@ -50,6 +55,8 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
         delegateSelect(URL, selector.getUrl(), source, response, selected);
         delegateSelect(VALUE, selector.getValue(), source, response, selected);
         delegateSelect(XPATH, selector.getXpath(), source, response, selected);
+        delegateSelect(ID, selector.getId(), source, response, selected);
+        delegateSelect(ENV, selector.getEnv(), source, response, selected);
         return selected;
     }
 
