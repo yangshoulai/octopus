@@ -63,7 +63,8 @@ public class SqliteStore implements Store {
                     "body BLOB, " +
                     "params TEXT, " +
                     "headers TEXT, " +
-                    "attrs TEXT" +
+                    "attrs TEXT," +
+                    "depth INTEGER" +
                     ")");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_" + table + "_priority on " + table + " (priority)");
             statement.execute("update " + table + " set state = '" + Request.State.Waiting + "', err = NULL where state = '" + Request.State.Executing + "'");
@@ -132,6 +133,7 @@ public class SqliteStore implements Store {
             request.setUrl(resultSet.getString("url"));
             request.setMethod(Request.RequestMethod.valueOf(resultSet.getString("method")));
             request.setPriority(resultSet.getInt("priority"));
+            request.setDepth(resultSet.getInt("depth"));
             request.setRepeatable(resultSet.getInt("repeatable") == 1);
             String parent = resultSet.getString("parent");
             if (StrUtil.isNotBlank(parent)) {
@@ -176,16 +178,16 @@ public class SqliteStore implements Store {
     @Override
     public boolean put(Request request) {
         String sql = "insert into " + table
-                + " (id, url, method, priority, repeatable, parent, inherit, fails, state, err, body, params, headers, attrs) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + " (id, url, method, priority, repeatable, parent, inherit, fails, state, err, body, params, headers, attrs, depth) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         String updateSql = "update " + table
-                + " set url =?, method =?, priority =?, repeatable =?, parent =?, inherit =?, fails =?, state =?, err =?, body =?, params =?, headers =?, attrs =? where id =?";
+                + " set url =?, method =?, priority =?, repeatable =?, parent =?, inherit =?, fails =?, state =?, err =?, body =?, params =?, headers =?, attrs =?, depth=? where id =?";
         PreparedStatement statement = null;
         writeLock.lock();
         try {
             connection.setAutoCommit(false);
             if (exists(request)) {
                 statement = this.connection.prepareStatement(updateSql);
-                statement.setString(14, request.getId());
+                statement.setString(15, request.getId());
                 statement.setString(1, request.getUrl());
                 statement.setString(2, request.getMethod().name());
                 statement.setInt(3, request.getPriority());
@@ -211,6 +213,7 @@ public class SqliteStore implements Store {
                 } else {
                     statement.setString(13, null);
                 }
+                statement.setInt(14, request.getDepth());
             } else {
                 statement = this.connection.prepareStatement(sql);
                 statement.setString(1, request.getId());
@@ -239,6 +242,7 @@ public class SqliteStore implements Store {
                 } else {
                     statement.setString(14, null);
                 }
+                statement.setInt(15, request.getDepth());
             }
             statement.executeUpdate();
             connection.commit();
