@@ -123,7 +123,7 @@ public class ExtractorProcessor<T> implements Processor {
     }
 
     private void extractLink(Result<?> result, Link link, String source, Response response) {
-        Set<String> urls = new HashSet<>();
+        List<String> urls = new ArrayList<>();
         if (StrUtil.isNotBlank(link.url())) {
             urls.add(link.url());
         }

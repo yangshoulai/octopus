@@ -45,7 +45,7 @@ public class SelectorProperties extends AbstractSelectorProperties {
     public void validate() throws ValidateException {
         super.validate();
         if (attr == null && body == null && css == null && header == null && json == null && param == null && regex == null
-                && url == null && value == null && xpath == null && none != null) {
+                && url == null && value == null && xpath == null && env == null && index == null) {
             throw new ValidateException("at least one selector is required");
         }
         Validator.validateWhenNotNull(attr);

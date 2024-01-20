@@ -51,7 +51,6 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
         delegateSelect(CSS, selector.getCss(), source, response, selected);
         delegateSelect(HEADER, selector.getHeader(), source, response, selected);
         delegateSelect(JSON, selector.getJson(), source, response, selected);
-        delegateSelect(NONE, selector.getNone(), source, response, selected);
         delegateSelect(PARAM, selector.getParam(), source, response, selected);
         delegateSelect(REGEX, selector.getRegex(), source, response, selected);
         delegateSelect(URL, selector.getUrl(), source, response, selected);
@@ -60,6 +59,7 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
         delegateSelect(ID, selector.getId(), source, response, selected);
         delegateSelect(ENV, selector.getEnv(), source, response, selected);
         delegateSelect(INDEX, selector.getIndex(), source, response, selected);
+        delegateSelect(NONE, selector.getNone(), source, response, selected);
         return selected;
     }
 

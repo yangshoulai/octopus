@@ -100,7 +100,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
     }
 
     private void processLink(Result<Map<String, Object>> result, LinkProperties link, String content, Response response) {
-        Set<String> urls = new HashSet<>();
+        List<String> urls = new ArrayList<>();
         if (StrUtil.isNotBlank(link.getUrl())) {
             urls.add(link.getUrl());
         }
