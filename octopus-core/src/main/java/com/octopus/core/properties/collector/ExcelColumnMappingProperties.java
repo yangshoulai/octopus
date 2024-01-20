@@ -20,5 +20,7 @@ public class ExcelColumnMappingProperties extends ColumnMappingProperties {
 
     private String format;
 
+    private String delimiter = "\n";
+
     private HorizontalAlignment align = HorizontalAlignment.LEFT;
 }

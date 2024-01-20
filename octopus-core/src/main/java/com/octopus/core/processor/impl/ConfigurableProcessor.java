@@ -123,6 +123,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
                 link.getAttrs()
                         .forEach(p -> request.putAttribute(p.getName(), resolveValueFromProp(content, result.getObj(), p, response)));
                 request.setInherit(link.isInherit());
+                request.setCache(link.isCache());
                 result.getRequests().add(request);
             }
         }

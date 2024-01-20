@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NonNull;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,6 +35,12 @@ public class Request implements Serializable, Comparable<Request> {
     private Map<String, Object> attributes = new HashMap<>();
 
     private String parent;
+
+    private int index;
+
+    private Date createDate = new Date();
+
+    private boolean cache = false;
 
     /**
      * 是否从父请求集成属性
@@ -178,6 +185,21 @@ public class Request implements Serializable, Comparable<Request> {
 
     public Request setDepth(int depth) {
         this.depth = depth;
+        return this;
+    }
+
+    public Request setCache(boolean cache) {
+        this.cache = cache;
+        return this;
+    }
+
+    public Request setCreateDate(Date createDate) {
+        this.createDate = createDate;
+        return this;
+    }
+
+    public Request setIndex(int index) {
+        this.index = index;
         return this;
     }
 

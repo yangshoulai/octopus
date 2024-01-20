@@ -29,6 +29,8 @@ public @interface Link {
 
   boolean inherit() default false;
 
+  boolean cache() default false;
+
   RequestMethod method() default RequestMethod.GET;
 
   Prop[] params() default {};

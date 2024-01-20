@@ -111,9 +111,14 @@ public @interface Selector {
         Id,
 
         /**
-         *
+         * Env
          */
         Env,
+
+        /**
+         * Index
+         */
+        Index,
 
         /**
          * None

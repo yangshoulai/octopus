@@ -28,11 +28,14 @@ public class Response implements Serializable {
 
     private Map<String, String> headers = new HashMap<>();
 
-    private Charset charset;
+    private String charset;
 
     private String mimeType;
 
     private String text;
+
+    public Response() {
+    }
 
     public Response(@NonNull Request request) {
         this.request = request;
@@ -62,7 +65,7 @@ public class Response implements Serializable {
     }
 
 
-    public Response setCharset(Charset charset) {
+    public Response setCharset(String charset) {
         this.charset = charset;
         return this;
     }
@@ -73,13 +76,19 @@ public class Response implements Serializable {
         return this;
     }
 
+    public Response setText(String text) {
+        this.text = text;
+        return this;
+    }
+
+
     public final boolean isSuccessful() {
         return this.status >= 200 && this.status < 300;
     }
 
     public String asText() {
         if (StrUtil.isBlank(text)) {
-            text = new String(this.body, this.charset);
+            text = new String(this.body, Charset.forName(this.charset));
         }
         return text;
     }

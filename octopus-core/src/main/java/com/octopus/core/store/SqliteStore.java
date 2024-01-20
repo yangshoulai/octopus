@@ -11,6 +11,7 @@ import lombok.NonNull;
 import java.lang.reflect.Type;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
@@ -63,8 +64,11 @@ public class SqliteStore implements Store {
                     "body BLOB, " +
                     "params TEXT, " +
                     "headers TEXT, " +
-                    "attrs TEXT," +
-                    "depth INTEGER" +
+                    "attrs TEXT, " +
+                    "depth INTEGER, " +
+                    "idx INTEGER, " +
+                    "cache INTEGER, " +
+                    "create_date INTEGER" +
                     ")");
             statement.execute("CREATE INDEX IF NOT EXISTS idx_" + table + "_priority on " + table + " (priority)");
             statement.execute("update " + table + " set state = '" + Request.State.Waiting + "', err = NULL where state = '" + Request.State.Executing + "'");
@@ -170,6 +174,9 @@ public class SqliteStore implements Store {
                     }
                 }, true));
             }
+            request.setIndex(resultSet.getInt("idx"));
+            request.setCache(resultSet.getInt("cache") == 1);
+            request.setCreateDate( new Date(resultSet.getLong("create_date")));
             requests.add(request);
         }
         return requests;
@@ -178,16 +185,16 @@ public class SqliteStore implements Store {
     @Override
     public boolean put(Request request) {
         String sql = "insert into " + table
-                + " (id, url, method, priority, repeatable, parent, inherit, fails, state, err, body, params, headers, attrs, depth) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                + " (id, url, method, priority, repeatable, parent, inherit, fails, state, err, body, params, headers, attrs, depth, idx, cache, create_date) values (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
         String updateSql = "update " + table
-                + " set url =?, method =?, priority =?, repeatable =?, parent =?, inherit =?, fails =?, state =?, err =?, body =?, params =?, headers =?, attrs =?, depth=? where id =?";
+                + " set url =?, method =?, priority =?, repeatable =?, parent =?, inherit =?, fails =?, state =?, err =?, body =?, params =?, headers =?, attrs =?, depth=?, idx=?, cache=?, create_date=? where id =?";
         PreparedStatement statement = null;
         writeLock.lock();
         try {
             connection.setAutoCommit(false);
             if (exists(request)) {
                 statement = this.connection.prepareStatement(updateSql);
-                statement.setString(15, request.getId());
+                statement.setString(18, request.getId());
                 statement.setString(1, request.getUrl());
                 statement.setString(2, request.getMethod().name());
                 statement.setInt(3, request.getPriority());
@@ -214,6 +221,9 @@ public class SqliteStore implements Store {
                     statement.setString(13, null);
                 }
                 statement.setInt(14, request.getDepth());
+                statement.setInt(15, request.getIndex());
+                statement.setInt(16, request.isCache() ? 1 : 0);
+                statement.setLong(17, request.getCreateDate() == null ? 0 : request.getCreateDate().getTime());
             } else {
                 statement = this.connection.prepareStatement(sql);
                 statement.setString(1, request.getId());
@@ -243,6 +253,9 @@ public class SqliteStore implements Store {
                     statement.setString(14, null);
                 }
                 statement.setInt(15, request.getDepth());
+                statement.setInt(16, request.getIndex());
+                statement.setInt(17, request.isCache() ? 1 : 0  );
+                statement.setLong(18, request.getCreateDate() == null ? 0 : request.getCreateDate().getTime());
             }
             statement.executeUpdate();
             connection.commit();

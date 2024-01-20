@@ -76,6 +76,8 @@ public class RequestProperties implements Validatable, Transformable<Request> {
      */
     private boolean inherit = false;
 
+    private boolean cache = false;
+
     public RequestProperties() {
 
     }
@@ -105,6 +107,7 @@ public class RequestProperties implements Validatable, Transformable<Request> {
         r.setAttributes(attributes);
         r.setInherit(inherit);
         r.setRepeatable(repeatable);
+        r.setCache(cache);
         return r;
     }
 }

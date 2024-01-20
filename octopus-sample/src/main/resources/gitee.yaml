@@ -3,9 +3,9 @@ name: Gitee
 # 是否自动关闭
 autoStop: true
 # 启动时是否清空请求存储器
-clearStoreOnStartup: true
+clearStoreOnStartup: false
 # 关闭时是否清空请求存储器
-clearStoreOnStop: true
+clearStoreOnStop: false
 # 当请求存储器还有未完成的请求时，是否忽略种子请求
 ignoreSeedsWhenStoreHasRequests: true
 # 最大重试次数
@@ -16,7 +16,8 @@ replayFailedRequest: true
 threads: 20
 # 种子请求
 seeds:
-  - https://gitee.com/explore/all?order=starred
+  - url: https://gitee.com/explore/all?order=starred
+    cache: true
 # 目标站点配置
 sites:
     # 站点域名
@@ -63,18 +64,19 @@ processors:
       excel:
         append: false
         file: /Users/yann/Downloads/gitee.xlsx
+        rowJsonPath: "$.projects[*]"
         mappings:
-          - jsonPath: "$.projects[*].name"
+          - jsonPath: "$.name"
             columnName: 名称
             align: CENTER
-          - jsonPath: "$.projects[*].tags"
+          - jsonPath: "$.tags"
             columnName: 标签
-          - jsonPath: "$.projects[*].stars"
+          - jsonPath: "$.stars"
             columnName: 关注数
             align: CENTER
-          - jsonPath: "$.projects[*].name"
+          - jsonPath: "$.name"
             columnName: 项目地址
-          - jsonPath: "$.projects[*].description"
+          - jsonPath: "$.description"
             columnName: 描述
             wrap: true
             autoSize: false

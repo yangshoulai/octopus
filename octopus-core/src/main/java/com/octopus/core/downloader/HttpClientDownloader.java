@@ -8,18 +8,6 @@ import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
 import com.octopus.core.exception.DownloadException;
 import com.octopus.core.exception.OctopusException;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Stream;
-import javax.net.ssl.SSLContext;
-
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
@@ -45,6 +33,17 @@ import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.ssl.SSLContextBuilder;
 import org.apache.http.util.EntityUtils;
+
+import javax.net.ssl.SSLContext;
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.nio.charset.Charset;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -113,7 +112,7 @@ public class HttpClientDownloader extends AbstractDownloader {
                                 .filter(Objects::nonNull)
                                 .findFirst()
                                 .orElse(null);
-                response.setCharset(charset);
+                response.setCharset(charset.name());
                 response.setMimeType(mimeType);
             }
             return response;

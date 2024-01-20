@@ -40,6 +40,8 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
 
     private static final EnvSelector ENV = new EnvSelector();
 
+    private static final IndexSelector INDEX = new IndexSelector();
+
 
     @Override
     protected List<String> doMultiSelect(String source, SelectorProperties selector, Response response) {
@@ -57,6 +59,7 @@ public class CombinedSelector extends AbstractSelector<SelectorProperties> {
         delegateSelect(XPATH, selector.getXpath(), source, response, selected);
         delegateSelect(ID, selector.getId(), source, response, selected);
         delegateSelect(ENV, selector.getEnv(), source, response, selected);
+        delegateSelect(INDEX, selector.getIndex(), source, response, selected);
         return selected;
     }
 

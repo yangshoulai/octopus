@@ -8,18 +8,13 @@ import com.octopus.core.Request;
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
 import com.octopus.core.exception.DownloadException;
+import okhttp3.*;
 
 import java.io.IOException;
 import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import okhttp3.ConnectionPool;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.RequestBody;
-import okhttp3.ResponseBody;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -62,7 +57,7 @@ public class OkHttpDownloader extends AbstractDownloader {
                     mineType = mediaType.type();
                 }
             }
-            r.setCharset(charset == null ? config.getCharset() : charset);
+            r.setCharset(charset == null ? config.getCharset().name() : charset.name());
             r.setMimeType(mineType);
             response
                     .headers()

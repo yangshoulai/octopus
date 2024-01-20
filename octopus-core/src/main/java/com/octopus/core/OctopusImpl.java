@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -239,13 +240,23 @@ class OctopusImpl implements Octopus {
                                     if (webSite != null && webSite.getDownloadConfig() != null) {
                                         downloadConfig = webSite.getDownloadConfig();
                                     }
-                                    Response response = this.download(request, downloadConfig);
+                                    Response response = null;
+                                    if (request.isCache()) {
+                                        response = this.store.getResponse(request.getId());
+                                    }
+                                    if (response == null) {
+                                        response = this.download(request, downloadConfig);
+                                    }
                                     if (response != null) {
                                         this.listenerNotifier.beforeProcess(response);
                                         if (!response.isSuccessful()) {
                                             throw new BadStatusException(response);
                                         }
+                                        if (request.isCache()) {
+                                            this.store.cacheResponse(response);
+                                        }
                                         this.process(response);
+
                                     }
                                     this.store.markAsCompleted(request);
                                 } catch (Throwable e) {
@@ -357,6 +368,7 @@ class OctopusImpl implements Octopus {
                             matchedProcessors.size(), response.getRequest()));
         }
         for (Processor processor : matchedProcessors) {
+            AtomicInteger index = new AtomicInteger(0);
             processor.process(
                     response,
                     new Octopus() {
@@ -380,10 +392,13 @@ class OctopusImpl implements Octopus {
                             if (OctopusImpl.this.logger.isTraceEnabled()) {
                                 OctopusImpl.this.logger.trace("Found new request [" + request + "]");
                             }
+                            request.setIndex(index.get());
+                            index.incrementAndGet();
                             OctopusImpl.this.addNewRequests(response.getRequest(), request);
                         }
                     });
             this.listenerNotifier.afterProcess(response);
+
         }
     }
 

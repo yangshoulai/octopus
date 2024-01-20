@@ -56,6 +56,8 @@ public class LinkProperties implements Validatable {
      */
     private boolean inherit = false;
 
+    private boolean cache = false;
+
     /**
      * 请求方法
      * <p>

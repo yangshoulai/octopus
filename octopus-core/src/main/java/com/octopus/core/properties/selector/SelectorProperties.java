@@ -1,7 +1,6 @@
 package com.octopus.core.properties.selector;
 
 import com.octopus.core.exception.ValidateException;
-import com.octopus.core.properties.selector.*;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -38,6 +37,8 @@ public class SelectorProperties extends AbstractSelectorProperties {
 
     private EnvSelectorProperties env;
 
+    private IndexSelectorProperties index;
+
     private NoneSelectorProperties none = new NoneSelectorProperties();
 
     @Override
@@ -57,6 +58,7 @@ public class SelectorProperties extends AbstractSelectorProperties {
         Validator.validateWhenNotNull(url);
         Validator.validateWhenNotNull(value);
         Validator.validateWhenNotNull(xpath);
+        Validator.validateWhenNotNull(index);
         Validator.validateWhenNotNull(none);
     }
 }

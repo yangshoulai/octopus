@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.octopus.core.Request;
 import com.octopus.core.Request.State;
 import com.octopus.core.Request.Status;
+import com.octopus.core.Response;
 import com.octopus.core.properties.store.RedisStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
@@ -42,6 +43,8 @@ public class RedisStore implements Store {
 
     private RSet<String> completed;
 
+    private RMap<String, Response> responses;
+
     private RMap<String, Request> all;
 
     private RMap<String, String> fails;
@@ -55,6 +58,8 @@ public class RedisStore implements Store {
     private String executingKey;
 
     private String failsKey;
+
+    private String responsesKey;
 
 
     public RedisStore(@NonNull RedisStoreProperties properties) {
@@ -71,7 +76,9 @@ public class RedisStore implements Store {
         this.waitingKey = prefix + ":waiting";
         this.completedKey = prefix + ":completed";
         this.executingKey = prefix + ":executing";
+        this.responsesKey = prefix + ":responses";
 
+        this.responses = this.redissonClient.getMap(this.responsesKey);
         this.all = this.redissonClient.getMap(this.allKey);
         this.fails = this.redissonClient.getMap(this.failsKey);
         this.waiting = this.redissonClient.getScoredSortedSet(this.waitingKey);
@@ -127,6 +134,7 @@ public class RedisStore implements Store {
         batch.getSet(this.completedKey).deleteAsync();
         batch.getSet(this.executingKey).deleteAsync();
         batch.getMap(this.failsKey).deleteAsync();
+        batch.getMap(this.responsesKey).deleteAsync();
         batch.execute();
     }
 
@@ -180,6 +188,7 @@ public class RedisStore implements Store {
         batch.getSet(this.completedKey).removeAsync(id);
         batch.getSet(this.executingKey).removeAsync(id);
         batch.getMap(this.failsKey).removeAsync(id);
+        batch.getMap(this.responsesKey).removeAsync(id);
         batch.execute();
     }
 
@@ -201,5 +210,15 @@ public class RedisStore implements Store {
         }
         batch.execute();
         return keys.size();
+    }
+
+    @Override
+    public void cacheResponse(Response response) {
+        responses.put(response.getRequest().getId(), response);
+    }
+
+    @Override
+    public Response getResponse(String id) {
+        return responses.get(id);
     }
 }

@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 @Data
 public class AbstractColumnMappingCollectorProperties {
 
+    protected String rowJsonPath;
+
     public <C extends ColumnMappingProperties> void validate(List<C> mappings) throws ValidateException {
         Validator.notEmpty(mappings, "column mappings is required");
         Validator.validateWhenNotNull(mappings);

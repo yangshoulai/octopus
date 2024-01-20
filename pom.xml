@@ -42,6 +42,7 @@
         <snakeyaml.version>2.2</snakeyaml.version>
         <rxjava.version>3.1.8</rxjava.version>
         <redisson.version>3.26.0</redisson.version>
+        <poi.version>4.1.2</poi.version>
     </properties>
 
     <dependencyManagement>
@@ -148,6 +149,11 @@
                 <version>${redisson.version}</version>
             </dependency>
 
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
