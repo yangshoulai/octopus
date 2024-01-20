@@ -10,7 +10,7 @@ import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
 import com.octopus.core.Response;
 import com.octopus.core.processor.Collector;
-import com.octopus.core.properties.collector.AbstractColumnMappingCollectorProperties;
+import com.octopus.core.properties.collector.ColumnMappingProperties;
 import lombok.NonNull;
 import net.minidev.json.JSONArray;
 
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @author shoulai.yang@gmail.com
  * @date 2024/1/19
  */
-public abstract class AbstractColumnMappingCollector implements Collector<Map<String, Object>> {
+public abstract class AbstractColumnMappingCollector<C extends ColumnMappingProperties> implements Collector<Map<String, Object>> {
     public static final Configuration CONFIGURATION = Configuration.builder()
             .options(Option.ALWAYS_RETURN_LIST)
             .options(Option.SUPPRESS_EXCEPTIONS)
@@ -29,17 +29,17 @@ public abstract class AbstractColumnMappingCollector implements Collector<Map<St
             .build();
 
 
-    protected final AbstractColumnMappingCollectorProperties properties;
+    protected final List<C> mappings;
 
-    public AbstractColumnMappingCollector(@NonNull AbstractColumnMappingCollectorProperties properties) {
-        this.properties = properties;
+    public AbstractColumnMappingCollector(@NonNull List<C> mappings) {
+        this.mappings = mappings;
     }
 
     @Override
     public void collect(Map<String, Object> result, Response response) {
         List<Map<String, Object>> rows = new ArrayList<>();
         if (result != null) {
-            List<Pair<String, JSONArray>> results = properties.getMappings().stream().map(m -> Pair.of(m.getColumnName(), JsonPath.using(CONFIGURATION).parse(result).<JSONArray>read(m.getJsonPath())))
+            List<Pair<String, JSONArray>> results = mappings.stream().map(m -> Pair.of(m.getColumnName(), JsonPath.using(CONFIGURATION).parse(result).<JSONArray>read(m.getJsonPath())))
                     .collect(Collectors.toList());
             int size = results.stream().map(a -> a.getValue() == null ? 0 : a.getValue().size()).max(Integer::compareTo).orElse(0);
             for (int i = 0; i < size; i++) {

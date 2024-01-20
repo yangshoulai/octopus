@@ -66,14 +66,20 @@ processors:
         mappings:
           - jsonPath: "$.projects[*].name"
             columnName: 名称
+            align: CENTER
           - jsonPath: "$.projects[*].tags"
             columnName: 标签
           - jsonPath: "$.projects[*].stars"
             columnName: 关注数
+            align: CENTER
           - jsonPath: "$.projects[*].name"
             columnName: 项目地址
           - jsonPath: "$.projects[*].description"
             columnName: 描述
+            wrap: true
+            autoSize: false
+            width: 200
+            align: LEFT
 
     # 内容提取（项目列表）
     extractor:
