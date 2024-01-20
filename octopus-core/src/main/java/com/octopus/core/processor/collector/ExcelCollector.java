@@ -89,7 +89,7 @@ public class ExcelCollector extends AbstractColumnMappingCollector<ExcelColumnMa
                             if (!StrUtil.isBlank(style.getFormat())) {
                                 DataFormat f = writer.getWorkbook().getCreationHelper().createDataFormat();
                                 cellStyle.setDataFormat(f.getFormat(style.getFormat()));
-                            }else{
+                            } else {
                                 cellStyle.setDataFormat((short) 0);
                             }
                             cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
