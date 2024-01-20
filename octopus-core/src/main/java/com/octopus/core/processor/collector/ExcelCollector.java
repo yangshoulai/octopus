@@ -9,6 +9,7 @@ import com.octopus.core.properties.collector.ExcelCollectorProperties;
 import com.octopus.core.properties.collector.ExcelColumnMappingProperties;
 import lombok.NonNull;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
 import org.apache.poi.ss.usermodel.VerticalAlignment;
@@ -79,17 +80,20 @@ public class ExcelCollector extends AbstractColumnMappingCollector<ExcelColumnMa
                     ExcelColumnMappingProperties style = mappings.get(i);
                     if (endRow - beginRow > 0) {
                         for (int j = beginRow; j < endRow; j++) {
-                            CellStyle cellStyle = writer.createCellStyle();
+                            Cell cell = writer.getCell(i, j);
+                            CellStyle cellStyle = cell.getCellStyle();
                             cellStyle.setWrapText(style.isWrap());
                             if (style.getAlign() != null) {
                                 cellStyle.setAlignment(style.getAlign());
                             }
                             if (!StrUtil.isBlank(style.getFormat())) {
-                                DataFormat f = writer.getWorkbook().createDataFormat();
+                                DataFormat f = writer.getWorkbook().getCreationHelper().createDataFormat();
                                 cellStyle.setDataFormat(f.getFormat(style.getFormat()));
+                            }else{
+                                cellStyle.setDataFormat((short) 0);
                             }
                             cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
-                            writer.getCell(i, j).setCellStyle(cellStyle);
+                            cell.setCellStyle(cellStyle);
                         }
                     }
                     if (style.isAutoSize()) {

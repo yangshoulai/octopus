@@ -1,10 +1,6 @@
 package com.octopus.core.processor.collector;
 
-import cn.hutool.core.date.DatePattern;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.Pair;
-import cn.hutool.core.util.ClassUtil;
-import cn.hutool.json.JSONUtil;
 import com.jayway.jsonpath.Configuration;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.Option;
@@ -14,7 +10,10 @@ import com.octopus.core.properties.collector.ColumnMappingProperties;
 import lombok.NonNull;
 import net.minidev.json.JSONArray;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -46,11 +45,7 @@ public abstract class AbstractColumnMappingCollector<C extends ColumnMappingProp
                 Map<String, Object> row = new HashMap<>();
                 for (Pair<String, JSONArray> pair : results) {
                     Object columnValue = pair.getValue() == null || pair.getValue().size() <= i ? null : pair.getValue().get(i);
-                    String val = null;
-                    if (pair.getValue().size() > i) {
-                        val = translateColumnValue(pair.getKey(), columnValue);
-                    }
-                    row.put(pair.getKey(), val);
+                    row.put(pair.getKey(), translateColumnValue(pair.getKey(), columnValue));
                 }
                 rows.add(row);
             }
@@ -60,22 +55,14 @@ public abstract class AbstractColumnMappingCollector<C extends ColumnMappingProp
 
     public abstract void collectRows(List<Map<String, Object>> rows, Response response);
 
-    private String translateColumnValue(String columnName, Object columnValue) {
+    private Object translateColumnValue(String columnName, Object columnValue) {
         if (columnValue == null) {
             return null;
         }
-        String v = null;
-        if (ClassUtil.isBasicType(columnValue.getClass())) {
-            v = columnValue.toString();
-        } else if (Date.class.isAssignableFrom(columnValue.getClass())) {
-            v = DateUtil.format((Date) columnValue, DatePattern.NORM_DATETIME_PATTERN);
-        } else {
-            v = JSONUtil.toJsonStr(columnValue);
-        }
         C mapping = mappings.stream().filter(m -> m.getColumnName().equals(columnName)).findFirst().orElse(null);
-        if (mapping != null && mapping.getTrans() != null && mapping.getTrans().containsKey(v)) {
-            return mapping.getTrans().get(v);
+        if (mapping != null && mapping.getTrans() != null && mapping.getTrans().containsKey(columnValue.toString())) {
+            return mapping.getTrans().get(columnValue.toString());
         }
-        return v;
+        return columnValue;
     }
 }
