@@ -6,6 +6,8 @@ import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.NonNull;
 
+import java.util.Map;
+
 /**
  * @author shoulai.yang@gmail.com
  * @date 2024/1/20
@@ -16,6 +18,8 @@ public class ColumnMappingProperties implements Validatable {
     private String jsonPath;
 
     private String columnName;
+
+    private Map<String, String> trans = null;
 
     public ColumnMappingProperties() {
     }

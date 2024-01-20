@@ -46,15 +46,11 @@ public abstract class AbstractColumnMappingCollector<C extends ColumnMappingProp
                 Map<String, Object> row = new HashMap<>();
                 for (Pair<String, JSONArray> pair : results) {
                     Object columnValue = pair.getValue() == null || pair.getValue().size() <= i ? null : pair.getValue().get(i);
-                    if (columnValue == null || pair.getValue().size() <= i) {
-                        row.put(pair.getKey(), null);
-                    } else if (ClassUtil.isBasicType(columnValue.getClass())) {
-                        row.put(pair.getKey(), columnValue.toString());
-                    } else if (Date.class.isAssignableFrom(columnValue.getClass())) {
-                        row.put(pair.getKey(), DateUtil.format(((Date) columnValue), DatePattern.NORM_DATETIME_PATTERN));
-                    } else {
-                        row.put(pair.getKey(), JSONUtil.toJsonStr(columnValue));
+                    String val = null;
+                    if (pair.getValue().size() > i) {
+                        val = translateColumnValue(pair.getKey(), columnValue);
                     }
+                    row.put(pair.getKey(), val);
                 }
                 rows.add(row);
             }
@@ -63,4 +59,23 @@ public abstract class AbstractColumnMappingCollector<C extends ColumnMappingProp
     }
 
     public abstract void collectRows(List<Map<String, Object>> rows, Response response);
+
+    private String translateColumnValue(String columnName, Object columnValue) {
+        if (columnValue == null) {
+            return null;
+        }
+        String v = null;
+        if (ClassUtil.isBasicType(columnValue.getClass())) {
+            v = columnValue.toString();
+        } else if (Date.class.isAssignableFrom(columnValue.getClass())) {
+            v = DateUtil.format((Date) columnValue, DatePattern.NORM_DATETIME_PATTERN);
+        } else {
+            v = JSONUtil.toJsonStr(columnValue);
+        }
+        C mapping = mappings.stream().filter(m -> m.getColumnName().equals(columnName)).findFirst().orElse(null);
+        if (mapping != null && mapping.getTrans() != null && mapping.getTrans().containsKey(v)) {
+            return mapping.getTrans().get(v);
+        }
+        return v;
+    }
 }
