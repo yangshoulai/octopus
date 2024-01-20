@@ -78,7 +78,7 @@ processors:
             columnName: 描述
             wrap: true
             autoSize: false
-            width: 200
+            width: 100
             align: LEFT
 
     # 内容提取（项目列表）

@@ -11,6 +11,7 @@ import lombok.NonNull;
 import org.apache.poi.openxml4j.util.ZipSecureFile;
 import org.apache.poi.ss.usermodel.CellStyle;
 import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.ss.usermodel.VerticalAlignment;
 
 import java.util.*;
 import java.util.concurrent.locks.Lock;
@@ -87,6 +88,7 @@ public class ExcelCollector extends AbstractColumnMappingCollector<ExcelColumnMa
                                 DataFormat f = writer.getWorkbook().createDataFormat();
                                 cellStyle.setDataFormat(f.getFormat(style.getFormat()));
                             }
+                            cellStyle.setVerticalAlignment(VerticalAlignment.CENTER);
                             writer.getCell(i, j).setCellStyle(cellStyle);
                         }
                     }
