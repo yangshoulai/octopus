@@ -1,6 +1,7 @@
 package com.octopus.core.downloader.proxy;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.net.InetSocketAddress;
 import java.net.Proxy;
@@ -9,19 +10,23 @@ import java.net.Proxy;
  * @author shoulai.yang@gmail.com
  * @date 2024/1/21
  */
-@Data
+@Getter
 public class HttpProxy {
 
     public static HttpProxy PROXY_DIRECT = new HttpProxy();
 
     private Proxy.Type type = Proxy.Type.DIRECT;
 
+    @Setter
     private String host = "127.0.0.1";
 
+    @Setter
     private int port = 80;
 
+    @Setter
     private String username;
 
+    @Setter
     private String password;
 
     private HttpProxy() {
