@@ -41,12 +41,17 @@ public class ProxyProperties implements Validatable, Transformable<Proxy> {
     @Override
     public void validate() throws ValidateException {
         Validator.notEmpty(type, "proxy type is required");
-        Validator.notBlank(host, "proxy host is required");
-        Validator.gt(port, 0, "proxy port is invalid");
+        if (type != Proxy.Type.DIRECT) {
+            Validator.notBlank(host, "proxy host is required");
+            Validator.gt(port, 0, "proxy port is invalid");
+        }
     }
 
     @Override
     public Proxy transform() {
+        if (type == Proxy.Type.DIRECT) {
+            return Proxy.NO_PROXY;
+        }
         return new Proxy(type, new java.net.InetSocketAddress(host, port));
     }
 }
