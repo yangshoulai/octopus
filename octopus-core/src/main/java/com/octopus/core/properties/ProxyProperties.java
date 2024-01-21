@@ -1,5 +1,6 @@
 package com.octopus.core.properties;
 
+import com.octopus.core.downloader.proxy.HttpProxy;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
@@ -15,7 +16,7 @@ import java.net.Proxy;
  * @date 2024/01/12
  */
 @Data
-public class ProxyProperties implements Validatable, Transformable<Proxy> {
+public class ProxyProperties implements Validatable, Transformable<HttpProxy> {
 
     /**
      * 代理类型
@@ -34,9 +35,23 @@ public class ProxyProperties implements Validatable, Transformable<Proxy> {
     /**
      * 端口
      * <p>
-     * 默认 0
+     * 默认 80
      */
-    private int port;
+    private int port = 80;
+
+    /**
+     * 用户名
+     * <p>
+     * 默认 空
+     */
+    private String username;
+
+    /**
+     * 密码
+     * <p>
+     * 默认 空
+     */
+    private String password;
 
     @Override
     public void validate() throws ValidateException {
@@ -48,10 +63,13 @@ public class ProxyProperties implements Validatable, Transformable<Proxy> {
     }
 
     @Override
-    public Proxy transform() {
+    public HttpProxy transform() {
         if (type == Proxy.Type.DIRECT) {
-            return Proxy.NO_PROXY;
+            return HttpProxy.PROXY_DIRECT;
         }
-        return new Proxy(type, new java.net.InetSocketAddress(host, port));
+        HttpProxy proxy = new HttpProxy(type, host, port);
+        proxy.setUsername(username);
+        proxy.setPassword(password);
+        return proxy;
     }
 }

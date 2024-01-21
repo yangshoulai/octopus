@@ -2,30 +2,28 @@ package com.octopus.core.downloader.proxy;
 
 import cn.hutool.core.collection.ListUtil;
 import com.octopus.core.Request;
+import lombok.NonNull;
 
-import java.net.Proxy;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.IntUnaryOperator;
-
-import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
 public class PollingProxyProvider implements ProxyProvider {
-    private final List<Proxy> proxies;
+    private final List<HttpProxy> proxies;
 
     private final AtomicInteger index = new AtomicInteger(0);
 
     private final IntUnaryOperator updater;
 
-    public PollingProxyProvider(@NonNull Proxy... proxies) {
+    public PollingProxyProvider(@NonNull HttpProxy... proxies) {
         this(ListUtil.toList(proxies));
     }
 
-    public PollingProxyProvider(@NonNull List<Proxy> proxies) {
+    public PollingProxyProvider(@NonNull List<HttpProxy> proxies) {
         this.proxies = proxies;
         this.updater =
                 pre -> {
@@ -38,9 +36,9 @@ public class PollingProxyProvider implements ProxyProvider {
     }
 
     @Override
-    public Proxy provide(Request request) {
+    public HttpProxy provide(Request request) {
         if (proxies.isEmpty()) {
-            return Proxy.NO_PROXY;
+            return HttpProxy.PROXY_DIRECT;
         }
         int i = index.getAndUpdate(this.updater);
         return this.proxies.get(i);

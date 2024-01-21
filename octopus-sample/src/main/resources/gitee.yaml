@@ -35,7 +35,7 @@ store:
 # 下载器配置
 downloader:
   # 使用 OkHttp 下载器
-  type: OkHttp
+  type: HttpClient
   # 默认编码
   charset: UTF-8
   # 下载超时时间

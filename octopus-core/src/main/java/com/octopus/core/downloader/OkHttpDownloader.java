@@ -7,11 +7,11 @@ import cn.hutool.http.ssl.TrustAnyHostnameVerifier;
 import com.octopus.core.Request;
 import com.octopus.core.Request.RequestMethod;
 import com.octopus.core.Response;
+import com.octopus.core.downloader.proxy.HttpProxy;
 import com.octopus.core.exception.DownloadException;
 import okhttp3.*;
 
 import java.io.IOException;
-import java.net.Proxy;
 import java.nio.charset.Charset;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -29,7 +29,7 @@ public class OkHttpDownloader extends AbstractDownloader {
 
     @Override
     public Response download(Request request, DownloadConfig config) throws DownloadException {
-        Proxy proxy = this.resolveProxy(config.getProxyProvider(), request);
+        HttpProxy proxy = this.resolveProxy(config.getProxyProvider(), request);
         try (okhttp3.Response response =
                      new OkHttpClient.Builder()
                              .connectionPool(this.connectionPool)
@@ -40,7 +40,13 @@ public class OkHttpDownloader extends AbstractDownloader {
                              .callTimeout(
                                      2L * (config.getConnectTimeout() + config.getSocketTimeout()),
                                      TimeUnit.MILLISECONDS)
-                             .proxy(proxy)
+                             .proxy(proxy.to())
+                             .proxyAuthenticator((route, res) -> {
+                                 String credential = Credentials.basic(proxy.getUsername() == null ? "" : proxy.getUsername(), proxy.getPassword() == null ? "" : proxy.getPassword());
+                                 return res.request().newBuilder()
+                                         .header("Proxy-Authorization", credential)
+                                         .build();
+                             })
                              .build()
                              .newCall(createRequest(request, config))
                              .execute()) {
