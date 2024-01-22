@@ -72,7 +72,11 @@ public class HttpClientDownloader extends AbstractDownloader {
             throw new OctopusException(e);
         }
         Registry<ConnectionSocketFactory> socketFactoryRegistry = RegistryBuilder.<ConnectionSocketFactory>create().register("http", PlainConnectionSocketFactory.INSTANCE).register("https", new SSLConnectionSocketFactory(sslContext, new NoopHostnameVerifier())).build();
-        connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry);
+        connectionManager = new PoolingHttpClientConnectionManager(socketFactoryRegistry) {
+            @Override
+            public void shutdown() {
+            }
+        };
         connectionManager.setMaxTotal(200);
         connectionManager.setDefaultMaxPerRoute(25);
         connectionManager.setDefaultSocketConfig(SocketConfig.custom().setSoTimeout(60000).build());
