@@ -63,4 +63,9 @@ public class HttpProxy {
         return new Proxy(type, new InetSocketAddress(host, port));
     }
 
+
+    @Override
+    public String toString() {
+        return this == HttpProxy.PROXY_DIRECT ? "DIRECT" : this.host + ":" + this.port;
+    }
 }
