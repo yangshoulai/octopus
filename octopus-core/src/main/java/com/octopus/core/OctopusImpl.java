@@ -20,7 +20,6 @@ import com.octopus.core.processor.impl.MatchableProcessor;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
-import com.octopus.core.utils.RateLimiter;
 import com.octopus.core.utils.RequestHelper;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
@@ -31,7 +30,6 @@ import java.net.URI;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -443,20 +441,12 @@ class OctopusImpl implements Octopus {
         if (this.logger.isDebugEnabled()) {
             logger.debug("Start all rate limiters");
         }
-        this.webSites.stream()
-                .map(WebSite::getRateLimiter)
-                .filter(Objects::nonNull)
-                .forEach(RateLimiter::start);
     }
 
     private void stopRateLimiters() {
         if (this.logger.isDebugEnabled()) {
             logger.debug("Stop all rate limiters");
         }
-        this.webSites.stream()
-                .map(WebSite::getRateLimiter)
-                .filter(Objects::nonNull)
-                .forEach(RateLimiter::stop);
     }
 
     private boolean translateState(State from, State to) {

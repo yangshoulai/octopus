@@ -1,9 +1,10 @@
 package com.octopus.core;
 
 import com.octopus.core.downloader.DownloadConfig;
-import com.octopus.core.utils.RateLimiter;
-import java.util.concurrent.TimeUnit;
+import com.octopus.core.utils.AvgRateLimiter;
 import lombok.NonNull;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * 目标网站信息
@@ -13,60 +14,66 @@ import lombok.NonNull;
  */
 public class WebSite {
 
-  /** 网站域名 */
-  private String host;
+    /**
+     * 网站域名
+     */
+    private String host;
 
-  /** 网站爬虫速率限制 */
-  private RateLimiter rateLimiter;
+    /**
+     * 网站爬虫速率限制
+     */
+    private AvgRateLimiter rateLimiter;
 
-  /** 网站的下载配置 */
-  private DownloadConfig downloadConfig;
+    /**
+     * 网站的下载配置
+     */
+    private DownloadConfig downloadConfig;
 
-  public WebSite(@NonNull String host) {
-    this.host = host;
-  }
+    public WebSite(@NonNull String host) {
+        this.host = host;
+    }
 
-  public String getHost() {
-    return host;
-  }
+    public static WebSite of(@NonNull String host) {
+        return new WebSite(host);
+    }
 
-  public WebSite setHost(String host) {
-    this.host = host;
-    return this;
-  }
+    public String getHost() {
+        return host;
+    }
 
-  public RateLimiter getRateLimiter() {
-    return rateLimiter;
-  }
+    public WebSite setHost(String host) {
+        this.host = host;
+        return this;
+    }
 
-  public WebSite setRateLimiter(RateLimiter rateLimiter) {
-    this.rateLimiter = rateLimiter;
-    return this;
-  }
+    public AvgRateLimiter getRateLimiter() {
+        return rateLimiter;
+    }
 
-  public WebSite setRateLimiter(int max) {
-    return this.setRateLimiter(max, 1);
-  }
+    public WebSite setRateLimiter(AvgRateLimiter rateLimiter) {
+        this.rateLimiter = rateLimiter;
+        return this;
+    }
 
-  public WebSite setRateLimiter(int max, int periodSeconds) {
-    return this.setRateLimiter(max, periodSeconds, TimeUnit.SECONDS);
-  }
+    public WebSite setRateLimiter(int max) {
+        return this.setRateLimiter(max, 1);
+    }
 
-  public WebSite setRateLimiter(int max, int periodSeconds, @NonNull TimeUnit unit) {
-    this.rateLimiter = RateLimiter.of(max, periodSeconds, unit);
-    return this;
-  }
+    public WebSite setRateLimiter(int max, int periodSeconds) {
+        return this.setRateLimiter(max, periodSeconds, TimeUnit.SECONDS);
+    }
 
-  public DownloadConfig getDownloadConfig() {
-    return downloadConfig;
-  }
+    public WebSite setRateLimiter(int max, int period, @NonNull TimeUnit unit) {
+        this.rateLimiter = AvgRateLimiter.of(max, period, unit);
+        return this;
+    }
 
-  public WebSite setDownloadConfig(DownloadConfig downloadConfig) {
-    this.downloadConfig = downloadConfig;
-    return this;
-  }
+    public DownloadConfig getDownloadConfig() {
+        return downloadConfig;
+    }
 
-  public static WebSite of(@NonNull String host) {
-    return new WebSite(host);
-  }
+    public WebSite setDownloadConfig(DownloadConfig downloadConfig) {
+        this.downloadConfig = downloadConfig;
+        return this;
+    }
 }

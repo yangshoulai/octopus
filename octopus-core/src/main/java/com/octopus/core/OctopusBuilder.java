@@ -1,6 +1,5 @@
 package com.octopus.core;
 
-import cn.hutool.core.util.StrUtil;
 import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -232,9 +231,6 @@ public class OctopusBuilder {
      * @return OctopusBuilder
      */
     public OctopusBuilder addSite(@NonNull WebSite site) {
-        if (site.getRateLimiter() != null && StrUtil.isBlank(site.getRateLimiter().getName())) {
-            site.getRateLimiter().setName("rate-limiter/" + site.getHost());
-        }
         this.sites.add(site);
         return this;
     }

@@ -6,7 +6,7 @@ import com.octopus.core.Octopus;
 import com.octopus.core.Response;
 import com.octopus.core.WebSite;
 import com.octopus.core.processor.impl.MediaFileDownloadProcessor;
-import com.octopus.core.utils.RateLimiter;
+import com.octopus.core.utils.AvgRateLimiter;
 import com.octopus.sample.Constants;
 
 /**
@@ -20,7 +20,7 @@ public class NetEaseMusic {
   public static void main(String[] args) {
     Octopus.builder()
         .addSeeds("https://music.163.com/discover/toplist?id=3778678")
-        .addSite(WebSite.of("music.163.com").setRateLimiter(RateLimiter.of(1, 5)))
+        .addSite(WebSite.of("music.163.com").setRateLimiter(AvgRateLimiter.of(1, 5)))
         .addProcessor(new ListPageProcessor())
         .addProcessor(new PlayerUrlProcessor())
         .addProcessor(
