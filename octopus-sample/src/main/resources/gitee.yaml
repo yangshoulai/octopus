@@ -20,7 +20,7 @@ seeds:
     cache: true
 # 目标站点配置
 sites:
-    # 站点域名
+  # 站点域名
   - host: gitee.com
     # 站点限速
     limitInSecond: 1
@@ -42,7 +42,7 @@ downloader:
   timeoutInSeconds: 60
 # 处理器列表
 processors:
-    # 匹配器
+  # 匹配器
   - matcher: Html
     # 收集器
     collector:
@@ -59,7 +59,6 @@ processors:
             name: page
             defaultValue: 1
             denoiser:
-              regex: ^.*$
               format: "%s.json"
       excel:
         append: false
@@ -87,7 +86,7 @@ processors:
     extractor:
       # 字段配置列表
       fields:
-          # 字段名
+        # 字段名
         - name: projects
           # 是否多个
           multi: true
@@ -102,7 +101,7 @@ processors:
           # 嵌套提取内容（项目）
           extractor:
             fields:
-                # 项目名称
+              # 项目名称
               - name: name
                 selector:
                   css: .project-title a.title
@@ -114,7 +113,6 @@ processors:
                     attr: href
                     denoiser:
                       format: https://gitee.com%s
-                      regex: ^.*$
                 # 项目标签
               - name: tags
                 selector:
@@ -134,7 +132,7 @@ processors:
                   url: { }
       # 提取链接
       links:
-          # 链接优先级
+        # 链接优先级
         - priority: 1
           # 不可重复
           repeatable: false
