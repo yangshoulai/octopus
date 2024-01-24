@@ -222,9 +222,9 @@ class OctopusImpl implements Octopus {
             try {
                 Request request = this.store.get();
                 if (request != null) {
-//                    if (this.logger.isDebugEnabled()) {
-//                        logger.debug(String.format("Load request [%s] from store", request));
-//                    }
+                    if (this.logger.isTraceEnabled()) {
+                        logger.trace(String.format("Load request [%s] from store", request));
+                    }
                     this.workerSemaphore.acquire();
                     this.workers.execute(
                             () -> {
@@ -362,8 +362,8 @@ class OctopusImpl implements Octopus {
         if (matchedProcessors.isEmpty()) {
             throw new ProcessorNotFoundException(response.getRequest());
         }
-        if (this.logger.isDebugEnabled()) {
-            this.logger.debug(
+        if (this.logger.isTraceEnabled()) {
+            this.logger.trace(
                     String.format(
                             "Found [%s] matched processors for request [%s]",
                             matchedProcessors.size(), response.getRequest()));
