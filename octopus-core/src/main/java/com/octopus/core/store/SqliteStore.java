@@ -4,6 +4,7 @@ import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import com.octopus.core.Request;
+import com.octopus.core.processor.jexl.Jexl;
 import com.octopus.core.properties.store.SqliteStoreProperties;
 import com.octopus.core.replay.ReplayFilter;
 import lombok.NonNull;
@@ -38,7 +39,8 @@ public class SqliteStore implements Store {
         this.table = properties.getTable();
         try {
             Class.forName("org.sqlite.JDBC");
-            this.connection = DriverManager.getConnection("jdbc:sqlite:" + properties.getDb());
+            Object db = Jexl.eval(properties.getDb());
+            this.connection = DriverManager.getConnection("jdbc:sqlite:" + (db == null ? properties.getDb() : db.toString()));
         } catch (ClassNotFoundException | SQLException e) {
             throw new RuntimeException(e);
         }
@@ -167,7 +169,7 @@ public class SqliteStore implements Store {
             }
             String attrs = resultSet.getString("attrs");
             if (StrUtil.isNotBlank(attrs)) {
-                request.setAttributes(JSONUtil.toBean(attrs, new TypeReference<HashMap<String, Object>>() {
+                request.setAttrs(JSONUtil.toBean(attrs, new TypeReference<HashMap<String, Object>>() {
                     @Override
                     public Type getType() {
                         return super.getType();
@@ -176,7 +178,7 @@ public class SqliteStore implements Store {
             }
             request.setIndex(resultSet.getInt("idx"));
             request.setCache(resultSet.getInt("cache") == 1);
-            request.setCreateDate( new Date(resultSet.getLong("create_date")));
+            request.setCreateDate(new Date(resultSet.getLong("create_date")));
             requests.add(request);
         }
         return requests;
@@ -215,8 +217,8 @@ public class SqliteStore implements Store {
                 } else {
                     statement.setString(12, null);
                 }
-                if (request.getAttributes() != null) {
-                    statement.setString(13, JSONUtil.toJsonStr(request.getAttributes()));
+                if (request.getAttrs() != null) {
+                    statement.setString(13, JSONUtil.toJsonStr(request.getAttrs()));
                 } else {
                     statement.setString(13, null);
                 }
@@ -247,14 +249,14 @@ public class SqliteStore implements Store {
                 } else {
                     statement.setString(13, null);
                 }
-                if (request.getAttributes() != null) {
-                    statement.setString(14, JSONUtil.toJsonStr(request.getAttributes()));
+                if (request.getAttrs() != null) {
+                    statement.setString(14, JSONUtil.toJsonStr(request.getAttrs()));
                 } else {
                     statement.setString(14, null);
                 }
                 statement.setInt(15, request.getDepth());
                 statement.setInt(16, request.getIndex());
-                statement.setInt(17, request.isCache() ? 1 : 0  );
+                statement.setInt(17, request.isCache() ? 1 : 0);
                 statement.setLong(18, request.getCreateDate() == null ? 0 : request.getCreateDate().getTime());
             }
             statement.executeUpdate();

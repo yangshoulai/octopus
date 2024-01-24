@@ -32,7 +32,7 @@ public class Request implements Serializable, Comparable<Request> {
 
     private boolean repeatable = true;
 
-    private Map<String, Object> attributes = new HashMap<>();
+    private Map<String, Object> attrs = new HashMap<>();
 
     private String parent;
 
@@ -141,23 +141,23 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    public void setAttributes(@NonNull Map<String, Object> attributes) {
-        this.attributes = attributes;
+    public void setAttrs(@NonNull Map<String, Object> attrs) {
+        this.attrs = attrs;
     }
 
     public Request putAttribute(@NonNull String attr, Object value) {
-        this.attributes.put(attr, value);
+        this.attrs.put(attr, value);
         return this;
     }
 
     public Request putAttributes(@NonNull Map<String, Object> attrs) {
-        this.attributes.putAll(attrs);
+        this.attrs.putAll(attrs);
         return this;
     }
 
     @SuppressWarnings("unchecked")
     public <T> T getAttribute(@NonNull String attr) {
-        return (T) this.attributes.get(attr);
+        return (T) this.attrs.get(attr);
     }
 
     public <T> T getAttribute(String attr, T defaultValue) {

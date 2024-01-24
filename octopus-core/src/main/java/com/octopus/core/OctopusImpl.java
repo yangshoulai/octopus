@@ -406,8 +406,8 @@ class OctopusImpl implements Octopus {
             return;
         }
         request.setParent(parentRequest.getId());
-        if (request.isInherit() && parentRequest.getAttributes() != null) {
-            Map<String, Object> attrs = parentRequest.getAttributes();
+        if (request.isInherit() && parentRequest.getAttrs() != null) {
+            Map<String, Object> attrs = parentRequest.getAttrs();
             attrs.forEach(
                     (k, v) -> {
                         if (request.getAttribute(k) == null) {

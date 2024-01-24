@@ -6,7 +6,6 @@ import com.octopus.core.properties.selector.UrlSelectorProperties;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import lombok.NonNull;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -26,21 +25,26 @@ public class DownloaderCollectorProperties extends AbstractCollectorProperties {
 
 
     /**
-     * 下载文件
+     * 下载文件目录
      */
-    private String file;
+    private String dir;
+
+    /**
+     * 下载文件名称
+     */
+    private String name;
 
     public DownloaderCollectorProperties() {
     }
 
-    public DownloaderCollectorProperties(String file) {
+    public DownloaderCollectorProperties(String dir) {
         super();
-        this.file = file;
+        this.dir = dir;
     }
 
     @Override
     public void validate() throws ValidateException {
         super.validate();
-        Validator.notEmpty(file, "download file is required");
+        Validator.notEmpty(dir, "download dir is required");
     }
 }

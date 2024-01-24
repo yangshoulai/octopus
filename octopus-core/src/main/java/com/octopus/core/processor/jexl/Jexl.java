@@ -32,18 +32,27 @@ public class Jexl {
         ENGINE = new JexlBuilder().cache(512).strict(true).silent(false).namespaces(ns).create();
     }
 
+    public static Object eval(String expression) {
+        MapContext ctx = new MapContext(new HashMap<>());
+        Object result = null;
+        try {
+            result = ENGINE.createExpression(expression).evaluate(ctx);
+        } catch (Exception ignore) {
+        }
+
+        return result;
+    }
+
     public static Object eval(String expression, Map<String, Object> context) {
         MapContext ctx = new MapContext(context);
+        Object result = null;
         try {
-            return ENGINE.createExpression(expression).evaluate(ctx);
+            result = ENGINE.createExpression(expression).evaluate(ctx);
         } catch (Exception ignore) {
         }
-        try {
-            return ENGINE.createScript(expression).execute(ctx);
-        } catch (Exception ignore) {
 
-        }
-        return null;
+        return result;
     }
+
 
 }

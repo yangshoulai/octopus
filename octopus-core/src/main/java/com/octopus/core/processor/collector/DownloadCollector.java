@@ -16,6 +16,7 @@ import lombok.Data;
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -33,17 +34,20 @@ public class DownloadCollector<R> implements Collector<R> {
     @Override
     public void collect(R result, Response response) {
         Map<String, Object> ctx = JexlHelper.buildContext(result, response);
+        String dir = Objects.requireNonNull(Jexl.eval(properties.getDir(), ctx)).toString();
         String fileName = null;
-        Object r = Jexl.eval(properties.getFile(), ctx);
-        if (r != null) {
-            fileName = r.toString();
-        } else {
-            fileName = getFileNameFromDisposition(response.getHeaders());
+        if (StrUtil.isNotBlank(properties.getName())) {
+            Object r = Jexl.eval(properties.getName(), ctx);
+            if (r != null) {
+                fileName = r.toString();
+            } else {
+                fileName = getFileNameFromDisposition(response.getHeaders());
+            }
         }
         if (StrUtil.isBlank(fileName)) {
             fileName = FileUtil.getName(response.getRequest().getUrl());
         }
-        File targetFile = new File(fileName);
+        File targetFile = new File(dir, fileName);
         byte[] bytes = null;
         if (this.properties.getTarget() == CollectorTarget.Result && result != null) {
             if (this.properties.isPretty()) {

@@ -104,7 +104,7 @@ public class RequestProperties implements Validatable, Transformable<Request> {
         r.setParams(params);
         r.setHeaders(headers);
         r.setPriority(priority);
-        r.setAttributes(attributes);
+        r.setAttrs(attributes);
         r.setInherit(inherit);
         r.setRepeatable(repeatable);
         r.setCache(cache);

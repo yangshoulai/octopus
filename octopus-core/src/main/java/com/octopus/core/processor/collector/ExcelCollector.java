@@ -9,6 +9,7 @@ import cn.hutool.json.JSONUtil;
 import cn.hutool.poi.excel.ExcelUtil;
 import cn.hutool.poi.excel.ExcelWriter;
 import com.octopus.core.Response;
+import com.octopus.core.processor.jexl.Jexl;
 import com.octopus.core.properties.collector.ExcelCollectorProperties;
 import com.octopus.core.properties.collector.ExcelColumnMappingProperties;
 import lombok.NonNull;
@@ -41,7 +42,8 @@ public class ExcelCollector extends AbstractColumnMappingCollector<ExcelColumnMa
     public ExcelCollector(@NonNull ExcelCollectorProperties properties) {
         super(properties.getRowJsonPath(), properties.getMappings());
         boolean append = properties.isAppend();
-        this.file = properties.getFile();
+        Object file = Jexl.eval(properties.getFile());
+        this.file = file == null ? properties.getFile() : file.toString();
         if (!append) {
             FileUtil.del(this.file);
         }

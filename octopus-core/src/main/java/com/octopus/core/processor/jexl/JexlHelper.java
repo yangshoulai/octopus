@@ -17,7 +17,7 @@ public class JexlHelper {
             request = response.getRequest();
         }
         Map<String, Object> ctx = new HashMap<>();
-        ctx.put("result", request);
+        ctx.put("result", result);
         ctx.put("request", request);
         ctx.put("response", response);
         return ctx;
@@ -25,5 +25,9 @@ public class JexlHelper {
 
     public static Map<String, Object> buildContext(Object result, Response response) {
         return buildContext(result, response.getRequest(), response);
+    }
+
+    public static Map<String, Object> buildContext() {
+        return buildContext(null, null);
     }
 }

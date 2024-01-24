@@ -29,7 +29,7 @@ store:
   # 使用 sqlite 存储
   sqlite:
     # 数据库文件路径
-    db: /Users/yangshoulai/Downloads/octopus.db
+    db: "env:get('user.home') + '/Downloads/octopus.db'"
     # 表名
     table: gitee
 # 下载器配置
@@ -50,10 +50,11 @@ processors:
       logging: { }
       # 下载内容
       download:
-        file: "env:get('user.home') + '/Downloads/gitee/' + request.params.page + '.json'"
+        dir: "env:get('user.home') + '/Downloads/gitee/'"
+        name: "request.params.page + '.json'"
       excel:
         append: false
-        file: /Users/yangshoulai/Downloads/gitee.xlsx
+        file: "env:get('user.home') + '/Downloads/gitee.xlsx'"
         rowJsonPath: "$.projects[*]"
         mappings:
           - jsonPath: "$.name"
