@@ -7,20 +7,15 @@ import cn.hutool.json.JSONUtil;
 import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.Collector;
-import com.octopus.core.processor.SelectorHelper;
+import com.octopus.core.processor.jexl.Jexl;
+import com.octopus.core.processor.jexl.JexlHelper;
 import com.octopus.core.properties.collector.CollectorTarget;
-import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.properties.collector.DownloaderCollectorProperties;
-import com.octopus.core.utils.JexlEngineUtil;
 import lombok.Data;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -37,9 +32,9 @@ public class DownloadCollector<R> implements Collector<R> {
 
     @Override
     public void collect(R result, Response response) {
-        Map<String, Object> ctx = JexlEngineUtil.buildContext(response.getRequest());
+        Map<String, Object> ctx = JexlHelper.buildContext(result, response);
         String fileName = null;
-        Object r = JexlEngineUtil.eval(properties.getFile(), ctx);
+        Object r = Jexl.eval(properties.getFile(), ctx);
         if (r != null) {
             fileName = r.toString();
         } else {

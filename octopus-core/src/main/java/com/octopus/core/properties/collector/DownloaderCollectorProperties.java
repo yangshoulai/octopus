@@ -33,6 +33,10 @@ public class DownloaderCollectorProperties extends AbstractCollectorProperties {
     public DownloaderCollectorProperties() {
     }
 
+    public DownloaderCollectorProperties(String file) {
+        super();
+        this.file = file;
+    }
 
     @Override
     public void validate() throws ValidateException {

@@ -3,7 +3,7 @@ name: Gitee
 # 是否自动关闭
 autoStop: true
 # 启动时是否清空请求存储器
-clearStoreOnStartup: false
+clearStoreOnStartup: true
 # 关闭时是否清空请求存储器
 clearStoreOnStop: false
 # 当请求存储器还有未完成的请求时，是否忽略种子请求
@@ -50,7 +50,7 @@ processors:
       logging: { }
       # 下载内容
       download:
-        file: "env['user.home'] + '/Downloads/gitee/' + req.params.page + '.json'"
+        file: "env:get('user.home') + '/Downloads/gitee/' + request.params.page + '.json'"
       excel:
         append: false
         file: /Users/yangshoulai/Downloads/gitee.xlsx
