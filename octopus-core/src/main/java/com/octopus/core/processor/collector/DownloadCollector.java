@@ -11,6 +11,7 @@ import com.octopus.core.processor.SelectorHelper;
 import com.octopus.core.properties.collector.CollectorTarget;
 import com.octopus.core.properties.selector.SelectorProperties;
 import com.octopus.core.properties.collector.DownloaderCollectorProperties;
+import com.octopus.core.utils.JexlEngineUtil;
 import lombok.Data;
 
 import java.io.File;
@@ -36,23 +37,18 @@ public class DownloadCollector<R> implements Collector<R> {
 
     @Override
     public void collect(R result, Response response) {
-        String fileDir = getFileSubDir(response);
+        Map<String, Object> ctx = JexlEngineUtil.buildContext(response.getRequest());
         String fileName = null;
-        SelectorProperties nameSelector = this.properties.getName();
-        List<String> selected = SelectorHelper.getInstance().selectBySelectorProperties(nameSelector, response.asText(), false, response);
-        if (selected != null && !selected.isEmpty()) {
-            fileName = selected.get(0);
-        }
-        if (StrUtil.isBlank(fileName)) {
+        Object r = JexlEngineUtil.eval(properties.getFile(), ctx);
+        if (r != null) {
+            fileName = r.toString();
+        } else {
             fileName = getFileNameFromDisposition(response.getHeaders());
         }
         if (StrUtil.isBlank(fileName)) {
-            fileName = response.getRequest().getId();
+            fileName = FileUtil.getName(response.getRequest().getUrl());
         }
-
-        File targetDir = new File(fileDir);
-        File targetFile = new File(targetDir, fileName);
-
+        File targetFile = new File(fileName);
         byte[] bytes = null;
         if (this.properties.getTarget() == CollectorTarget.Result && result != null) {
             if (this.properties.isPretty()) {
@@ -74,14 +70,6 @@ public class DownloadCollector<R> implements Collector<R> {
         }
     }
 
-    public String getFileSubDir(Response response) {
-        if (this.properties.getDirs() != null && this.properties.getDirs().length > 0) {
-            return Arrays.stream(this.properties.getDirs()).filter(Objects::nonNull).flatMap(selector ->
-                            SelectorHelper.getInstance().selectBySelectorProperties(selector, response.asText(), false, response).stream())
-                    .filter(StrUtil::isNotBlank).collect(Collectors.joining(File.separator));
-        }
-        return null;
-    }
 
     /**
      * 从Content-Disposition头中获取文件名

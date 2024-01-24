@@ -26,19 +26,9 @@ public class DownloaderCollectorProperties extends AbstractCollectorProperties {
 
 
     /**
-     * 下载搜集器 下载分类目录属性名列表
-     * <p>
-     * 默认 空
+     * 下载文件
      */
-    private SelectorProperties[] dirs = new SelectorProperties[]{};
-
-    /**
-     * 下载搜集器 下载文件属性名
-     * <p>
-     * 默认 空
-     */
-    @NonNull
-    private SelectorProperties name = DEFAULT_NAME_SELECTOR;
+    private String file;
 
     public DownloaderCollectorProperties() {
     }
@@ -47,7 +37,6 @@ public class DownloaderCollectorProperties extends AbstractCollectorProperties {
     @Override
     public void validate() throws ValidateException {
         super.validate();
-        Validator.notEmpty(dirs, "download file dirs is required");
-        Validator.notEmpty(name, "download file name is required");
+        Validator.notEmpty(file, "download file is required");
     }
 }
