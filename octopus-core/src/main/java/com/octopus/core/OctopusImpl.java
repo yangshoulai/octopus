@@ -223,12 +223,15 @@ class OctopusImpl implements Octopus {
                 Request request = this.store.get();
                 if (request != null) {
                     if (this.logger.isDebugEnabled()) {
-                        logger.debug(String.format("Take request [%s]", request));
+                        logger.debug(String.format("Load request [%s] from store", request));
                     }
                     this.workerSemaphore.acquire();
                     this.workers.execute(
                             () -> {
                                 try {
+                                    if (this.logger.isDebugEnabled()) {
+                                        logger.debug(String.format("Take request [%s]", request));
+                                    }
                                     this.listenerNotifier.beforeDownload(request);
                                     WebSite webSite = this.getTargetWebSite(request);
                                     DownloadConfig downloadConfig = this.globalDownloadConfig;
