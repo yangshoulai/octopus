@@ -24,7 +24,7 @@ public class JexlHelper {
     }
 
     public static Map<String, Object> buildContext(Object result, Response response) {
-        return buildContext(result, response.getRequest(), response);
+        return buildContext(result, response == null ? null : response.getRequest(), response);
     }
 
     public static Map<String, Object> buildContext() {
