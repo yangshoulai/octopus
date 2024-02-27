@@ -1,7 +1,7 @@
 package com.octopus.core;
 
+import com.google.common.util.concurrent.RateLimiter;
 import com.octopus.core.downloader.DownloadConfig;
-import com.octopus.core.utils.AvgRateLimiter;
 import lombok.NonNull;
 
 import java.util.concurrent.TimeUnit;
@@ -22,7 +22,7 @@ public class WebSite {
     /**
      * 网站爬虫速率限制
      */
-    private AvgRateLimiter rateLimiter;
+    private RateLimiter rateLimiter;
 
     /**
      * 网站的下载配置
@@ -46,11 +46,11 @@ public class WebSite {
         return this;
     }
 
-    public AvgRateLimiter getRateLimiter() {
+    public RateLimiter getRateLimiter() {
         return rateLimiter;
     }
 
-    public WebSite setRateLimiter(AvgRateLimiter rateLimiter) {
+    public WebSite setRateLimiter(RateLimiter rateLimiter) {
         this.rateLimiter = rateLimiter;
         return this;
     }
@@ -64,7 +64,7 @@ public class WebSite {
     }
 
     public WebSite setRateLimiter(int max, int period, @NonNull TimeUnit unit) {
-        this.rateLimiter = AvgRateLimiter.of(max, period, unit);
+        this.rateLimiter = RateLimiter.create(max * 1.0d / unit.toSeconds(period));
         return this;
     }
 
