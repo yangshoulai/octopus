@@ -81,7 +81,6 @@ public class Request implements Serializable, Comparable<Request> {
 
     public Request setUrl(@NonNull String url) {
         this.url = url;
-        resolveParamFromUrl();
         return this;
     }
 
@@ -117,7 +116,6 @@ public class Request implements Serializable, Comparable<Request> {
 
     public Request setParams(@NonNull Map<String, String> params) {
         this.params = params;
-        resolveParamFromUrl();
         return this;
     }
 
@@ -205,9 +203,6 @@ public class Request implements Serializable, Comparable<Request> {
         return this;
     }
 
-    private void resolveParamFromUrl() {
-        UrlBuilder.of(url).getQuery().getQueryMap().forEach((k, v) -> this.addParam(k.toString(), v == null ? null : v.toString()));
-    }
 
     @Override
     public int compareTo(Request o) {
