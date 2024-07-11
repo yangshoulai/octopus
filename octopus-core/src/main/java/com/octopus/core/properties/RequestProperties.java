@@ -76,6 +76,11 @@ public class RequestProperties implements Validatable, Transformable<Request> {
      */
     private boolean inherit = false;
 
+    /**
+     * 是否缓存
+     * <p>
+     * 默认 false
+     */
     private boolean cache = false;
 
     public RequestProperties() {

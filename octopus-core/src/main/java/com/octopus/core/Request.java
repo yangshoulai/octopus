@@ -16,30 +16,79 @@ import java.util.Map;
 @Getter
 public class Request implements Serializable, Comparable<Request> {
 
+    /**
+     * 请求唯一编号（自动生成）
+     * <p>
+     * 由请求方法、请求链接、查询参数、查询体生成
+     */
     private String id;
 
+    /**
+     * 请求链接
+     */
     private String url;
 
+    /**
+     * 请求方法
+     */
     private RequestMethod method;
 
+    /**
+     * 请求体
+     */
     private byte[] body;
 
+    /**
+     * 请求查询参数
+     */
     private Map<String, String> params = new HashMap<>();
 
+    /**
+     * 请求头
+     */
     private Map<String, String> headers = new HashMap<>();
 
+    /**
+     * 请求优先级
+     */
     private int priority;
 
+    /**
+     * 是否可重复
+     * <p>
+     * ID一致的请求被认为是重复请求
+     */
     private boolean repeatable = true;
 
+    /**
+     * 请求属性
+     * <p>
+     * 自定义的请求属性，方便在父子请求之间传递业务属性
+     */
     private Map<String, Object> attrs = new HashMap<>();
 
+    /**
+     * 父请求 ID
+     */
     private String parent;
 
+    /**
+     * 请求的索引
+     * <p>
+     * 记录子请求在父请求页面出现的位置
+     */
     private int index;
 
+    /**
+     * 创建时间
+     */
     private Date createDate = new Date();
 
+    /**
+     * 是否缓存
+     * <p>
+     * 避免重新下载，当前只有 RedisStore 支持
+     */
     private boolean cache = false;
 
     /**
@@ -47,6 +96,9 @@ public class Request implements Serializable, Comparable<Request> {
      */
     private boolean inherit = false;
 
+    /**
+     * 请求状态
+     */
     private Status status = Status.of(State.Waiting);
 
     /**
@@ -55,7 +107,9 @@ public class Request implements Serializable, Comparable<Request> {
     private int failTimes = 0;
 
     /**
-     * 深度
+     * 请求深度
+     * <p>
+     * 从种子开始逐层递增
      */
     private int depth = 0;
 

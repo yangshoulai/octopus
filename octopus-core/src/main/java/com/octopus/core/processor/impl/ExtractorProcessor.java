@@ -13,6 +13,7 @@ import com.octopus.core.processor.*;
 import com.octopus.core.processor.annotation.Converter;
 import com.octopus.core.processor.annotation.Selector;
 import com.octopus.core.processor.annotation.*;
+import com.octopus.core.processor.jexl.JexlContextHolder;
 import com.octopus.core.utils.AnnotationUtil;
 import com.octopus.core.utils.RequestHelper;
 import lombok.NonNull;
@@ -50,6 +51,7 @@ public class ExtractorProcessor<T> implements Processor {
     public void process(Response response, Octopus octopus) {
         try {
             Result<T> result = this.extract(response.asText(), response, this.extractorClass);
+            JexlContextHolder.getContext().put(JexlContextHolder.KEY_RESULT, result);
             if (collector != null) {
                 collector.collect(result.getObj(), response);
             }

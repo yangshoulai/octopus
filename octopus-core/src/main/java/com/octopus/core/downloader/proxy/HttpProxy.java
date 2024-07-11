@@ -35,7 +35,7 @@ public class HttpProxy {
 
     public HttpProxy(Proxy.Type type, String host, int port) {
         if (type == Proxy.Type.DIRECT) {
-            throw new IllegalArgumentException("type " + type + " can init");
+            throw new IllegalArgumentException("type " + type + " can not init");
         }
         this.type = type;
         this.host = host;

@@ -1,6 +1,5 @@
 package com.octopus.core;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSON;
 import cn.hutool.json.JSONUtil;
 import lombok.Getter;
@@ -20,19 +19,36 @@ import java.util.Map;
 @Getter
 public class Response implements Serializable {
 
+    /**
+     * 请求
+     */
     private Request request;
 
+    /**
+     * 响应状态
+     */
     private int status;
 
+    /**
+     * 响应体
+     */
     private byte[] body = new byte[0];
 
+    /**
+     * 响应头
+     */
     private Map<String, String> headers = new HashMap<>();
 
+    /**
+     * 响应编码
+     */
     private String charset;
 
+    /**
+     * 媒体类型
+     */
     private String mimeType;
 
-    private String text;
 
     public Response() {
     }
@@ -76,21 +92,13 @@ public class Response implements Serializable {
         return this;
     }
 
-    public Response setText(String text) {
-        this.text = text;
-        return this;
-    }
-
 
     public final boolean isSuccessful() {
         return this.status >= 200 && this.status < 300;
     }
 
     public String asText() {
-        if (StrUtil.isBlank(text)) {
-            text = new String(this.body, Charset.forName(this.charset));
-        }
-        return text;
+        return new String(this.body, Charset.forName(this.charset));
     }
 
     public Document asDocument() {

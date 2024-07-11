@@ -33,7 +33,7 @@ public class Jexl {
     }
 
     public static Object eval(String expression) {
-        MapContext ctx = new MapContext(new HashMap<>());
+        MapContext ctx = new MapContext(JexlContextHolder.getContext());
         Object result = null;
         try {
             result = ENGINE.createExpression(expression).evaluate(ctx);

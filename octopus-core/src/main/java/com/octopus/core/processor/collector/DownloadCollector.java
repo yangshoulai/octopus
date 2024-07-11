@@ -8,7 +8,6 @@ import com.octopus.core.Response;
 import com.octopus.core.exception.ProcessException;
 import com.octopus.core.processor.Collector;
 import com.octopus.core.processor.jexl.Jexl;
-import com.octopus.core.processor.jexl.JexlHelper;
 import com.octopus.core.properties.collector.CollectorTarget;
 import com.octopus.core.properties.collector.DownloaderCollectorProperties;
 import lombok.Data;
@@ -33,11 +32,10 @@ public class DownloadCollector<R> implements Collector<R> {
 
     @Override
     public void collect(R result, Response response) {
-        Map<String, Object> ctx = JexlHelper.buildContext(result, response);
-        String dir = Objects.requireNonNull(Jexl.eval(properties.getDir(), ctx)).toString();
+        String dir = Objects.requireNonNull(Jexl.eval(properties.getDir())).toString();
         String fileName = null;
         if (StrUtil.isNotBlank(properties.getName())) {
-            Object r = Jexl.eval(properties.getName(), ctx);
+            Object r = Jexl.eval(properties.getName());
             if (r != null) {
                 fileName = r.toString();
             } else {

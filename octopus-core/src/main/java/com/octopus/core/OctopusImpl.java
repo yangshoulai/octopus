@@ -17,6 +17,7 @@ import com.octopus.core.exception.ProcessorNotFoundException;
 import com.octopus.core.logging.Logger;
 import com.octopus.core.processor.Processor;
 import com.octopus.core.processor.impl.MatchableProcessor;
+import com.octopus.core.processor.jexl.JexlContextHolder;
 import com.octopus.core.replay.ReplayFilter;
 import com.octopus.core.replay.ReplayFilters;
 import com.octopus.core.store.Store;
@@ -28,6 +29,7 @@ import lombok.NonNull;
 
 import java.net.URI;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -229,6 +231,8 @@ class OctopusImpl implements Octopus {
                     this.workers.execute(
                             () -> {
                                 try {
+                                    JexlContextHolder.setContext(new HashMap<>());
+                                    JexlContextHolder.getContext().put(JexlContextHolder.KEY_REQUEST, request);
                                     if (this.logger.isDebugEnabled()) {
                                         logger.debug(String.format("Take request [%s]", request));
                                     }
@@ -249,6 +253,7 @@ class OctopusImpl implements Octopus {
                                         response = this.download(request, downloadConfig);
                                     }
                                     if (response != null) {
+                                        JexlContextHolder.getContext().put(JexlContextHolder.KEY_RESPONSE, request);
                                         this.listenerNotifier.beforeProcess(response);
                                         if (!response.isSuccessful()) {
                                             throw new BadStatusException(response);
@@ -257,7 +262,6 @@ class OctopusImpl implements Octopus {
                                             this.store.cacheResponse(response);
                                         }
                                         this.process(response);
-
                                     }
                                     this.store.markAsCompleted(request);
                                 } catch (Throwable e) {
@@ -265,6 +269,7 @@ class OctopusImpl implements Octopus {
                                     this.store.markAsFailed(request, e.getMessage());
                                     this.listenerNotifier.onError(request, e);
                                 } finally {
+                                    JexlContextHolder.clear();
                                     this.workerSemaphore.release();
                                     this.idleSignal();
                                 }

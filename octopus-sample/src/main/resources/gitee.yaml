@@ -54,7 +54,7 @@ processors:
         name: "request.params.page + '.json'"
       excel:
         append: false
-        file: "env:get('user.home') + '/Downloads/gitee.xlsx'"
+        file: "env:get('user.home') + '/Downloads/gitee.xlsx' + "
         rowJsonPath: "$.projects[*]"
         mappings:
           - jsonPath: "$.name"
