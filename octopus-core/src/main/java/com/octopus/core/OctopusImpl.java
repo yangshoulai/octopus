@@ -4,9 +4,12 @@ import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.date.TimeInterval;
 import cn.hutool.core.thread.NamedThreadFactory;
+import cn.hutool.core.thread.ThreadUtil;
 import cn.hutool.core.util.ReUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.core.util.URLUtil;
 import cn.hutool.http.Header;
+import cn.hutool.http.HttpUtil;
 import com.octopus.core.Request.Status;
 import com.octopus.core.downloader.DownloadConfig;
 import com.octopus.core.downloader.Downloader;
@@ -27,7 +30,6 @@ import io.reactivex.rxjava3.disposables.Disposable;
 import io.reactivex.rxjava3.schedulers.Schedulers;
 import lombok.NonNull;
 
-import java.net.URI;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -125,7 +127,7 @@ class OctopusImpl implements Octopus {
             }
             this.store.clear();
         }
-        if (this.seeds != null && !this.seeds.isEmpty()) {
+        if (!this.seeds.isEmpty()) {
             if (!this.ignoreSeedsWhenStoreHasRequests || this.store.getWaitingSize() == 0) {
                 this.seeds.forEach(this::addRequest);
             } else {
@@ -156,13 +158,7 @@ class OctopusImpl implements Octopus {
         }
         this.boss.shutdown();
         this.workers.shutdown();
-        this.stopRateLimiters();
-        lock.lock();
-        try {
-            this.idleCondition.signalAll();
-        } finally {
-            lock.unlock();
-        }
+        this.idleSignal();
         this.translateState(State.STOPPING, State.STOPPED);
 
         long total = this.store.getTotalSize();
@@ -185,6 +181,7 @@ class OctopusImpl implements Octopus {
 
     @Override
     public void addRequest(@NonNull Request request) throws OctopusException {
+        validateRequest(request);
         State state = this.state.get();
         if (state.getState() >= State.STOPPING.getState()) {
             throw new OctopusException("Illegal state " + this.state.get());
@@ -199,12 +196,7 @@ class OctopusImpl implements Octopus {
                 request.setStatus(Status.of(Request.State.Waiting));
                 if (this.store.put(request)) {
                     if (this.translateState(State.IDLE, State.STARTED)) {
-                        lock.lock();
-                        try {
-                            this.idleCondition.signalAll();
-                        } finally {
-                            lock.unlock();
-                        }
+                        this.idleSignal();
                     }
                 } else {
                     logger.error(String.format("Can not store request [%s]", request));
@@ -228,52 +220,7 @@ class OctopusImpl implements Octopus {
                         logger.trace(String.format("Load request [%s] from store", request));
                     }
                     this.workerSemaphore.acquire();
-                    this.workers.execute(
-                            () -> {
-                                try {
-                                    JexlContextHolder.setContext(new HashMap<>());
-                                    JexlContextHolder.getContext().put(JexlContextHolder.KEY_REQUEST, request);
-                                    if (this.logger.isDebugEnabled()) {
-                                        logger.debug(String.format("Take request [%s]", request));
-                                    }
-                                    this.listenerNotifier.beforeDownload(request);
-                                    WebSite webSite = this.getTargetWebSite(request);
-                                    DownloadConfig downloadConfig = this.globalDownloadConfig;
-                                    if (webSite != null && webSite.getRateLimiter() != null) {
-                                        webSite.getRateLimiter().acquire();
-                                    }
-                                    if (webSite != null && webSite.getDownloadConfig() != null) {
-                                        downloadConfig = webSite.getDownloadConfig();
-                                    }
-                                    Response response = null;
-                                    if (request.isCache()) {
-                                        response = this.store.getResponse(request.getId());
-                                    }
-                                    if (response == null) {
-                                        response = this.download(request, downloadConfig);
-                                    }
-                                    if (response != null) {
-                                        JexlContextHolder.getContext().put(JexlContextHolder.KEY_RESPONSE, request);
-                                        this.listenerNotifier.beforeProcess(response);
-                                        if (!response.isSuccessful()) {
-                                            throw new BadStatusException(response);
-                                        }
-                                        if (request.isCache()) {
-                                            this.store.cacheResponse(response);
-                                        }
-                                        this.process(response);
-                                    }
-                                    this.store.markAsCompleted(request);
-                                } catch (Throwable e) {
-                                    logger.error("", e);
-                                    this.store.markAsFailed(request, e.getMessage());
-                                    this.listenerNotifier.onError(request, e);
-                                } finally {
-                                    JexlContextHolder.clear();
-                                    this.workerSemaphore.release();
-                                    this.idleSignal();
-                                }
-                            });
+                    this.workers.execute(new RequestTask(request));
                 } else if (this.store.getWaitingSize() <= 0) {
                     boolean wait = true;
                     Disposable disposable = null;
@@ -291,8 +238,8 @@ class OctopusImpl implements Octopus {
                             disposable = Observable.interval(5, TimeUnit.SECONDS, Schedulers.from(this.workers))
                                     .subscribe(l -> {
                                         long waiting = this.store.getWaitingSize();
-                                        logger.info("Found " + waiting + " waiting requests");
                                         if (this.store.getWaitingSize() > 0) {
+                                            logger.info("Found " + waiting + " waiting requests");
                                             this.idleSignal();
                                         }
                                     });
@@ -374,35 +321,7 @@ class OctopusImpl implements Octopus {
                             matchedProcessors.size(), response.getRequest()));
         }
         for (Processor processor : matchedProcessors) {
-            AtomicInteger index = new AtomicInteger(0);
-            processor.process(
-                    response,
-                    new Octopus() {
-                        @Override
-                        public void start() throws OctopusException {
-                            OctopusImpl.this.start();
-                        }
-
-                        @Override
-                        public Future<Void> startAsync() throws OctopusException {
-                            return OctopusImpl.this.startAsync();
-                        }
-
-                        @Override
-                        public void stop() throws OctopusException {
-                            OctopusImpl.this.stop();
-                        }
-
-                        @Override
-                        public void addRequest(Request request) throws OctopusException {
-                            if (OctopusImpl.this.logger.isTraceEnabled()) {
-                                OctopusImpl.this.logger.trace("Found new request [" + request + "]");
-                            }
-                            request.setIndex(index.get());
-                            index.incrementAndGet();
-                            OctopusImpl.this.addNewRequests(response.getRequest(), request);
-                        }
-                    });
+            processor.process(response, new OctopusDelegate(response));
             this.listenerNotifier.afterProcess(response);
 
         }
@@ -424,36 +343,24 @@ class OctopusImpl implements Octopus {
                     });
         }
         if (!request.getHeaders().containsKey(Header.REFERER.getValue())) {
-            request
-                    .getHeaders()
-                    .put(Header.REFERER.getValue(), ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1));
+            String referer = ReUtil.get(BASE_URL_PATTERN, parentRequest.getUrl(), 1);
+            request.getHeaders().put(Header.REFERER.getValue(), referer);
         }
-        String url = request.getUrl();
-        if (!url.startsWith("http://") && !url.startsWith("https://")) {
-            URI parentUri = URLUtil.toURI(parentRequest.getUrl());
-            String schema = parentUri.getScheme();
-            String host = parentUri.getHost();
-            int port = parentUri.getPort();
-            request.setUrl(
-                    schema
-                            + "://"
-                            + host
-                            + (port < 0 ? "" : ":" + port)
-                            + (url.startsWith("/") ? url : "/" + url));
+        if (!HttpUtil.isHttp(request.getUrl()) && !HttpUtil.isHttps(request.getUrl())) {
+            request.setUrl(URLUtil.completeUrl(parentRequest.getUrl(), request.getUrl()));
         }
         request.setDepth(parentRequest.getDepth() + 1);
-        this.addRequest(request);
+        lock.lock();
+        try {
+            this.addRequest(request);
+        } finally {
+            lock.unlock();
+        }
     }
 
     private void startRateLimiters() {
         if (this.logger.isDebugEnabled()) {
             logger.debug("Start all rate limiters");
-        }
-    }
-
-    private void stopRateLimiters() {
-        if (this.logger.isDebugEnabled()) {
-            logger.debug("Stop all rate limiters");
         }
     }
 
@@ -502,6 +409,108 @@ class OctopusImpl implements Octopus {
                 TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(),
                 new NamedThreadFactory(this.name + "/worker-", false));
+    }
+
+
+    private void validateRequest(Request request) throws OctopusException {
+        if (StrUtil.isBlank(request.getUrl())) {
+            throw new OctopusException("Bad request as url is unset");
+        }
+        if (!HttpUtil.isHttp(request.getUrl()) && !HttpUtil.isHttps(request.getUrl())) {
+            throw new OctopusException("Bad request url [" + request.getUrl() + "]");
+        }
+        if (request.getMethod() == null) {
+            throw new OctopusException("Bad request as method is unset");
+        }
+    }
+
+    private class RequestTask implements Runnable {
+
+        private final Request request;
+
+        private RequestTask(Request request) {
+            this.request = request;
+        }
+
+        @Override
+        public void run() {
+            try {
+                JexlContextHolder.setContext(new HashMap<>(16));
+                JexlContextHolder.getContext().put(JexlContextHolder.KEY_REQUEST, request);
+                if (logger.isDebugEnabled()) {
+                    logger.debug(String.format("Take request [%s]", request));
+                }
+                listenerNotifier.beforeDownload(request);
+                WebSite webSite = getTargetWebSite(request);
+                DownloadConfig downloadConfig = globalDownloadConfig;
+                if (webSite != null && webSite.getRateLimiter() != null) {
+                    webSite.getRateLimiter().acquire();
+                }
+                if (webSite != null && webSite.getDownloadConfig() != null) {
+                    downloadConfig = webSite.getDownloadConfig();
+                }
+                Response response = null;
+                if (request.isCache()) {
+                    response = store.getResponse(request.getId());
+                }
+                if (response == null) {
+                    response = download(request, downloadConfig);
+                }
+                if (response != null) {
+                    JexlContextHolder.getContext().put(JexlContextHolder.KEY_RESPONSE, request);
+                    listenerNotifier.beforeProcess(response);
+                    if (!response.isSuccessful()) {
+                        throw new BadStatusException(response);
+                    }
+                    if (request.isCache()) {
+                        store.cacheResponse(response);
+                    }
+                    process(response);
+                }
+                store.markAsCompleted(request);
+            } catch (Throwable e) {
+                logger.error("", e);
+                store.markAsFailed(request, e.getMessage());
+                listenerNotifier.onError(request, e);
+            } finally {
+                JexlContextHolder.clear();
+                workerSemaphore.release();
+                idleSignal();
+            }
+        }
+    }
+
+    private class OctopusDelegate implements Octopus {
+
+        private final Response response;
+
+        private final AtomicInteger index = new AtomicInteger(0);
+
+        private OctopusDelegate(Response response) {
+            this.response = response;
+        }
+
+        @Override
+        public void start() throws OctopusException {
+            throw new OctopusException("Octopus already started");
+        }
+
+        @Override
+        public Future<Void> startAsync() throws OctopusException {
+            throw new OctopusException("Octopus already started");
+        }
+
+        @Override
+        public void stop() throws OctopusException {
+            OctopusImpl.this.stop();
+        }
+
+        @Override
+        public void addRequest(Request request) throws OctopusException {
+            request.setIndex(index.get());
+            index.incrementAndGet();
+            OctopusImpl.this.addNewRequests(response.getRequest(), request);
+        }
     }
 
 
