@@ -56,6 +56,11 @@ public class LinkProperties implements Validatable {
      */
     private boolean inherit = false;
 
+    /**
+     * 是否缓存
+     * <p>
+     * 默认 false
+     */
     private boolean cache = false;
 
     /**
@@ -71,6 +76,13 @@ public class LinkProperties implements Validatable {
      * 默认 空
      */
     private List<PropProperties> params = new ArrayList<>();
+
+    /**
+     * 请求体
+     * <p>
+     * 默认 空
+     */
+    private String body;
 
     /**
      * 请求头配置

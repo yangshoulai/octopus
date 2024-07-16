@@ -68,4 +68,12 @@ public class Matchers {
     public static Matcher contentTypeRegex(@NonNull Pattern pattern) {
         return new ContentTypeMatcher(pattern);
     }
+
+    public static Matcher attrRegex(@NonNull String attr, @NonNull Pattern pattern) {
+        return new AttrRegexMatcher(attr, pattern);
+    }
+
+    public static Matcher attrRegex(@NonNull String attr, @NonNull String regex) {
+        return new AttrRegexMatcher(attr, regex);
+    }
 }

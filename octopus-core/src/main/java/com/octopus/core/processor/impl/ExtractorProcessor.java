@@ -134,6 +134,7 @@ public class ExtractorProcessor<T> implements Processor {
             urls.addAll(selected);
         }
         for (String url : urls) {
+            JexlContextHolder.getContext().put(JexlContextHolder.KEY_LINK, url);
             if (StrUtil.isNotBlank(url)) {
                 Request request =
                         new Request(RequestHelper.completeUrl(response.getRequest().getUrl(), url), link.method())
@@ -149,6 +150,7 @@ public class ExtractorProcessor<T> implements Processor {
                 request.setCache(link.cache());
                 result.getRequests().add(request);
             }
+            JexlContextHolder.getContext().remove(JexlContextHolder.KEY_LINK);
         }
     }
 
@@ -187,6 +189,7 @@ public class ExtractorProcessor<T> implements Processor {
                 List<Object> list = new ArrayList<>();
                 Class<?> componentClass = fieldInfo.getComponentClass();
                 for (String item : selected) {
+                    JexlContextHolder.getContext().put(JexlContextHolder.KEY_SELECTED, item);
                     if (!(componentClass.isAnnotationPresent(Extractor.class))) {
                         Object obj = ConverterRegistry.getInstance().convert(item, componentClass, annotation);
                         list.add(obj);
@@ -197,6 +200,7 @@ public class ExtractorProcessor<T> implements Processor {
                         }
                         list.add(r.getObj());
                     }
+                    JexlContextHolder.getContext().remove(JexlContextHolder.KEY_SELECTED);
                 }
 
                 if (fieldInfo.isArray()) {

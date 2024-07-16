@@ -4,22 +4,25 @@ import cn.hutool.core.util.StrUtil;
 import com.octopus.core.Octopus;
 import com.octopus.core.Request;
 import com.octopus.core.Response;
-import com.octopus.core.properties.*;
-import com.octopus.core.processor.Collector;
-import com.octopus.core.processor.Converter;
-import com.octopus.core.processor.ConverterRegistry;
-import com.octopus.core.processor.Processor;
-import com.octopus.core.processor.Result;
-import com.octopus.core.processor.SelectorHelper;
+import com.octopus.core.processor.*;
+import com.octopus.core.processor.jexl.Jexl;
+import com.octopus.core.processor.jexl.JexlContextHolder;
 import com.octopus.core.processor.matcher.Matcher;
-import com.octopus.core.properties.processor.*;
+import com.octopus.core.properties.PropProperties;
+import com.octopus.core.properties.processor.ExtractorProperties;
+import com.octopus.core.properties.processor.LinkProperties;
+import com.octopus.core.properties.processor.ProcessorProperties;
 import com.octopus.core.properties.selector.ConverterProperties;
 import com.octopus.core.properties.selector.FieldProperties;
 import com.octopus.core.utils.RequestHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.InputStream;
-import java.util.*;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -47,6 +50,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
     public void process(Response response, Octopus octopus) {
         Result<Map<String, Object>> result = this.processExtractor(response.asText(), response, properties);
         result.getRequests().forEach(octopus::addRequest);
+        JexlContextHolder.getContext().put(JexlContextHolder.KEY_RESULT, result.getObj());
         if (collector != null) {
             collector.collect(result.getObj(), response);
         }
@@ -79,6 +83,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
         List<Object> list = new ArrayList<>();
         if (selected != null && !selected.isEmpty()) {
             for (String item : selected) {
+                JexlContextHolder.getContext().put(JexlContextHolder.KEY_SELECTED, item);
                 if (field.getExtractor() == null) {
                     Converter<?> converter = ConverterRegistry.getInstance().getTypeHandler(field.getType());
                     Object obj = converter.convert(item, field.getConverter() == null ? new ConverterProperties() : field.getConverter());
@@ -90,6 +95,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
                     }
                     list.add(r.getObj());
                 }
+                JexlContextHolder.getContext().remove(JexlContextHolder.KEY_SELECTED);
             }
         }
         if (field.isMulti()) {
@@ -111,6 +117,7 @@ public class ConfigurableProcessor extends MatchableProcessor {
             }
         }
         for (String url : urls) {
+            JexlContextHolder.getContext().put(JexlContextHolder.KEY_LINK, url);
             if (StrUtil.isNotBlank(url)) {
                 Request request =
                         new Request(RequestHelper.completeUrl(response.getRequest().getUrl(), url), link.getMethod())
@@ -124,14 +131,26 @@ public class ConfigurableProcessor extends MatchableProcessor {
                         .forEach(p -> request.putAttribute(p.getName(), resolveValueFromProp(content, result.getObj(), p, response)));
                 request.setInherit(link.isInherit());
                 request.setCache(link.isCache());
+                if (link.getBody() != null) {
+                    Object r = Jexl.eval(link.getBody());
+                    request.setBody(r == null ? new byte[0] : r.toString().getBytes(StandardCharsets.UTF_8));
+                }
                 result.getRequests().add(request);
             }
+            JexlContextHolder.getContext().remove(JexlContextHolder.KEY_LINK);
         }
     }
 
     private String resolveValueFromProp(String content, Map<String, Object> m, PropProperties prop, Response response) {
         String val = null;
-        if (StrUtil.isNotBlank(prop.getField()) && m.get(prop.getField()) != null) {
+        if (prop.getValue() != null) {
+            Object o = Jexl.eval(prop.getValue());
+            if (o != null) {
+                val = o.toString();
+            }
+        }
+
+        if (StrUtil.isBlank(val) && StrUtil.isNotBlank(prop.getField()) && m.get(prop.getField()) != null) {
             val = m.get(prop.getField()).toString();
         }
         if (StrUtil.isBlank(val) && prop.getSelector() != null) {

@@ -37,6 +37,13 @@ public class PropProperties implements Validatable {
      */
     private SelectorProperties selector;
 
+    /**
+     * 属性值
+     * <p>
+     * 默认 空
+     */
+    private String value;
+
     public PropProperties() {
     }
 

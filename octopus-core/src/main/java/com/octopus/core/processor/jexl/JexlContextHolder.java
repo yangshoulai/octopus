@@ -8,11 +8,15 @@ import java.util.Map;
  */
 public class JexlContextHolder {
 
-    public static final String KEY_REQUEST = "request";
+    public static final String KEY_REQUEST = "$request";
 
-    public static final String KEY_RESPONSE = "response";
+    public static final String KEY_RESPONSE = "$response";
 
-    public static final String KEY_RESULT = "result";
+    public static final String KEY_RESULT = "$result";
+
+    public static final String KEY_LINK = "$link";
+
+    public static final String KEY_SELECTED = "$selected";
 
     private static final ThreadLocal<Map<String, Object>> CONTEXT = new InheritableThreadLocal<>();
 

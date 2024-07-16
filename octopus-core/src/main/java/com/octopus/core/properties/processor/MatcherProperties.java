@@ -42,6 +42,13 @@ public class MatcherProperties implements Validatable, Transformable<Matcher> {
     private String header;
 
     /**
+     * 属性匹配器 - 属性名称
+     * <p>
+     * 默认 空
+     */
+    private String attr;
+
+    /**
      * 组合匹配器 子匹配器列表
      * <p>
      * 默认 空
@@ -73,7 +80,10 @@ public class MatcherProperties implements Validatable, Transformable<Matcher> {
         if (type == MatcherType.HeaderRegex) {
             Validator.notBlank(header, "header regex matcher header is required");
         }
-        if (type == MatcherType.ContentTypeRegex || type == MatcherType.HeaderRegex || type == MatcherType.UrlRegex) {
+        if (type == MatcherType.AttrRegex) {
+            Validator.notBlank(attr, "attr regex matcher attr is required");
+        }
+        if (type == MatcherType.ContentTypeRegex || type == MatcherType.HeaderRegex || type == MatcherType.UrlRegex || type == MatcherType.AttrRegex) {
             Validator.notBlank(regex, "regex matcher pattern is required");
         }
     }
@@ -100,6 +110,9 @@ public class MatcherProperties implements Validatable, Transformable<Matcher> {
                 break;
             case ContentTypeRegex:
                 matcher = Matchers.contentTypeRegex(regex);
+                break;
+            case AttrRegex:
+                matcher = Matchers.attrRegex(attr, regex);
                 break;
             case UrlRegex:
                 matcher = Matchers.urlRegex(regex);

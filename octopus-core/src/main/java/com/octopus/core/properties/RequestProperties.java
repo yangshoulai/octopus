@@ -7,6 +7,7 @@ package com.octopus.core.properties;
  * @date 2024/01/12
  */
 
+import cn.hutool.core.util.CharsetUtil;
 import com.octopus.core.Request;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Transformable;
@@ -83,6 +84,13 @@ public class RequestProperties implements Validatable, Transformable<Request> {
      */
     private boolean cache = false;
 
+    /**
+     * 请求体
+     * <p>
+     * UTF-8编码
+     */
+    private String body;
+
     public RequestProperties() {
 
     }
@@ -113,6 +121,7 @@ public class RequestProperties implements Validatable, Transformable<Request> {
         r.setInherit(inherit);
         r.setRepeatable(repeatable);
         r.setCache(cache);
+        r.setBody(body == null ? null : body.getBytes(CharsetUtil.CHARSET_UTF_8));
         return r;
     }
 }

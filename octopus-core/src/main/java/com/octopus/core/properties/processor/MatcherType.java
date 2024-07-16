@@ -24,6 +24,11 @@ public enum MatcherType {
     ContentTypeRegex,
 
     /**
+     * 基于属性的正则匹配器
+     */
+    AttrRegex,
+
+    /**
      * 匹配所有请求
      */
     All,
