@@ -221,6 +221,7 @@ public class GiteeProject2 {
 
 ```
 
+
 ## <a name="jexl">JEXL 表达式</a>
 
 ### 函数
@@ -234,11 +235,14 @@ public class GiteeProject2 {
 
 ### 变量
 
-| 变量名       | 说明     | 示例                                                      |
-| ------------ | -------- | --------------------------------------------------------- |
-| **request**  | 请求内容 | `request.attrs.name`  获取请求属性 **name**               |
-| **response** | 响应内容 | `response.headers.Content-Type` 获取响应头 `Content-Type` |
-| **result**   | 提取内容 | `result.name` 获取提取内容 **name** 字段                  |
+| 变量名        | 说明               | 示例                                                      |
+| ------------- | ------------------ | --------------------------------------------------------- |
+| **$request**  | 请求内容           | `request.attrs.name`  获取请求属性 **name**               |
+| **$response** | 响应内容           | `response.headers.Content-Type` 获取响应头 `Content-Type` |
+| **$result**   | 提取内容           | `result.name` 获取提取内容 **name** 字段                  |
+| **$selected** | 当前选择的字段内容 |                                                           |
+| **$link**     | 当前选择的链接     |                                                           |
+|               |                    |                                                           |
 
 
 
@@ -262,15 +266,15 @@ public class GiteeProject2 {
 
 降噪器配置
 
-| 属性          | 类型          | 必填 | 默认值                              | 说明               |
-| ------------- | ------------- | ---- | ----------------------------------- | ------------------ |
-| **trim**      | **Boolean**   | 否   | `true`                              | 是否去除前后空格   |
-| **filter**    | **Boolean**   | 否   | `true`                              | 是否过滤空内容     |
-| **split**     | **Boolean**   | 否   | `false`                             | 是否分割           |
-| **separator** | **String**    | 否   | ；\|;\|，\|,\|#\| \|、\|/\|\\\\|\\| | 分隔符             |
-| **groups**    | **Integer[]** | 否   | `[]`                                | 正则表达式匹配的组 |
-| **format**    | **String**    | 否   | `%s`                                | 字符串格式化       |
-| **regex**     | **String**    | 否   |                                     | 正则表达式提取     |
+| 属性          | 类型          | 必填 | 默认值                          | 说明               |
+| ------------- | ------------- | ---- | ------------------------------- | ------------------ |
+| **trim**      | **Boolean**   | 否   | `true`                          | 是否去除前后空格   |
+| **filter**    | **Boolean**   | 否   | `true`                          | 是否过滤空内容     |
+| **split**     | **Boolean**   | 否   | `false`                         | 是否分割           |
+| **separator** | **String**    | 否   | ；\|;\|，\|,\|#\| \|、\|/\|\\\\ | \\                 |
+| **groups**    | **Integer[]** | 否   | `[]`                            | 正则表达式匹配的组 |
+| **format**    | **String**    | 否   | `%s`                            | 字符串格式化       |
+| **regex**     | **String**    | 否   |                                 | 正则表达式提取     |
 
 
 
@@ -414,11 +418,11 @@ public class GiteeProject2 {
 
 固定值选择器
 
-| 属性             | 类型                      | 必填 | 默认值         | 说明       |
-| ---------------- | ------------------------- | ---- | -------------- | ---------- |
-| **denoiser**     | **[Denoiser](#Denoiser)** | 否   | 默认降噪器配置 | 降噪器配置 |
-| **defaultValue** | **String**                | 否   |                | 默认值     |
-| **value**        | **String**                | 否   |                | 固定值     |
+| 属性             | 类型                      | 必填 | 默认值           | 说明       |
+| ---------------- | ------------------------- | ---- | ---------------- | ---------- |
+| **denoiser**     | **[Denoiser](#Denoiser)** | 否   | `默认降噪器配置` | 降噪器配置 |
+| **defaultValue** | **String**                | 否   |                  | 默认值     |
+| **value**        | **String**                | 否   |                  | 固定值     |
 
 
 
@@ -530,6 +534,7 @@ public class GiteeProject2 {
 | **attributes** | **Map<String, String>** | 否   |         | 请求属性                      |
 | **inherit**    | **Boolean**             | 否   | `false` | 是否继承父请求的属性          |
 | **cache**      | **Boolean**             | 否   | `false` | 是否缓存                      |
+| **body**       | **String**              | 否   |         | 请求体                        |
 
 
 
@@ -635,7 +640,8 @@ MongDB 存储器
 | ------------ | ------------------------- | ---- | ------ | ------------------------------------------------------------ |
 | **type**     | **String**                | 是   |        | 匹配器类型，参考下面匹配器类型列表                           |
 | **regex**    | **String**                | 否   |        | 正则表达式，适用于 `ContentTypeRegex` `HeaderRegex` `UrlRegex` 匹配器类型 |
-| **header**   | **String**                | 否   |        | 响应投名称，适用于 `HeaderRegex` 匹配器类型                  |
+| **header**   | **String**                | 否   |        | 响应头名称，适用于 `HeaderRegex` 匹配器类型                  |
+| **attr**     | **String**                | 否   |        | 属性名称，适用于 AttrRegex` 匹配器类型                       |
 | **children** | **[Matcher[]](#Matcher)** | 否   |        | 子匹配器列表，使用于`And`，`Or`，`Not` 等组合类型的匹配器，`Not`匹配器只能含有一个子匹配器 |
 
 
@@ -647,6 +653,7 @@ MongDB 存储器
 | **UrlRegex**         | 基于 URL 的正则匹配器                                        |      |
 | **HeaderRegex**      | 基于响应头的正则匹配器                                       |      |
 | **ContentTypeRegex** | 基于响应内容格式的正则匹配器                                 |      |
+| **AttrRegex**        | 基于请求属性的正则匹配器                                     |      |
 | **All**              | 匹配所有请求                                                 |      |
 | **Json**             | JSON 类型匹配器                                              |      |
 | **Html**             | Html 类型匹配器                                              |      |
@@ -694,18 +701,19 @@ MongDB 存储器
 
 `url` 和 `selector` 必须至少提供一个
 
-| 属性           | 类型                            | 必填 | 默认值  | 说明                        |
-| -------------- | ------------------------------- | ---- | ------- | --------------------------- |
-| **url**        | **String**                      | 否   |         | 固定链接                    |
-| **selector**   | **[Selector](#Selector)**       | 否   |         | 链接选择器                  |
-| **priority**   | **Integer**                     | 否   | `0`     | 优先级                      |
-| **repeatable** | **Boolean**                     | 否   | `true`  | 是否可重复                  |
-| **inherit**    | **Boolean**                     | 否   | `false` | 是否继承父类配置            |
-| **cache**      | **Boolean**                     | 否   | `false` | 是否缓存                    |
-| **method**     | **String**                      | 否   | `GET`   | 请求方法，支持`GET`和`POST` |
-| **params**     | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 查询参数                    |
-| **headers**    | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 请求头列表                  |
-| **attrs**      | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 请求属性                    |
+| 属性           | 类型                            | 必填 | 默认值  | 说明                                  |
+| -------------- | ------------------------------- | ---- | ------- | ------------------------------------- |
+| **url**        | **String**                      | 否   |         | 固定链接                              |
+| **selector**   | **[Selector](#Selector)**       | 否   |         | 链接选择器                            |
+| **priority**   | **Integer**                     | 否   | `0`     | 优先级                                |
+| **repeatable** | **Boolean**                     | 否   | `true`  | 是否可重复                            |
+| **inherit**    | **Boolean**                     | 否   | `false` | 是否继承父类配置                      |
+| **cache**      | **Boolean**                     | 否   | `false` | 是否缓存                              |
+| **method**     | **String**                      | 否   | `GET`   | 请求方法，支持`GET`和`POST`           |
+| **params**     | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 查询参数                              |
+| **headers**    | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 请求头列表                            |
+| **attrs**      | **[KVSelector[]](#KVSelector)** | 否   | `[]`    | 请求属性                              |
+| **body**       | **String**                      | 否   |         | 请求体，支持 **[Jexl](#Jexl)** 表达式 |
 
 
 
@@ -720,6 +728,7 @@ MongDB 存储器
 | **name**     | **String**                | 是   |        | 键名称，请求查询参数、请求属性或者请求头的名称 |
 | **filed**    | **String**                | 否   |        | 字段名，值来源于提取内容的字段                 |
 | **selector** | **[Selector](#Selector)** | 否   |        | 选择器，值来源于选择器                         |
+| **value**    | **String**                | 否   |        | 自定义值，支持 **[Jexl](#Jexl)** 表达式        |
 
 
 
