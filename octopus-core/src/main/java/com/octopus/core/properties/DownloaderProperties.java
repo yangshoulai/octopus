@@ -1,9 +1,15 @@
 package com.octopus.core.properties;
 
+import cn.hutool.core.util.ClassUtil;
+import com.octopus.core.downloader.AbstractCustomDownloader;
+import com.octopus.core.downloader.HttpClientDownloader;
+import com.octopus.core.downloader.OkHttpDownloader;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+
+import java.util.Properties;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -13,18 +19,38 @@ import lombok.EqualsAndHashCode;
 @Data
 public class DownloaderProperties extends DownloadProperties {
 
-    private DownloaderType type = DownloaderType.OkHttp;
+    private String type = HttpClientDownloader.class.getName();
+
+    private Properties conf;
 
     public DownloaderProperties() {
     }
 
-    public DownloaderProperties(DownloaderType type) {
-        this.type = type;
+
+    public DownloaderProperties(String type) {
+        if (DownloaderType.OkHttp.name().equalsIgnoreCase(type)) {
+            this.type = OkHttpDownloader.class.getName();
+        } else if (DownloaderType.HttpClient.name().equalsIgnoreCase(type)) {
+            this.type = HttpClientDownloader.class.getName();
+        } else {
+            this.type = type;
+        }
     }
 
     @Override
     public void validate() throws ValidateException {
         super.validate();
         Validator.notEmpty(type, "downloader type is required");
+        try {
+            Class<?> cls = ClassUtil.loadClass(this.type);
+            if (!AbstractCustomDownloader.class.isAssignableFrom(cls)) {
+                throw new ValidateException("class [" + this.type + "] must extends AbstractCustomDownloader");
+            }
+            if (ClassUtil.isAbstract(cls)) {
+                throw new ValidateException("class [" + this.type + "] must not be abstract");
+            }
+        } catch (Exception e) {
+            throw new ValidateException("can not load downloader [" + this.type + "]");
+        }
     }
 }

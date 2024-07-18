@@ -14,16 +14,22 @@ import okhttp3.*;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Map;
+import java.util.Properties;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/24
  */
-public class OkHttpDownloader extends AbstractDownloader {
+public class OkHttpDownloader extends AbstractCustomDownloader {
     private final ConnectionPool connectionPool;
 
     public OkHttpDownloader() {
+        this(null);
+    }
+
+    public OkHttpDownloader(Properties conf) {
+        super(conf);
         this.connectionPool = new ConnectionPool();
     }
 

@@ -47,20 +47,22 @@ import javax.net.ssl.SSLContext;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.charset.Charset;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Stream;
 
 /**
  * @author shoulai.yang@gmail.com
  * @date 2021/11/22
  */
-public class HttpClientDownloader extends AbstractDownloader {
+public class HttpClientDownloader extends AbstractCustomDownloader {
     private PoolingHttpClientConnectionManager connectionManager;
 
     public HttpClientDownloader() {
+        this(null);
+    }
+
+    public HttpClientDownloader(Properties conf) {
+        super(conf);
         this.init();
     }
 

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * @author shoulai.yang@gmail.com
@@ -106,7 +107,18 @@ public class OctopusBuilder {
      * @see com.octopus.core.downloader.HttpClientDownloader
      */
     public OctopusBuilder useHttpClientDownloader() {
-        this.downloader = new HttpClientDownloader();
+        return this.useHttpClientDownloader(null);
+    }
+
+    /**
+     * 使用 HttpClientDownloader
+     *
+     * @param conf 配置
+     * @return OctopusBuilder
+     * @see com.octopus.core.downloader.HttpClientDownloader
+     */
+    public OctopusBuilder useHttpClientDownloader(Properties conf) {
+        this.downloader = new HttpClientDownloader(conf);
         return this;
     }
 
@@ -117,7 +129,18 @@ public class OctopusBuilder {
      * @see com.octopus.core.downloader.OkHttpDownloader
      */
     public OctopusBuilder useOkHttpDownloader() {
-        this.downloader = new OkHttpDownloader();
+        return this.useOkHttpDownloader(null);
+    }
+
+    /**
+     * 使用 OkHttpDownloader
+     *
+     * @param conf 配置
+     * @return OctopusBuilder
+     * @see com.octopus.core.downloader.OkHttpDownloader
+     */
+    public OctopusBuilder useOkHttpDownloader(Properties conf) {
+        this.downloader = new OkHttpDownloader(conf);
         return this;
     }
 

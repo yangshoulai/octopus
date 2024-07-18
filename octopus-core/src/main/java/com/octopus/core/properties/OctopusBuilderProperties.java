@@ -1,7 +1,10 @@
 package com.octopus.core.properties;
 
+import cn.hutool.core.util.ClassUtil;
+import cn.hutool.core.util.ReflectUtil;
 import cn.hutool.setting.yaml.YamlUtil;
 import com.octopus.core.OctopusBuilder;
+import com.octopus.core.downloader.AbstractCustomDownloader;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.properties.processor.ProcessorProperties;
 import com.octopus.core.properties.store.StoreProperties;
@@ -174,11 +177,10 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
                 builder.addSeeds(seed.transform());
             }
         }
-        if (downloader.getType() == DownloaderType.OkHttp) {
-            builder.useOkHttpDownloader();
-        } else {
-            builder.useHttpClientDownloader();
-        }
+
+        Class<? extends AbstractCustomDownloader> downloaderClass = ClassUtil.loadClass(downloader.getType());
+        builder.setDownloader(ReflectUtil.newInstance(downloaderClass, downloader.getConf()));
+
         builder.setGlobalDownloadConfig(downloader.transform());
         builder.setStore(store.transform());
         if (processors != null) {
