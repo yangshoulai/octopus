@@ -2,6 +2,7 @@ package com.octopus.core.properties.collector;
 
 import cn.hutool.core.util.ClassUtil;
 import com.octopus.core.exception.ValidateException;
+import com.octopus.core.processor.collector.AbstractCustomCollector;
 import com.octopus.core.processor.impl.AbstractCustomProcessor;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
@@ -32,8 +33,8 @@ public class CustomCollectorProperties implements Validatable {
         Validator.notBlank(collector, "custom collector class is required");
         try {
             Class<?> cls = ClassUtil.loadClass(collector);
-            if (!AbstractCustomProcessor.class.isAssignableFrom(cls)) {
-                throw new ValidateException("class [" + collector + "] must extends AbstractCustomProcessor");
+            if (!AbstractCustomCollector.class.isAssignableFrom(cls)) {
+                throw new ValidateException("class [" + collector + "] must extends AbstractCustomCollector");
             }
             if (ClassUtil.isAbstract(cls)) {
                 throw new ValidateException("class [" + collector + "] must not be abstract");
