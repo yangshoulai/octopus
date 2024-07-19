@@ -26,23 +26,22 @@ public class DownloaderProperties extends DownloadProperties {
     public DownloaderProperties() {
     }
 
-
-    public DownloaderProperties(String type) {
+    public String resolveDownloaderClass() {
         if (DownloaderType.OkHttp.name().equalsIgnoreCase(type)) {
-            this.type = OkHttpDownloader.class.getName();
+            return OkHttpDownloader.class.getName();
         } else if (DownloaderType.HttpClient.name().equalsIgnoreCase(type)) {
-            this.type = HttpClientDownloader.class.getName();
-        } else {
-            this.type = type;
+            return HttpClientDownloader.class.getName();
         }
+        return type;
     }
 
     @Override
     public void validate() throws ValidateException {
         super.validate();
         Validator.notEmpty(type, "downloader type is required");
+        String clz = resolveDownloaderClass();
         try {
-            Class<?> cls = ClassUtil.loadClass(this.type);
+            Class<?> cls = ClassUtil.loadClass(clz);
             if (!AbstractCustomDownloader.class.isAssignableFrom(cls)) {
                 throw new ValidateException("class [" + this.type + "] must extends AbstractCustomDownloader");
             }

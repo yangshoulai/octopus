@@ -178,7 +178,7 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
             }
         }
 
-        Class<? extends AbstractCustomDownloader> downloaderClass = ClassUtil.loadClass(downloader.getType());
+        Class<? extends AbstractCustomDownloader> downloaderClass = ClassUtil.loadClass(downloader.resolveDownloaderClass());
         builder.setDownloader(ReflectUtil.newInstance(downloaderClass, downloader.getConf()));
 
         builder.setGlobalDownloadConfig(downloader.transform());
