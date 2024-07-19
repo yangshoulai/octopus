@@ -16,6 +16,7 @@ import lombok.Data;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 /**
  * 收集器配置
@@ -60,7 +61,12 @@ public class CollectorProperties implements Validatable, Transformable<Collector
         }
         if (this.custom != null) {
             Class<? extends AbstractCustomCollector> cls = ClassUtil.loadClass(custom.getCollector());
-            AbstractCustomCollector collector = ReflectUtil.newInstance(cls, custom.getConf());
+            AbstractCustomCollector collector = null;
+            try {
+                collector = ReflectUtil.getConstructor(cls, Properties.class).newInstance(custom.getConf());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
             collectors.add(collector);
         }
         return (result, response) -> {

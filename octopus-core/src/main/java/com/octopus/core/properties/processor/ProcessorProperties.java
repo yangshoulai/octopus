@@ -19,6 +19,7 @@ import lombok.Data;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Properties;
 
 /**
  * 处理器配置
@@ -101,7 +102,11 @@ public class ProcessorProperties implements Validatable, Transformable<Processor
         if (custom != null) {
             logger.info("Custom processor " + custom.getProcessor() + " found, ignore other extractor conf");
             Class<? extends AbstractCustomProcessor> cls = ClassUtil.loadClass(custom.getProcessor());
-            return ReflectUtil.newInstance(cls, matcher.transform(), custom.getConf());
+            try {
+                return ReflectUtil.getConstructor(cls, Properties.class).newInstance(custom.getConf());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } else {
             return new ConfigurableProcessor(matcher.transform(), extractor, collector == null ? null : collector.transform());
         }

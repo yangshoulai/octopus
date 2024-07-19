@@ -12,6 +12,9 @@ import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
 import lombok.Data;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.Properties;
+
 /**
  * 请求存储器配置
  * <p>
@@ -58,7 +61,11 @@ public class StoreProperties implements Validatable, Transformable<Store> {
         Store store = null;
         if (this.custom != null) {
             Class<? extends AbstractCustomStore> cls = ClassUtil.loadClass(custom.getStore());
-            store = ReflectUtil.newInstance(cls, custom.getConf());
+            try {
+                store = ReflectUtil.getConstructor(cls, Properties.class).newInstance(custom.getConf());
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         } else if (this.redis != null) {
             store = this.redis.transform();
         } else if (this.mongo != null) {

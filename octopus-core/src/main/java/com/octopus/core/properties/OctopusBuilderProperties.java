@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 
 /**
  * Octopus 爬虫配置
@@ -179,8 +180,11 @@ public class OctopusBuilderProperties implements Validatable, Transformable<Octo
         }
 
         Class<? extends AbstractCustomDownloader> downloaderClass = ClassUtil.loadClass(downloader.resolveDownloaderClass());
-        builder.setDownloader(ReflectUtil.newInstance(downloaderClass, downloader.getConf()));
-
+        try {
+            builder.setDownloader(ReflectUtil.getConstructor(downloaderClass, Properties.class).newInstance(downloader.getConf()));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         builder.setGlobalDownloadConfig(downloader.transform());
         builder.setStore(store.transform());
         if (processors != null) {
