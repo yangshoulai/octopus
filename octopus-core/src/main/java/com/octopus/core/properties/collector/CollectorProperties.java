@@ -4,10 +4,7 @@ import cn.hutool.core.util.ClassUtil;
 import cn.hutool.core.util.ReflectUtil;
 import com.octopus.core.exception.ValidateException;
 import com.octopus.core.processor.Collector;
-import com.octopus.core.processor.collector.AbstractCustomCollector;
-import com.octopus.core.processor.collector.DownloadCollector;
-import com.octopus.core.processor.collector.ExcelCollector;
-import com.octopus.core.processor.collector.LoggingCollector;
+import com.octopus.core.processor.collector.*;
 import com.octopus.core.utils.Transformable;
 import com.octopus.core.utils.Validatable;
 import com.octopus.core.utils.Validator;
@@ -33,6 +30,8 @@ public class CollectorProperties implements Validatable, Transformable<Collector
 
     private ExcelCollectorProperties excel;
 
+    private MongodbCollectorProperties mongodb;
+
     private CustomCollectorProperties custom;
 
 
@@ -44,6 +43,7 @@ public class CollectorProperties implements Validatable, Transformable<Collector
         Validator.validateWhenNotNull(logging);
         Validator.validateWhenNotNull(download);
         Validator.validateWhenNotNull(excel);
+        Validator.validateWhenNotNull(mongodb);
         Validator.validateWhenNotNull(custom);
     }
 
@@ -58,6 +58,9 @@ public class CollectorProperties implements Validatable, Transformable<Collector
         }
         if (this.excel != null) {
             collectors.add(new ExcelCollector(this.excel));
+        }
+        if (this.mongodb != null) {
+            collectors.add(new MongodbCollector<>(this.mongodb));
         }
         if (this.custom != null) {
             Class<? extends AbstractCustomCollector> cls = ClassUtil.loadClass(custom.getCollector());

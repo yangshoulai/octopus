@@ -221,7 +221,6 @@ public class GiteeProject2 {
 
 ```
 
-
 ## <a name="jexl">JEXL 表达式</a>
 
 ### 函数
@@ -766,12 +765,13 @@ MongDB 存储器
 
 提取内容收集器
 
-| 属性         | 类型                                        | 必填 | 默认值 | 说明         |
-| ------------ | ------------------------------------------- | ---- | ------ | ------------ |
-| **logging**  | **[LoggingCollector](#LoggingCollector)**   | 否   |        | 日志搜集器   |
-| **download** | **[DownloadCollector](#DownloadCollector)** | 否   |        | 下载搜集器   |
-| **excel**    | **[ExcelCollector](#ExcelCollector)**       | 否   |        | Excel搜集器  |
-| **custom**   | **[CustomCollector](#CustomCollector)**     | 否   |        | 自定义搜集器 |
+| 属性         | 类型                                        | 必填 | 默认值 | 说明          |
+| ------------ | ------------------------------------------- | ---- | ------ | ------------- |
+| **logging**  | **[LoggingCollector](#LoggingCollector)**   | 否   |        | 日志搜集器    |
+| **download** | **[DownloadCollector](#DownloadCollector)** | 否   |        | 下载搜集器    |
+| **excel**    | **[ExcelCollector](#ExcelCollector)**       | 否   |        | Excel搜集器   |
+| **mongodb**  | **[MongodbCollector](#MongodbCollector)**   | 否   |        | Mongodb搜集器 |
+| **custom**   | **[CustomCollector](#CustomCollector)**     | 否   |        | 自定义搜集器  |
 
 
 
@@ -808,6 +808,19 @@ Excel搜集器
 | **file**     | **String**                        | 否   |        | Excel文件路径，支持 **[Jexl](#Jexl)** 表达式 |
 | **append**   | **Boolean**                       | 否   | `true` | 是否追加内容                                 |
 | **mappings** | **[ExcelColumn[]](#ExcelColumn)** | 否   |        | Excel列映射                                  |
+
+
+
+##### <a name="MongodbCollector">MongodbCollector</a>
+
+Excel搜集器
+
+| 属性            | 类型       | 必填 | 默认值 | 说明            |
+| --------------- | ---------- | ---- | ------ | --------------- |
+| **url**         | **String** | 是   |        | mongodb 链接    |
+| **database**    | **String** | 是   | `true` | 数据库名称      |
+| **collection**  | **String** | 是   |        | 表名称          |
+| **idFieldName** | **String** | 是   |        | `ID` 列字段名称 |
 
 
 
