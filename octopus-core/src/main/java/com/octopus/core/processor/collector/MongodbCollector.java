@@ -36,7 +36,11 @@ public class MongodbCollector<R> implements Collector<R> {
     @Override
     public void collect(R result, Response response) {
         Document document = Document.parse(JSONUtil.toJsonStr(result));
-        String id = document.get(properties.getIdFieldName(), String.class);
+        String id = null;
+        if (StrUtil.isNotBlank(properties.getIdFieldName())) {
+            id = document.get(properties.getIdFieldName(), "");
+        }
+
         if (StrUtil.isBlank(id)) {
             throw new OctopusException("id not found on result [" + result.getClass().getName() + "]");
         }
