@@ -26,4 +26,4 @@ else
   JAVA="java"
 fi
 
-$JAVA -DAPP_HOME="$APP_HOME" $JVM_OPTS -classpath "$CLASSPATH" $MAIN_CLASS "$APP_HOME" "$@"
+nohuo $JAVA -DAPP_HOME="$APP_HOME" $JVM_OPTS -classpath "$CLASSPATH" $MAIN_CLASS "$APP_HOME" "$@" > $APP_HOME/logs/octopus.log 2>&1 &
