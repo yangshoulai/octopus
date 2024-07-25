@@ -53,6 +53,14 @@
         </fileSet>
 
         <fileSet>
+            <directory>${project.basedir}/bin</directory>
+            <outputDirectory>logs</outputDirectory>
+            <excludes>
+                <exclude>**/*</exclude>
+            </excludes>
+        </fileSet>
+
+        <fileSet>
             <directory>${project.basedir}</directory>
             <includes>
                 <include>README.md</include>
