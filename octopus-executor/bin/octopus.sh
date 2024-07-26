@@ -22,6 +22,14 @@ fi
 
 site=$(basename "$1" | cut -d. -f1)
 
+if [[ -e "${APP_HOME}/logs/$site.pid" ]]; then
+  pid=$(cat "${APP_HOME}/logs/$site.pid")
+  if [[ -e "/proc/$pid" ]]; then
+    echo "Site $site is running, pid=$pid"
+    exit 1
+  fi
+fi
+
 CLASSPATH="$APP_HOME/conf"
 for i in "$APP_HOME"/lib/*.jar; do
    CLASSPATH="$CLASSPATH":"$i"
@@ -34,3 +42,7 @@ else
 fi
 
 nohup $JAVA -DAPP_HOME="$APP_HOME" $JVM_OPTS -classpath "$CLASSPATH" $MAIN_CLASS "$APP_HOME" "$1" > $APP_HOME/logs/$site.log 2>&1 &
+
+pid=$!
+
+echo $pid > $APP_HOME/logs/$site.pid
